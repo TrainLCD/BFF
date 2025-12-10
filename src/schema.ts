@@ -64,8 +64,8 @@ type Query {
 	linesByName(name: String!, limit: Int): [Line!]!
 	lineStations(lineId: Int!, stationId: Int): [Station!]!
 	stationTrainTypes(stationId: Int!): [TrainType!]!
-	routes(fromStationGroupId: Int!, toStationGroupId: Int!, pageSize: Int, pageToken: String): RoutePage!
-	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, pageSize: Int, pageToken: String): RouteTypePage!
+	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
+	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!
 	connectedRoutes(fromStationGroupId: Int!, toStationGroupId: Int!): [Route!]!
 }
 

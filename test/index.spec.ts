@@ -250,10 +250,11 @@ describe('GraphQL gateway', () => {
 			);
 
 	const query = `
-		query Routes($from: Int!, $to: Int!, $size: Int, $token: String) {
+		query Routes($from: Int!, $to: Int!, $viaLineId: Int, $size: Int, $token: String) {
 			routes(
 				fromStationGroupId: $from
 				toStationGroupId: $to
+				viaLineId: $viaLineId
 				pageSize: $size
 				pageToken: $token
 			) {
@@ -265,7 +266,7 @@ describe('GraphQL gateway', () => {
 			}
 		`;
 
-	const variables = { from: 1, to: 2, size: 10, token: 'abc' };
+	const variables = { from: 1, to: 2, viaLineId: 3, size: 10, token: 'abc' };
 		const request = graphqlRequest(query, variables);
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
@@ -275,17 +276,68 @@ describe('GraphQL gateway', () => {
 		const [upstreamUrl, init] = fetchMock.mock.calls[0];
 		expect(upstreamUrl).toBe('https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetRoutesMinimal');
 		const bodyInit = init?.body;
-		const grpcRequestBody = decodeRequestPayload(bodyInit as Uint8Array, grpc.GetRouteRequest);
+	const grpcRequestBody = decodeRequestPayload(bodyInit as Uint8Array, grpc.GetRouteRequest);
+	expect(grpcRequestBody).toEqual({
+		fromStationGroupId: 1,
+		toStationGroupId: 2,
+		viaLineId: 3,
+		pageSize: 10,
+		pageToken: 'abc',
+	});
+
+	const result = await response.json() as GraphQLResponse<{ routes: RoutesPageData }>;
+	expect(result.data?.routes.routes).toHaveLength(1);
+	expect(result.data?.routes.nextPageToken).toBe('token');
+	});
+
+	it('passes viaLineId through routeTypes query', async () => {
+		const fetchMock = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.RouteTypeResponse, {
+					trainTypes: [{ id: 7 }],
+					nextPageToken: 'next',
+				}),
+			);
+
+		const query = `
+			query RouteTypes($from: Int!, $to: Int!, $viaLineId: Int, $size: Int, $token: String) {
+				routeTypes(
+					fromStationGroupId: $from
+					toStationGroupId: $to
+					viaLineId: $viaLineId
+					pageSize: $size
+					pageToken: $token
+				) {
+					trainTypes {
+						id
+					}
+					nextPageToken
+				}
+			}
+		`;
+
+		const variables = { from: 1, to: 2, viaLineId: 5, size: 15, token: 'tok' };
+		const request = graphqlRequest(query, variables);
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		const [upstreamUrl, init] = fetchMock.mock.calls[0];
+		expect(upstreamUrl).toBe('https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetRouteTypes');
+		const grpcRequestBody = decodeRequestPayload(init?.body as Uint8Array, grpc.GetRouteRequest);
 		expect(grpcRequestBody).toEqual({
 			fromStationGroupId: 1,
 			toStationGroupId: 2,
-			pageSize: 10,
-			pageToken: 'abc',
+			viaLineId: 5,
+			pageSize: 15,
+			pageToken: 'tok',
 		});
 
-		const result = await response.json() as GraphQLResponse<{ routes: RoutesPageData }>;
-		expect(result.data?.routes.routes).toHaveLength(1);
-		expect(result.data?.routes.nextPageToken).toBe('token');
+		const result = await response.json() as GraphQLResponse<{ routeTypes: { trainTypes: Array<{ id: number }>; nextPageToken: string } }>;
+		expect(result.data?.routeTypes.trainTypes).toEqual([{ id: 7 }]);
+		expect(result.data?.routeTypes.nextPageToken).toBe('next');
 	});
 
 	it('reconstructs full stations from minimal route response with complete line details', async () => {

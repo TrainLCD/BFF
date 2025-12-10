@@ -243,24 +243,26 @@ function createResolvers(client: GrpcClient) {
 			);
 			return payload.trainTypes ?? [];
 		},
-		routes: async ({
-			fromStationGroupId,
-			toStationGroupId,
-			pageSize,
-			pageToken,
-		}: {
-			fromStationGroupId: number;
-			toStationGroupId: number;
-			pageSize?: number;
-			pageToken?: string;
-		}) => {
-			const effectivePageSize = pageSize ?? 50;
-			const payload = await client.call(
-				'GetRoutesMinimal',
-				grpcTypes.GetRouteRequest,
-				grpcTypes.RouteMinimalResponse,
-				cleanPayload({ fromStationGroupId, toStationGroupId, pageSize: effectivePageSize, pageToken })
-			);
+	routes: async ({
+		fromStationGroupId,
+		toStationGroupId,
+		viaLineId,
+		pageSize,
+		pageToken,
+	}: {
+		fromStationGroupId: number;
+		toStationGroupId: number;
+		viaLineId?: number;
+		pageSize?: number;
+		pageToken?: string;
+	}) => {
+		const effectivePageSize = pageSize ?? 50;
+		const payload = await client.call(
+			'GetRoutesMinimal',
+			grpcTypes.GetRouteRequest,
+			grpcTypes.RouteMinimalResponse,
+			cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize: effectivePageSize, pageToken })
+		);
 
 			// Fetch train types for stations that have them
 			const fullTrainTypeMap = await fetchFullTrainTypes(client, payload);
@@ -273,23 +275,25 @@ function createResolvers(client: GrpcClient) {
 				nextPageToken: payload.nextPageToken ?? null,
 			};
 		},
-		routeTypes: async ({
-			fromStationGroupId,
-			toStationGroupId,
-			pageSize,
-			pageToken,
-		}: {
-			fromStationGroupId: number;
-			toStationGroupId: number;
-			pageSize?: number;
-			pageToken?: string;
-		}) => {
-			const payload = await client.call(
-				'GetRouteTypes',
-				grpcTypes.GetRouteRequest,
-				grpcTypes.RouteTypeResponse,
-				cleanPayload({ fromStationGroupId, toStationGroupId, pageSize, pageToken })
-			);
+	routeTypes: async ({
+		fromStationGroupId,
+		toStationGroupId,
+		viaLineId,
+		pageSize,
+		pageToken,
+	}: {
+		fromStationGroupId: number;
+		toStationGroupId: number;
+		viaLineId?: number;
+		pageSize?: number;
+		pageToken?: string;
+	}) => {
+		const payload = await client.call(
+			'GetRouteTypes',
+			grpcTypes.GetRouteRequest,
+			grpcTypes.RouteTypeResponse,
+			cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize, pageToken })
+		);
 			return {
 				trainTypes: payload.trainTypes ?? [],
 				nextPageToken: payload.nextPageToken ?? null,
