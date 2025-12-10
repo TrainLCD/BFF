@@ -2016,6 +2016,7 @@ export const app = $root.app = (() => {
                  * @property {number|null} [toStationGroupId] GetRouteRequest toStationGroupId
                  * @property {number|null} [pageSize] GetRouteRequest pageSize
                  * @property {string|null} [pageToken] GetRouteRequest pageToken
+                 * @property {number|null} [viaLineId] GetRouteRequest viaLineId
                  */
 
                 /**
@@ -2066,6 +2067,28 @@ export const app = $root.app = (() => {
                 GetRouteRequest.prototype.pageToken = "";
 
                 /**
+                 * GetRouteRequest viaLineId.
+                 * @member {number|null|undefined} viaLineId
+                 * @memberof app.trainlcd.grpc.GetRouteRequest
+                 * @instance
+                 */
+                GetRouteRequest.prototype.viaLineId = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetRouteRequest _viaLineId.
+                 * @member {"viaLineId"|undefined} _viaLineId
+                 * @memberof app.trainlcd.grpc.GetRouteRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetRouteRequest.prototype, "_viaLineId", {
+                    get: $util.oneOfGetter($oneOfFields = ["viaLineId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
                  * Creates a new GetRouteRequest instance using the specified properties.
                  * @function create
                  * @memberof app.trainlcd.grpc.GetRouteRequest
@@ -2097,6 +2120,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.pageSize);
                     if (message.pageToken != null && Object.hasOwnProperty.call(message, "pageToken"))
                         writer.uint32(/* id 4, wireType 2 =*/34).string(message.pageToken);
+                    if (message.viaLineId != null && Object.hasOwnProperty.call(message, "viaLineId"))
+                        writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.viaLineId);
                     return writer;
                 };
 
@@ -2149,6 +2174,10 @@ export const app = $root.app = (() => {
                                 message.pageToken = reader.string();
                                 break;
                             }
+                        case 5: {
+                                message.viaLineId = reader.uint32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -2184,6 +2213,7 @@ export const app = $root.app = (() => {
                 GetRouteRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    let properties = {};
                     if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
                         if (!$util.isInteger(message.fromStationGroupId))
                             return "fromStationGroupId: integer expected";
@@ -2196,6 +2226,11 @@ export const app = $root.app = (() => {
                     if (message.pageToken != null && message.hasOwnProperty("pageToken"))
                         if (!$util.isString(message.pageToken))
                             return "pageToken: string expected";
+                    if (message.viaLineId != null && message.hasOwnProperty("viaLineId")) {
+                        properties._viaLineId = 1;
+                        if (!$util.isInteger(message.viaLineId))
+                            return "viaLineId: integer expected";
+                    }
                     return null;
                 };
 
@@ -2219,6 +2254,8 @@ export const app = $root.app = (() => {
                         message.pageSize = object.pageSize >>> 0;
                     if (object.pageToken != null)
                         message.pageToken = String(object.pageToken);
+                    if (object.viaLineId != null)
+                        message.viaLineId = object.viaLineId >>> 0;
                     return message;
                 };
 
@@ -2249,6 +2286,11 @@ export const app = $root.app = (() => {
                         object.pageSize = message.pageSize;
                     if (message.pageToken != null && message.hasOwnProperty("pageToken"))
                         object.pageToken = message.pageToken;
+                    if (message.viaLineId != null && message.hasOwnProperty("viaLineId")) {
+                        object.viaLineId = message.viaLineId;
+                        if (options.oneofs)
+                            object._viaLineId = "viaLineId";
+                    }
                     return object;
                 };
 

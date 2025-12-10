@@ -986,6 +986,9 @@ export namespace app {
 
                 /** GetRouteRequest pageToken */
                 pageToken?: (string|null);
+
+                /** GetRouteRequest viaLineId */
+                viaLineId?: (number|null);
             }
 
             /** Represents a GetRouteRequest. */
@@ -1008,6 +1011,12 @@ export namespace app {
 
                 /** GetRouteRequest pageToken. */
                 public pageToken: string;
+
+                /** GetRouteRequest viaLineId. */
+                public viaLineId?: (number|null);
+
+                /** GetRouteRequest _viaLineId. */
+                public _viaLineId?: "viaLineId";
 
                 /**
                  * Creates a new GetRouteRequest instance using the specified properties.
