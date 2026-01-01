@@ -15,6 +15,7 @@ const OperationStatus = grpcTypes.OperationStatus;
 const StopCondition = grpcTypes.StopCondition;
 const CompanyType = grpcTypes.CompanyType;
 const TrainDirection = grpcTypes.TrainDirection;
+const TransportType = grpcTypes.TransportType;
 
 // Build schema once at module load time instead of per-request
 let cachedSchema: GraphQLSchema | null = null;
@@ -175,16 +176,16 @@ function createResolvers(client: GrpcClient) {
 			});
 			return payload.stations ?? [];
 		},
-		stationsNearby: async ({ latitude, longitude, limit }: { latitude: number; longitude: number; limit?: number }) => {
+		stationsNearby: async ({ latitude, longitude, limit, transportType }: { latitude: number; longitude: number; limit?: number; transportType?: string }) => {
 			const payload = await client.call(
 				'GetStationsByCoordinates',
 				grpcTypes.GetStationByCoordinatesRequest,
 				grpcTypes.MultipleStationResponse,
-				cleanPayload({ latitude, longitude, limit })
+				cleanPayload({ latitude, longitude, limit, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : undefined })
 			);
 			return payload.stations ?? [];
 		},
-		stationsByName: async ({ name, limit, fromStationGroupId }: { name: string; limit?: number; fromStationGroupId?: number }) => {
+		stationsByName: async ({ name, limit, fromStationGroupId, transportType }: { name: string; limit?: number; fromStationGroupId?: number; transportType?: string }) => {
 			const payload = await client.call(
 				'GetStationsByName',
 				grpcTypes.GetStationsByNameRequest,
@@ -193,6 +194,7 @@ function createResolvers(client: GrpcClient) {
 					stationName: name,
 					limit,
 					fromStationGroupId,
+					transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : undefined,
 				})
 			);
 			return payload.stations ?? [];
@@ -761,6 +763,9 @@ function convertEnumsToNames(obj: any): any {
 					break;
 				case 'direction':
 					converted[key] = TrainDirection[value] ?? value;
+					break;
+				case 'transportType':
+					converted[key] = TransportType[value] ?? value;
 					break;
 				default:
 					converted[key] = value;

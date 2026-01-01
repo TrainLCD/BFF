@@ -650,6 +650,9 @@ export namespace app {
 
                 /** GetStationByCoordinatesRequest limit */
                 limit?: (number|null);
+
+                /** GetStationByCoordinatesRequest transportType */
+                transportType?: (app.trainlcd.grpc.TransportType|null);
             }
 
             /** Represents a GetStationByCoordinatesRequest. */
@@ -670,8 +673,14 @@ export namespace app {
                 /** GetStationByCoordinatesRequest limit. */
                 public limit?: (number|null);
 
+                /** GetStationByCoordinatesRequest transportType. */
+                public transportType?: (app.trainlcd.grpc.TransportType|null);
+
                 /** GetStationByCoordinatesRequest _limit. */
                 public _limit?: "limit";
+
+                /** GetStationByCoordinatesRequest _transportType. */
+                public _transportType?: "transportType";
 
                 /**
                  * Creates a new GetStationByCoordinatesRequest instance using the specified properties.
@@ -868,6 +877,9 @@ export namespace app {
 
                 /** GetStationsByNameRequest fromStationGroupId */
                 fromStationGroupId?: (number|null);
+
+                /** GetStationsByNameRequest transportType */
+                transportType?: (app.trainlcd.grpc.TransportType|null);
             }
 
             /** Represents a GetStationsByNameRequest. */
@@ -888,11 +900,17 @@ export namespace app {
                 /** GetStationsByNameRequest fromStationGroupId. */
                 public fromStationGroupId?: (number|null);
 
+                /** GetStationsByNameRequest transportType. */
+                public transportType?: (app.trainlcd.grpc.TransportType|null);
+
                 /** GetStationsByNameRequest _limit. */
                 public _limit?: "limit";
 
                 /** GetStationsByNameRequest _fromStationGroupId. */
                 public _fromStationGroupId?: "fromStationGroupId";
+
+                /** GetStationsByNameRequest _transportType. */
+                public _transportType?: "transportType";
 
                 /**
                  * Creates a new GetStationsByNameRequest instance using the specified properties.
@@ -1812,6 +1830,13 @@ export namespace app {
                 Closed = 2
             }
 
+            /** TransportType enum. */
+            enum TransportType {
+                TransportTypeUnspecified = 0,
+                Rail = 1,
+                Bus = 2
+            }
+
             /** Properties of a StationNumber. */
             interface IStationNumber {
 
@@ -2206,6 +2231,9 @@ export namespace app {
 
                 /** Station trainType */
                 trainType?: (app.trainlcd.grpc.ITrainType|null);
+
+                /** Station transportType */
+                transportType?: (app.trainlcd.grpc.TransportType|null);
             }
 
             /** Represents a Station. */
@@ -2285,6 +2313,9 @@ export namespace app {
 
                 /** Station trainType. */
                 public trainType?: (app.trainlcd.grpc.ITrainType|null);
+
+                /** Station transportType. */
+                public transportType: app.trainlcd.grpc.TransportType;
 
                 /** Station _nameRoman. */
                 public _nameRoman?: "nameRoman";
@@ -3530,6 +3561,9 @@ export namespace app {
 
                 /** Line averageDistance */
                 averageDistance?: (number|null);
+
+                /** Line transportType */
+                transportType?: (app.trainlcd.grpc.TransportType|null);
             }
 
             /** Represents a Line. */
@@ -3585,6 +3619,9 @@ export namespace app {
 
                 /** Line averageDistance. */
                 public averageDistance: number;
+
+                /** Line transportType. */
+                public transportType: app.trainlcd.grpc.TransportType;
 
                 /** Line _nameRoman. */
                 public _nameRoman?: "nameRoman";
