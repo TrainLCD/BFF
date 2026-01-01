@@ -229,12 +229,12 @@ function createResolvers(client: GrpcClient) {
 			);
 			return payload.lines ?? [];
 		},
-		lineStations: async ({ lineId, stationId }: { lineId: number; stationId?: number }) => {
+		lineStations: async ({ lineId, stationId, directionId }: { lineId: number; stationId?: number; directionId?: number }) => {
 			const payload = await client.call(
 				'GetStationsByLineId',
 				grpcTypes.GetStationByLineIdRequest,
 				grpcTypes.MultipleStationResponse,
-				cleanPayload({ lineId, stationId })
+				cleanPayload({ lineId, stationId, directionId })
 			);
 			return payload.stations ?? [];
 		},

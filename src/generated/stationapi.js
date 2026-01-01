@@ -1544,6 +1544,7 @@ export const app = $root.app = (() => {
                  * @interface IGetStationByLineIdRequest
                  * @property {number|null} [lineId] GetStationByLineIdRequest lineId
                  * @property {number|null} [stationId] GetStationByLineIdRequest stationId
+                 * @property {number|null} [directionId] GetStationByLineIdRequest directionId
                  */
 
                 /**
@@ -1577,6 +1578,14 @@ export const app = $root.app = (() => {
                  */
                 GetStationByLineIdRequest.prototype.stationId = null;
 
+                /**
+                 * GetStationByLineIdRequest directionId.
+                 * @member {number|null|undefined} directionId
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdRequest
+                 * @instance
+                 */
+                GetStationByLineIdRequest.prototype.directionId = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -1588,6 +1597,17 @@ export const app = $root.app = (() => {
                  */
                 Object.defineProperty(GetStationByLineIdRequest.prototype, "_stationId", {
                     get: $util.oneOfGetter($oneOfFields = ["stationId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * GetStationByLineIdRequest _directionId.
+                 * @member {"directionId"|undefined} _directionId
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByLineIdRequest.prototype, "_directionId", {
+                    get: $util.oneOfGetter($oneOfFields = ["directionId"]),
                     set: $util.oneOfSetter($oneOfFields)
                 });
 
@@ -1619,6 +1639,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.lineId);
                     if (message.stationId != null && Object.hasOwnProperty.call(message, "stationId"))
                         writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.stationId);
+                    if (message.directionId != null && Object.hasOwnProperty.call(message, "directionId"))
+                        writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.directionId);
                     return writer;
                 };
 
@@ -1661,6 +1683,10 @@ export const app = $root.app = (() => {
                             }
                         case 2: {
                                 message.stationId = reader.uint32();
+                                break;
+                            }
+                        case 3: {
+                                message.directionId = reader.uint32();
                                 break;
                             }
                         default:
@@ -1707,6 +1733,11 @@ export const app = $root.app = (() => {
                         if (!$util.isInteger(message.stationId))
                             return "stationId: integer expected";
                     }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        properties._directionId = 1;
+                        if (!$util.isInteger(message.directionId))
+                            return "directionId: integer expected";
+                    }
                     return null;
                 };
 
@@ -1726,6 +1757,8 @@ export const app = $root.app = (() => {
                         message.lineId = object.lineId >>> 0;
                     if (object.stationId != null)
                         message.stationId = object.stationId >>> 0;
+                    if (object.directionId != null)
+                        message.directionId = object.directionId >>> 0;
                     return message;
                 };
 
@@ -1750,6 +1783,11 @@ export const app = $root.app = (() => {
                         object.stationId = message.stationId;
                         if (options.oneofs)
                             object._stationId = "stationId";
+                    }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        object.directionId = message.directionId;
+                        if (options.oneofs)
+                            object._directionId = "directionId";
                     }
                     return object;
                 };

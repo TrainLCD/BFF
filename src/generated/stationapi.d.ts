@@ -768,6 +768,9 @@ export namespace app {
 
                 /** GetStationByLineIdRequest stationId */
                 stationId?: (number|null);
+
+                /** GetStationByLineIdRequest directionId */
+                directionId?: (number|null);
             }
 
             /** Represents a GetStationByLineIdRequest. */
@@ -785,8 +788,14 @@ export namespace app {
                 /** GetStationByLineIdRequest stationId. */
                 public stationId?: (number|null);
 
+                /** GetStationByLineIdRequest directionId. */
+                public directionId?: (number|null);
+
                 /** GetStationByLineIdRequest _stationId. */
                 public _stationId?: "stationId";
+
+                /** GetStationByLineIdRequest _directionId. */
+                public _directionId?: "directionId";
 
                 /**
                  * Creates a new GetStationByLineIdRequest instance using the specified properties.
