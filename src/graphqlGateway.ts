@@ -30,6 +30,7 @@ type GatewayEnv = Env & {
 	GRPC_TARGET_ORIGIN?: string;
 	GRPC_ALLOWED_ORIGINS?: string;
 	GRPC_CACHE?: KVNamespace;
+	DISABLE_KV_CACHE?: string;
 };
 
 interface GatewayConfig {
@@ -95,7 +96,8 @@ export async function handleGraphQLRequest(request: Request, env: GatewayEnv, ct
 		return buildGraphQLErrorResponse(400, 'Invalid JSON payload', corsOrigin);
 	}
 
-	const client = new GrpcClient(config, env.GRPC_CACHE, ctx);
+	const kvCache = env.DISABLE_KV_CACHE ? undefined : env.GRPC_CACHE;
+	const client = new GrpcClient(config, kvCache, ctx);
 	const rootValue = createResolvers(client);
 
 	try {
