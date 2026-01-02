@@ -53,11 +53,17 @@ enum TrainDirection {
 	Outbound
 }
 
+enum TransportType {
+	TransportTypeUnspecified
+	Rail
+	Bus
+}
+
 type Query {
 	station(id: Int!): Station
 	stations(ids: [Int!]!): [Station!]!
-	stationsNearby(latitude: Float!, longitude: Float!, limit: Int): [Station!]!
-	stationsByName(name: String!, limit: Int, fromStationGroupId: Int): [Station!]!
+	stationsNearby(latitude: Float!, longitude: Float!, limit: Int, transportType: TransportType): [Station!]!
+	stationsByName(name: String!, limit: Int, fromStationGroupId: Int, transportType: TransportType): [Station!]!
 	stationGroupStations(groupId: Int!): [Station!]!
 	lineGroupStations(lineGroupId: Int!): [Station!]!
 	line(lineId: Int!): Line
@@ -103,6 +109,7 @@ type Station {
 	trainType: TrainTypeNested
 	lines: [LineNested!]
 	line: LineNested
+	transportType: TransportType
 }
 
 type StationNested {
@@ -129,6 +136,7 @@ type StationNested {
 	trainType: TrainTypeNested
 	lines: [LineNested!]
 	line: LineNested
+	transportType: TransportType
 }
 
 type StationNumber {
@@ -154,6 +162,7 @@ type Line {
 	company: Company
 	trainType: TrainTypeNested
 	averageDistance: Float
+	transportType: TransportType
 }
 
 type LineNested {
@@ -172,6 +181,7 @@ type LineNested {
 	company: Company
 	trainType: TrainTypeNested
 	averageDistance: Float
+	transportType: TransportType
 }
 
 type LineSymbol {
