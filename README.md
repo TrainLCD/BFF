@@ -120,7 +120,7 @@ npm run proto:generate
 - `vitest.config.mts` — Vitest configuration targeting the Workers pool.
 - `wrangler.jsonc` — Worker metadata, compatibility date, and development/deployment settings.
 
-### Data Sources
+## Data Sources
 
 - Bus-related data provided by [Tokyo Metropolitan Bureau of Transportation (Toei)](https://www.kotsu.metro.tokyo.jp/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
