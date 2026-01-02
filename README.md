@@ -123,6 +123,7 @@ npm run proto:generate
 ## Data Sources
 
 - Bus-related data provided by [Tokyo Metropolitan Bureau of Transportation (Toei)](https://www.kotsu.metro.tokyo.jp/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Station data provided by [駅データ.jp](https://www.ekidata.jp/)
 
 ## License
 
