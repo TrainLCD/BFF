@@ -190,7 +190,7 @@ describe('GraphQL gateway', () => {
 		const bodyInit = init?.body;
 		expect(bodyInit).toBeInstanceOf(Uint8Array);
 		const grpcRequestBody = decodeRequestPayload(bodyInit as Uint8Array, grpc.GetStationByIdRequest);
-		expect(grpcRequestBody).toEqual({ id: 1 });
+		expect(grpcRequestBody).toEqual({ id: 1, transportType: 3 }); // 3 = RailAndBus (default)
 
 		expect(response.status).toBe(200);
 		const result = await response.json() as GraphQLResponse<{ station: StationData }>;
@@ -231,7 +231,7 @@ describe('GraphQL gateway', () => {
 		const bodyInit = init?.body;
 		expect(bodyInit).toBeInstanceOf(Uint8Array);
 		const grpcRequestBody = decodeRequestPayload(bodyInit as Uint8Array, grpc.GetStationByIdListRequest);
-		expect(grpcRequestBody).toEqual({ ids: [1, 2] });
+		expect(grpcRequestBody).toEqual({ ids: [1, 2], transportType: 3 }); // 3 = RailAndBus (default)
 
 		const result = await response.json() as GraphQLResponse<{ stations: StationData[] }>;
 		expect(result.data?.stations).toHaveLength(1);

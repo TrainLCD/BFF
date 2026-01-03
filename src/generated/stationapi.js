@@ -571,6 +571,7 @@ export const app = $root.app = (() => {
                  * @memberof app.trainlcd.grpc
                  * @interface IGetStationByIdRequest
                  * @property {number|null} [id] GetStationByIdRequest id
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationByIdRequest transportType
                  */
 
                 /**
@@ -595,6 +596,28 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 GetStationByIdRequest.prototype.id = 0;
+
+                /**
+                 * GetStationByIdRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationByIdRequest
+                 * @instance
+                 */
+                GetStationByIdRequest.prototype.transportType = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetStationByIdRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationByIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByIdRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
 
                 /**
                  * Creates a new GetStationByIdRequest instance using the specified properties.
@@ -622,6 +645,8 @@ export const app = $root.app = (() => {
                         writer = $Writer.create();
                     if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                         writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.id);
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
                     return writer;
                 };
 
@@ -662,6 +687,10 @@ export const app = $root.app = (() => {
                                 message.id = reader.uint32();
                                 break;
                             }
+                        case 2: {
+                                message.transportType = reader.int32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -697,9 +726,22 @@ export const app = $root.app = (() => {
                 GetStationByIdRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
                             return "id: integer expected";
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    }
                     return null;
                 };
 
@@ -717,6 +759,30 @@ export const app = $root.app = (() => {
                     let message = new $root.app.trainlcd.grpc.GetStationByIdRequest();
                     if (object.id != null)
                         message.id = object.id >>> 0;
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
                     return message;
                 };
 
@@ -737,6 +803,11 @@ export const app = $root.app = (() => {
                         object.id = 0;
                     if (message.id != null && message.hasOwnProperty("id"))
                         object.id = message.id;
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
+                    }
                     return object;
                 };
 
@@ -776,6 +847,7 @@ export const app = $root.app = (() => {
                  * @memberof app.trainlcd.grpc
                  * @interface IGetStationByIdListRequest
                  * @property {Array.<number>|null} [ids] GetStationByIdListRequest ids
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationByIdListRequest transportType
                  */
 
                 /**
@@ -801,6 +873,28 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 GetStationByIdListRequest.prototype.ids = $util.emptyArray;
+
+                /**
+                 * GetStationByIdListRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationByIdListRequest
+                 * @instance
+                 */
+                GetStationByIdListRequest.prototype.transportType = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetStationByIdListRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationByIdListRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByIdListRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
 
                 /**
                  * Creates a new GetStationByIdListRequest instance using the specified properties.
@@ -832,6 +926,8 @@ export const app = $root.app = (() => {
                             writer.uint32(message.ids[i]);
                         writer.ldelim();
                     }
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
                     return writer;
                 };
 
@@ -879,6 +975,10 @@ export const app = $root.app = (() => {
                                     message.ids.push(reader.uint32());
                                 break;
                             }
+                        case 2: {
+                                message.transportType = reader.int32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -914,12 +1014,25 @@ export const app = $root.app = (() => {
                 GetStationByIdListRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    let properties = {};
                     if (message.ids != null && message.hasOwnProperty("ids")) {
                         if (!Array.isArray(message.ids))
                             return "ids: array expected";
                         for (let i = 0; i < message.ids.length; ++i)
                             if (!$util.isInteger(message.ids[i]))
                                 return "ids: integer[] expected";
+                    }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
                     }
                     return null;
                 };
@@ -943,6 +1056,30 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.ids.length; ++i)
                             message.ids[i] = object.ids[i] >>> 0;
                     }
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
                     return message;
                 };
 
@@ -965,6 +1102,11 @@ export const app = $root.app = (() => {
                         object.ids = [];
                         for (let j = 0; j < message.ids.length; ++j)
                             object.ids[j] = message.ids[j];
+                    }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
                     }
                     return object;
                 };
@@ -1005,6 +1147,7 @@ export const app = $root.app = (() => {
                  * @memberof app.trainlcd.grpc
                  * @interface IGetStationByGroupIdRequest
                  * @property {number|null} [groupId] GetStationByGroupIdRequest groupId
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationByGroupIdRequest transportType
                  */
 
                 /**
@@ -1029,6 +1172,28 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 GetStationByGroupIdRequest.prototype.groupId = 0;
+
+                /**
+                 * GetStationByGroupIdRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationByGroupIdRequest
+                 * @instance
+                 */
+                GetStationByGroupIdRequest.prototype.transportType = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetStationByGroupIdRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationByGroupIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByGroupIdRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
 
                 /**
                  * Creates a new GetStationByGroupIdRequest instance using the specified properties.
@@ -1056,6 +1221,8 @@ export const app = $root.app = (() => {
                         writer = $Writer.create();
                     if (message.groupId != null && Object.hasOwnProperty.call(message, "groupId"))
                         writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.groupId);
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
                     return writer;
                 };
 
@@ -1096,6 +1263,10 @@ export const app = $root.app = (() => {
                                 message.groupId = reader.uint32();
                                 break;
                             }
+                        case 2: {
+                                message.transportType = reader.int32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -1131,9 +1302,22 @@ export const app = $root.app = (() => {
                 GetStationByGroupIdRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    let properties = {};
                     if (message.groupId != null && message.hasOwnProperty("groupId"))
                         if (!$util.isInteger(message.groupId))
                             return "groupId: integer expected";
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    }
                     return null;
                 };
 
@@ -1151,6 +1335,30 @@ export const app = $root.app = (() => {
                     let message = new $root.app.trainlcd.grpc.GetStationByGroupIdRequest();
                     if (object.groupId != null)
                         message.groupId = object.groupId >>> 0;
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
                     return message;
                 };
 
@@ -1171,6 +1379,11 @@ export const app = $root.app = (() => {
                         object.groupId = 0;
                     if (message.groupId != null && message.hasOwnProperty("groupId"))
                         object.groupId = message.groupId;
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
+                    }
                     return object;
                 };
 
@@ -1426,6 +1639,7 @@ export const app = $root.app = (() => {
                         case 0:
                         case 1:
                         case 2:
+                        case 3:
                             break;
                         }
                     }
@@ -1468,6 +1682,10 @@ export const app = $root.app = (() => {
                     case "Bus":
                     case 2:
                         message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
                         break;
                     }
                     return message;
@@ -1545,6 +1763,7 @@ export const app = $root.app = (() => {
                  * @property {number|null} [lineId] GetStationByLineIdRequest lineId
                  * @property {number|null} [stationId] GetStationByLineIdRequest stationId
                  * @property {number|null} [directionId] GetStationByLineIdRequest directionId
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationByLineIdRequest transportType
                  */
 
                 /**
@@ -1586,6 +1805,14 @@ export const app = $root.app = (() => {
                  */
                 GetStationByLineIdRequest.prototype.directionId = null;
 
+                /**
+                 * GetStationByLineIdRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdRequest
+                 * @instance
+                 */
+                GetStationByLineIdRequest.prototype.transportType = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -1608,6 +1835,17 @@ export const app = $root.app = (() => {
                  */
                 Object.defineProperty(GetStationByLineIdRequest.prototype, "_directionId", {
                     get: $util.oneOfGetter($oneOfFields = ["directionId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * GetStationByLineIdRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByLineIdRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
                     set: $util.oneOfSetter($oneOfFields)
                 });
 
@@ -1641,6 +1879,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.stationId);
                     if (message.directionId != null && Object.hasOwnProperty.call(message, "directionId"))
                         writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.directionId);
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).int32(message.transportType);
                     return writer;
                 };
 
@@ -1687,6 +1927,10 @@ export const app = $root.app = (() => {
                             }
                         case 3: {
                                 message.directionId = reader.uint32();
+                                break;
+                            }
+                        case 4: {
+                                message.transportType = reader.int32();
                                 break;
                             }
                         default:
@@ -1738,6 +1982,18 @@ export const app = $root.app = (() => {
                         if (!$util.isInteger(message.directionId))
                             return "directionId: integer expected";
                     }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    }
                     return null;
                 };
 
@@ -1759,6 +2015,30 @@ export const app = $root.app = (() => {
                         message.stationId = object.stationId >>> 0;
                     if (object.directionId != null)
                         message.directionId = object.directionId >>> 0;
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
                     return message;
                 };
 
@@ -1788,6 +2068,11 @@ export const app = $root.app = (() => {
                         object.directionId = message.directionId;
                         if (options.oneofs)
                             object._directionId = "directionId";
+                    }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
                     }
                     return object;
                 };
@@ -2057,6 +2342,7 @@ export const app = $root.app = (() => {
                         case 0:
                         case 1:
                         case 2:
+                        case 3:
                             break;
                         }
                     }
@@ -2099,6 +2385,10 @@ export const app = $root.app = (() => {
                     case "Bus":
                     case 2:
                         message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
                         break;
                     }
                     return message;
@@ -2492,6 +2782,7 @@ export const app = $root.app = (() => {
                  * @memberof app.trainlcd.grpc
                  * @interface IGetStationsByLineGroupIdRequest
                  * @property {number|null} [lineGroupId] GetStationsByLineGroupIdRequest lineGroupId
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationsByLineGroupIdRequest transportType
                  */
 
                 /**
@@ -2516,6 +2807,28 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 GetStationsByLineGroupIdRequest.prototype.lineGroupId = 0;
+
+                /**
+                 * GetStationsByLineGroupIdRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationsByLineGroupIdRequest
+                 * @instance
+                 */
+                GetStationsByLineGroupIdRequest.prototype.transportType = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetStationsByLineGroupIdRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationsByLineGroupIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationsByLineGroupIdRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
 
                 /**
                  * Creates a new GetStationsByLineGroupIdRequest instance using the specified properties.
@@ -2543,6 +2856,8 @@ export const app = $root.app = (() => {
                         writer = $Writer.create();
                     if (message.lineGroupId != null && Object.hasOwnProperty.call(message, "lineGroupId"))
                         writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.lineGroupId);
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
                     return writer;
                 };
 
@@ -2583,6 +2898,10 @@ export const app = $root.app = (() => {
                                 message.lineGroupId = reader.uint32();
                                 break;
                             }
+                        case 2: {
+                                message.transportType = reader.int32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -2618,9 +2937,22 @@ export const app = $root.app = (() => {
                 GetStationsByLineGroupIdRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    let properties = {};
                     if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId"))
                         if (!$util.isInteger(message.lineGroupId))
                             return "lineGroupId: integer expected";
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    }
                     return null;
                 };
 
@@ -2638,6 +2970,30 @@ export const app = $root.app = (() => {
                     let message = new $root.app.trainlcd.grpc.GetStationsByLineGroupIdRequest();
                     if (object.lineGroupId != null)
                         message.lineGroupId = object.lineGroupId >>> 0;
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
                     return message;
                 };
 
@@ -2658,6 +3014,11 @@ export const app = $root.app = (() => {
                         object.lineGroupId = 0;
                     if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId"))
                         object.lineGroupId = message.lineGroupId;
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
+                    }
                     return object;
                 };
 
@@ -4099,12 +4460,14 @@ export const app = $root.app = (() => {
              * @property {number} TransportTypeUnspecified=0 TransportTypeUnspecified value
              * @property {number} Rail=1 Rail value
              * @property {number} Bus=2 Bus value
+             * @property {number} RailAndBus=3 RailAndBus value
              */
             grpc.TransportType = (function() {
                 const valuesById = {}, values = Object.create(valuesById);
                 values[valuesById[0] = "TransportTypeUnspecified"] = 0;
                 values[valuesById[1] = "Rail"] = 1;
                 values[valuesById[2] = "Bus"] = 2;
+                values[valuesById[3] = "RailAndBus"] = 3;
                 return values;
             })();
 
@@ -5783,6 +6146,7 @@ export const app = $root.app = (() => {
                         case 0:
                         case 1:
                         case 2:
+                        case 3:
                             break;
                         }
                     return null;
@@ -5934,6 +6298,10 @@ export const app = $root.app = (() => {
                     case "Bus":
                     case 2:
                         message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
                         break;
                     }
                     return message;
@@ -9305,6 +9673,7 @@ export const app = $root.app = (() => {
                         case 0:
                         case 1:
                         case 2:
+                        case 3:
                             break;
                         }
                     return null;
@@ -9435,6 +9804,10 @@ export const app = $root.app = (() => {
                     case "Bus":
                     case 2:
                         message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
                         break;
                     }
                     return message;

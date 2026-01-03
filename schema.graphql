@@ -53,18 +53,19 @@ enum TransportType {
 	TransportTypeUnspecified
 	Rail
 	Bus
+	RailAndBus
 }
 
 type Query {
-	station(id: Int!): Station
-	stations(ids: [Int!]!): [Station!]!
+	station(id: Int!, transportType: TransportType): Station
+	stations(ids: [Int!]!, transportType: TransportType): [Station!]!
 	stationsNearby(latitude: Float!, longitude: Float!, limit: Int, transportType: TransportType): [Station!]!
 	stationsByName(name: String!, limit: Int, fromStationGroupId: Int, transportType: TransportType): [Station!]!
-	stationGroupStations(groupId: Int!): [Station!]!
-	lineGroupStations(lineGroupId: Int!): [Station!]!
+	stationGroupStations(groupId: Int!, transportType: TransportType): [Station!]!
+	lineGroupStations(lineGroupId: Int!, transportType: TransportType): [Station!]!
 	line(lineId: Int!): Line
 	linesByName(name: String!, limit: Int): [Line!]!
-	lineStations(lineId: Int!, stationId: Int, directionId: Int): [Station!]!
+	lineStations(lineId: Int!, stationId: Int, directionId: Int, transportType: TransportType): [Station!]!
 	stationTrainTypes(stationId: Int!): [TrainType!]!
 	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!

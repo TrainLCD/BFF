@@ -168,13 +168,14 @@ async function executeGraphQLQuery(operation: GraphQLOperationPayload, rootValue
 
 function createResolvers(client: GrpcClient) {
 	return {
-		station: async ({ id }: { id: number }) => {
-			const payload = await client.call('GetStationById', grpcTypes.GetStationByIdRequest, grpcTypes.SingleStationResponse, { id });
+		station: async ({ id, transportType }: { id: number; transportType?: string }) => {
+			const payload = await client.call('GetStationById', grpcTypes.GetStationByIdRequest, grpcTypes.SingleStationResponse, { id, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus });
 			return payload.station ?? null;
 		},
-		stations: async ({ ids }: { ids: number[] }) => {
+		stations: async ({ ids, transportType }: { ids: number[]; transportType?: string }) => {
 			const payload = await client.call('GetStationByIdList', grpcTypes.GetStationByIdListRequest, grpcTypes.MultipleStationResponse, {
 				ids,
+				transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus,
 			});
 			return payload.stations ?? [];
 		},
@@ -183,7 +184,7 @@ function createResolvers(client: GrpcClient) {
 				'GetStationsByCoordinates',
 				grpcTypes.GetStationByCoordinatesRequest,
 				grpcTypes.MultipleStationResponse,
-				cleanPayload({ latitude, longitude, limit, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : undefined })
+				cleanPayload({ latitude, longitude, limit, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus })
 			);
 			return payload.stations ?? [];
 		},
@@ -196,23 +197,24 @@ function createResolvers(client: GrpcClient) {
 					stationName: name,
 					limit,
 					fromStationGroupId,
-					transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : undefined,
+					transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus,
 				})
 			);
 			return payload.stations ?? [];
 		},
-		stationGroupStations: async ({ groupId }: { groupId: number }) => {
+		stationGroupStations: async ({ groupId, transportType }: { groupId: number; transportType?: string }) => {
 			const payload = await client.call('GetStationsByGroupId', grpcTypes.GetStationByGroupIdRequest, grpcTypes.MultipleStationResponse, {
 				groupId,
+				transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus,
 			});
 			return payload.stations ?? [];
 		},
-		lineGroupStations: async ({ lineGroupId }: { lineGroupId: number }) => {
+		lineGroupStations: async ({ lineGroupId, transportType }: { lineGroupId: number; transportType?: string }) => {
 			const payload = await client.call(
 				'GetStationsByLineGroupId',
 				grpcTypes.GetStationsByLineGroupIdRequest,
 				grpcTypes.MultipleStationResponse,
-				{ lineGroupId }
+				{ lineGroupId, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus }
 			);
 			return payload.stations ?? [];
 		},
@@ -229,12 +231,12 @@ function createResolvers(client: GrpcClient) {
 			);
 			return payload.lines ?? [];
 		},
-		lineStations: async ({ lineId, stationId, directionId }: { lineId: number; stationId?: number; directionId?: number }) => {
+		lineStations: async ({ lineId, stationId, directionId, transportType }: { lineId: number; stationId?: number; directionId?: number; transportType?: string }) => {
 			const payload = await client.call(
 				'GetStationsByLineId',
 				grpcTypes.GetStationByLineIdRequest,
 				grpcTypes.MultipleStationResponse,
-				cleanPayload({ lineId, stationId, directionId })
+				cleanPayload({ lineId, stationId, directionId, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus })
 			);
 			return payload.stations ?? [];
 		},
