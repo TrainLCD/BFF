@@ -66,7 +66,7 @@ type Query {
 	stationsNearby(latitude: Float!, longitude: Float!, limit: Int, transportType: TransportType): [Station!]!
 	stationsByName(name: String!, limit: Int, fromStationGroupId: Int, transportType: TransportType): [Station!]!
 	stationGroupStations(groupId: Int!, transportType: TransportType): [Station!]!
-	lineGroupStations(lineGroupId: Int!, transportType: TransportType): [Station!]!
+	lineGroupStations(lineGroupId: Int!, directionId: Int, transportType: TransportType): [Station!]!
 	line(lineId: Int!): Line
 	linesByName(name: String!, limit: Int): [Line!]!
 	lineStations(lineId: Int!, stationId: Int, directionId: Int, transportType: TransportType): [Station!]!

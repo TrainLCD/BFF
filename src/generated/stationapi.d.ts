@@ -1167,6 +1167,9 @@ export namespace app {
 
                 /** GetStationsByLineGroupIdRequest transportType */
                 transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** GetStationsByLineGroupIdRequest directionId */
+                directionId?: (number|null);
             }
 
             /** Represents a GetStationsByLineGroupIdRequest. */
@@ -1184,8 +1187,14 @@ export namespace app {
                 /** GetStationsByLineGroupIdRequest transportType. */
                 public transportType?: (app.trainlcd.grpc.TransportType|null);
 
+                /** GetStationsByLineGroupIdRequest directionId. */
+                public directionId?: (number|null);
+
                 /** GetStationsByLineGroupIdRequest _transportType. */
                 public _transportType?: "transportType";
+
+                /** GetStationsByLineGroupIdRequest _directionId. */
+                public _directionId?: "directionId";
 
                 /**
                  * Creates a new GetStationsByLineGroupIdRequest instance using the specified properties.

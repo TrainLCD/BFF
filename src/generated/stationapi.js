@@ -2783,6 +2783,7 @@ export const app = $root.app = (() => {
                  * @interface IGetStationsByLineGroupIdRequest
                  * @property {number|null} [lineGroupId] GetStationsByLineGroupIdRequest lineGroupId
                  * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationsByLineGroupIdRequest transportType
+                 * @property {number|null} [directionId] GetStationsByLineGroupIdRequest directionId
                  */
 
                 /**
@@ -2816,6 +2817,14 @@ export const app = $root.app = (() => {
                  */
                 GetStationsByLineGroupIdRequest.prototype.transportType = null;
 
+                /**
+                 * GetStationsByLineGroupIdRequest directionId.
+                 * @member {number|null|undefined} directionId
+                 * @memberof app.trainlcd.grpc.GetStationsByLineGroupIdRequest
+                 * @instance
+                 */
+                GetStationsByLineGroupIdRequest.prototype.directionId = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -2827,6 +2836,17 @@ export const app = $root.app = (() => {
                  */
                 Object.defineProperty(GetStationsByLineGroupIdRequest.prototype, "_transportType", {
                     get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * GetStationsByLineGroupIdRequest _directionId.
+                 * @member {"directionId"|undefined} _directionId
+                 * @memberof app.trainlcd.grpc.GetStationsByLineGroupIdRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationsByLineGroupIdRequest.prototype, "_directionId", {
+                    get: $util.oneOfGetter($oneOfFields = ["directionId"]),
                     set: $util.oneOfSetter($oneOfFields)
                 });
 
@@ -2858,6 +2878,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.lineGroupId);
                     if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
                         writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
+                    if (message.directionId != null && Object.hasOwnProperty.call(message, "directionId"))
+                        writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.directionId);
                     return writer;
                 };
 
@@ -2900,6 +2922,10 @@ export const app = $root.app = (() => {
                             }
                         case 2: {
                                 message.transportType = reader.int32();
+                                break;
+                            }
+                        case 3: {
+                                message.directionId = reader.uint32();
                                 break;
                             }
                         default:
@@ -2953,6 +2979,11 @@ export const app = $root.app = (() => {
                             break;
                         }
                     }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        properties._directionId = 1;
+                        if (!$util.isInteger(message.directionId))
+                            return "directionId: integer expected";
+                    }
                     return null;
                 };
 
@@ -2994,6 +3025,8 @@ export const app = $root.app = (() => {
                         message.transportType = 3;
                         break;
                     }
+                    if (object.directionId != null)
+                        message.directionId = object.directionId >>> 0;
                     return message;
                 };
 
@@ -3018,6 +3051,11 @@ export const app = $root.app = (() => {
                         object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
                         if (options.oneofs)
                             object._transportType = "transportType";
+                    }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        object.directionId = message.directionId;
+                        if (options.oneofs)
+                            object._directionId = "directionId";
                     }
                     return object;
                 };
