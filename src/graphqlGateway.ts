@@ -96,7 +96,7 @@ export async function handleGraphQLRequest(request: Request, env: GatewayEnv, ct
 		return buildGraphQLErrorResponse(400, 'Invalid JSON payload', corsOrigin);
 	}
 
-	const kvCache = env.DISABLE_KV_CACHE ? undefined : env.GRPC_CACHE;
+	const kvCache = env.DISABLE_KV_CACHE === 'true' ? undefined : env.GRPC_CACHE;
 	const client = new GrpcClient(config, kvCache, ctx);
 	const rootValue = createResolvers(client);
 
