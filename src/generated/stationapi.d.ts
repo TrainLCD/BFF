@@ -100,6 +100,20 @@ export namespace app {
                 public getStationsByLineId(request: app.trainlcd.grpc.IGetStationByLineIdRequest): Promise<app.trainlcd.grpc.MultipleStationResponse>;
 
                 /**
+                 * Calls GetStationsByLineIdList.
+                 * @param request GetStationByLineIdListRequest message or plain object
+                 * @param callback Node-style callback called with the error, if any, and MultipleStationResponse
+                 */
+                public getStationsByLineIdList(request: app.trainlcd.grpc.IGetStationByLineIdListRequest, callback: app.trainlcd.grpc.StationAPI.GetStationsByLineIdListCallback): void;
+
+                /**
+                 * Calls GetStationsByLineIdList.
+                 * @param request GetStationByLineIdListRequest message or plain object
+                 * @returns Promise
+                 */
+                public getStationsByLineIdList(request: app.trainlcd.grpc.IGetStationByLineIdListRequest): Promise<app.trainlcd.grpc.MultipleStationResponse>;
+
+                /**
                  * Calls GetStationsByName.
                  * @param request GetStationsByNameRequest message or plain object
                  * @param callback Node-style callback called with the error, if any, and MultipleStationResponse
@@ -276,6 +290,13 @@ export namespace app {
                  * @param [response] MultipleStationResponse
                  */
                 type GetStationsByLineIdCallback = (error: (Error|null), response?: app.trainlcd.grpc.MultipleStationResponse) => void;
+
+                /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getStationsByLineIdList}.
+                 * @param error Error, if any
+                 * @param [response] MultipleStationResponse
+                 */
+                type GetStationsByLineIdListCallback = (error: (Error|null), response?: app.trainlcd.grpc.MultipleStationResponse) => void;
 
                 /**
                  * Callback as used by {@link app.trainlcd.grpc.StationAPI#getStationsByName}.
@@ -905,6 +926,112 @@ export namespace app {
 
                 /**
                  * Gets the default type url for GetStationByLineIdRequest
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a GetStationByLineIdListRequest. */
+            interface IGetStationByLineIdListRequest {
+
+                /** GetStationByLineIdListRequest lineIds */
+                lineIds?: (number[]|null);
+
+                /** GetStationByLineIdListRequest transportType */
+                transportType?: (app.trainlcd.grpc.TransportType|null);
+            }
+
+            /** Represents a GetStationByLineIdListRequest. */
+            class GetStationByLineIdListRequest implements IGetStationByLineIdListRequest {
+
+                /**
+                 * Constructs a new GetStationByLineIdListRequest.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IGetStationByLineIdListRequest);
+
+                /** GetStationByLineIdListRequest lineIds. */
+                public lineIds: number[];
+
+                /** GetStationByLineIdListRequest transportType. */
+                public transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** GetStationByLineIdListRequest _transportType. */
+                public _transportType?: "transportType";
+
+                /**
+                 * Creates a new GetStationByLineIdListRequest instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns GetStationByLineIdListRequest instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IGetStationByLineIdListRequest): app.trainlcd.grpc.GetStationByLineIdListRequest;
+
+                /**
+                 * Encodes the specified GetStationByLineIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetStationByLineIdListRequest.verify|verify} messages.
+                 * @param message GetStationByLineIdListRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IGetStationByLineIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified GetStationByLineIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetStationByLineIdListRequest.verify|verify} messages.
+                 * @param message GetStationByLineIdListRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IGetStationByLineIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a GetStationByLineIdListRequest message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns GetStationByLineIdListRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.GetStationByLineIdListRequest;
+
+                /**
+                 * Decodes a GetStationByLineIdListRequest message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns GetStationByLineIdListRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.GetStationByLineIdListRequest;
+
+                /**
+                 * Verifies a GetStationByLineIdListRequest message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a GetStationByLineIdListRequest message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns GetStationByLineIdListRequest
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.GetStationByLineIdListRequest;
+
+                /**
+                 * Creates a plain object from a GetStationByLineIdListRequest message. Also converts values to other types if specified.
+                 * @param message GetStationByLineIdListRequest
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.GetStationByLineIdListRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this GetStationByLineIdListRequest to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for GetStationByLineIdListRequest
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */

@@ -232,6 +232,39 @@ export const app = $root.app = (() => {
                  */
 
                 /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getStationsByLineIdList}.
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @typedef GetStationsByLineIdListCallback
+                 * @type {function}
+                 * @param {Error|null} error Error, if any
+                 * @param {app.trainlcd.grpc.MultipleStationResponse} [response] MultipleStationResponse
+                 */
+
+                /**
+                 * Calls GetStationsByLineIdList.
+                 * @function getStationsByLineIdList
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest} request GetStationByLineIdListRequest message or plain object
+                 * @param {app.trainlcd.grpc.StationAPI.GetStationsByLineIdListCallback} callback Node-style callback called with the error, if any, and MultipleStationResponse
+                 * @returns {undefined}
+                 * @variation 1
+                 */
+                Object.defineProperty(StationAPI.prototype.getStationsByLineIdList = function getStationsByLineIdList(request, callback) {
+                    return this.rpcCall(getStationsByLineIdList, $root.app.trainlcd.grpc.GetStationByLineIdListRequest, $root.app.trainlcd.grpc.MultipleStationResponse, request, callback);
+                }, "name", { value: "GetStationsByLineIdList" });
+
+                /**
+                 * Calls GetStationsByLineIdList.
+                 * @function getStationsByLineIdList
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest} request GetStationByLineIdListRequest message or plain object
+                 * @returns {Promise<app.trainlcd.grpc.MultipleStationResponse>} Promise
+                 * @variation 2
+                 */
+
+                /**
                  * Callback as used by {@link app.trainlcd.grpc.StationAPI#getStationsByName}.
                  * @memberof app.trainlcd.grpc.StationAPI
                  * @typedef GetStationsByNameCallback
@@ -2104,6 +2137,306 @@ export const app = $root.app = (() => {
                 };
 
                 return GetStationByLineIdRequest;
+            })();
+
+            grpc.GetStationByLineIdListRequest = (function() {
+
+                /**
+                 * Properties of a GetStationByLineIdListRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IGetStationByLineIdListRequest
+                 * @property {Array.<number>|null} [lineIds] GetStationByLineIdListRequest lineIds
+                 * @property {app.trainlcd.grpc.TransportType|null} [transportType] GetStationByLineIdListRequest transportType
+                 */
+
+                /**
+                 * Constructs a new GetStationByLineIdListRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents a GetStationByLineIdListRequest.
+                 * @implements IGetStationByLineIdListRequest
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest=} [properties] Properties to set
+                 */
+                function GetStationByLineIdListRequest(properties) {
+                    this.lineIds = [];
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * GetStationByLineIdListRequest lineIds.
+                 * @member {Array.<number>} lineIds
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @instance
+                 */
+                GetStationByLineIdListRequest.prototype.lineIds = $util.emptyArray;
+
+                /**
+                 * GetStationByLineIdListRequest transportType.
+                 * @member {app.trainlcd.grpc.TransportType|null|undefined} transportType
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @instance
+                 */
+                GetStationByLineIdListRequest.prototype.transportType = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetStationByLineIdListRequest _transportType.
+                 * @member {"transportType"|undefined} _transportType
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetStationByLineIdListRequest.prototype, "_transportType", {
+                    get: $util.oneOfGetter($oneOfFields = ["transportType"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Creates a new GetStationByLineIdListRequest instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.GetStationByLineIdListRequest} GetStationByLineIdListRequest instance
+                 */
+                GetStationByLineIdListRequest.create = function create(properties) {
+                    return new GetStationByLineIdListRequest(properties);
+                };
+
+                /**
+                 * Encodes the specified GetStationByLineIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetStationByLineIdListRequest.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest} message GetStationByLineIdListRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                GetStationByLineIdListRequest.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.lineIds != null && message.lineIds.length) {
+                        writer.uint32(/* id 1, wireType 2 =*/10).fork();
+                        for (let i = 0; i < message.lineIds.length; ++i)
+                            writer.uint32(message.lineIds[i]);
+                        writer.ldelim();
+                    }
+                    if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.transportType);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified GetStationByLineIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetStationByLineIdListRequest.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetStationByLineIdListRequest} message GetStationByLineIdListRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                GetStationByLineIdListRequest.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a GetStationByLineIdListRequest message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.GetStationByLineIdListRequest} GetStationByLineIdListRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                GetStationByLineIdListRequest.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByLineIdListRequest();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                if (!(message.lineIds && message.lineIds.length))
+                                    message.lineIds = [];
+                                if ((tag & 7) === 2) {
+                                    let end2 = reader.uint32() + reader.pos;
+                                    while (reader.pos < end2)
+                                        message.lineIds.push(reader.uint32());
+                                } else
+                                    message.lineIds.push(reader.uint32());
+                                break;
+                            }
+                        case 2: {
+                                message.transportType = reader.int32();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a GetStationByLineIdListRequest message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.GetStationByLineIdListRequest} GetStationByLineIdListRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                GetStationByLineIdListRequest.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a GetStationByLineIdListRequest message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                GetStationByLineIdListRequest.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    let properties = {};
+                    if (message.lineIds != null && message.hasOwnProperty("lineIds")) {
+                        if (!Array.isArray(message.lineIds))
+                            return "lineIds: array expected";
+                        for (let i = 0; i < message.lineIds.length; ++i)
+                            if (!$util.isInteger(message.lineIds[i]))
+                                return "lineIds: integer[] expected";
+                    }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        properties._transportType = 1;
+                        switch (message.transportType) {
+                        default:
+                            return "transportType: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a GetStationByLineIdListRequest message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.GetStationByLineIdListRequest} GetStationByLineIdListRequest
+                 */
+                GetStationByLineIdListRequest.fromObject = function fromObject(object) {
+                    if (object instanceof $root.app.trainlcd.grpc.GetStationByLineIdListRequest)
+                        return object;
+                    let message = new $root.app.trainlcd.grpc.GetStationByLineIdListRequest();
+                    if (object.lineIds) {
+                        if (!Array.isArray(object.lineIds))
+                            throw TypeError(".app.trainlcd.grpc.GetStationByLineIdListRequest.lineIds: array expected");
+                        message.lineIds = [];
+                        for (let i = 0; i < object.lineIds.length; ++i)
+                            message.lineIds[i] = object.lineIds[i] >>> 0;
+                    }
+                    switch (object.transportType) {
+                    default:
+                        if (typeof object.transportType === "number") {
+                            message.transportType = object.transportType;
+                            break;
+                        }
+                        break;
+                    case "TransportTypeUnspecified":
+                    case 0:
+                        message.transportType = 0;
+                        break;
+                    case "Rail":
+                    case 1:
+                        message.transportType = 1;
+                        break;
+                    case "Bus":
+                    case 2:
+                        message.transportType = 2;
+                        break;
+                    case "RailAndBus":
+                    case 3:
+                        message.transportType = 3;
+                        break;
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a GetStationByLineIdListRequest message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.GetStationByLineIdListRequest} message GetStationByLineIdListRequest
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                GetStationByLineIdListRequest.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.arrays || options.defaults)
+                        object.lineIds = [];
+                    if (message.lineIds && message.lineIds.length) {
+                        object.lineIds = [];
+                        for (let j = 0; j < message.lineIds.length; ++j)
+                            object.lineIds[j] = message.lineIds[j];
+                    }
+                    if (message.transportType != null && message.hasOwnProperty("transportType")) {
+                        object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                        if (options.oneofs)
+                            object._transportType = "transportType";
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this GetStationByLineIdListRequest to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                GetStationByLineIdListRequest.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for GetStationByLineIdListRequest
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.GetStationByLineIdListRequest
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                GetStationByLineIdListRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.GetStationByLineIdListRequest";
+                };
+
+                return GetStationByLineIdListRequest;
             })();
 
             grpc.GetStationsByNameRequest = (function() {
