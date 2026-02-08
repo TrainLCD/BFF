@@ -249,6 +249,15 @@ function createResolvers(client: GrpcClient) {
 			);
 			return payload.stations ?? [];
 		},
+		lineGroupListStations: async ({ lineGroupIds, transportType }: { lineGroupIds: number[]; transportType?: string }) => {
+			const payload = await client.call(
+				'GetStationsByLineGroupIdList',
+				grpcTypes.GetStationsByLineGroupIdListRequest,
+				grpcTypes.MultipleStationResponse,
+				cleanPayload({ lineGroupIds, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus })
+			);
+			return payload.stations ?? [];
+		},
 		stationTrainTypes: async ({ stationId }: { stationId: number }) => {
 			const payload = await client.call(
 				'GetTrainTypesByStationId',
@@ -485,6 +494,7 @@ class GrpcClient {
 			'GetStationsByLineId',
 			'GetStationsByLineGroupId',
 			'GetStationsByLineIdList',
+			'GetStationsByLineGroupIdList',
 			'GetLineById',
 			'GetLineByIdList',
 			'GetLinesByName',
