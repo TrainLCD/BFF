@@ -496,34 +496,34 @@ export const app = $root.app = (() => {
                  */
 
                 /**
-                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getLineByIdList}.
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getLinesByIdList}.
                  * @memberof app.trainlcd.grpc.StationAPI
-                 * @typedef GetLineByIdListCallback
+                 * @typedef GetLinesByIdListCallback
                  * @type {function}
                  * @param {Error|null} error Error, if any
                  * @param {app.trainlcd.grpc.MultipleLineResponse} [response] MultipleLineResponse
                  */
 
                 /**
-                 * Calls GetLineByIdList.
-                 * @function getLineByIdList
+                 * Calls GetLinesByIdList.
+                 * @function getLinesByIdList
                  * @memberof app.trainlcd.grpc.StationAPI
                  * @instance
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest} request GetLineByIdListRequest message or plain object
-                 * @param {app.trainlcd.grpc.StationAPI.GetLineByIdListCallback} callback Node-style callback called with the error, if any, and MultipleLineResponse
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest} request GetLinesByIdListRequest message or plain object
+                 * @param {app.trainlcd.grpc.StationAPI.GetLinesByIdListCallback} callback Node-style callback called with the error, if any, and MultipleLineResponse
                  * @returns {undefined}
                  * @variation 1
                  */
-                Object.defineProperty(StationAPI.prototype.getLineByIdList = function getLineByIdList(request, callback) {
-                    return this.rpcCall(getLineByIdList, $root.app.trainlcd.grpc.GetLineByIdListRequest, $root.app.trainlcd.grpc.MultipleLineResponse, request, callback);
-                }, "name", { value: "GetLineByIdList" });
+                Object.defineProperty(StationAPI.prototype.getLinesByIdList = function getLinesByIdList(request, callback) {
+                    return this.rpcCall(getLinesByIdList, $root.app.trainlcd.grpc.GetLinesByIdListRequest, $root.app.trainlcd.grpc.MultipleLineResponse, request, callback);
+                }, "name", { value: "GetLinesByIdList" });
 
                 /**
-                 * Calls GetLineByIdList.
-                 * @function getLineByIdList
+                 * Calls GetLinesByIdList.
+                 * @function getLinesByIdList
                  * @memberof app.trainlcd.grpc.StationAPI
                  * @instance
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest} request GetLineByIdListRequest message or plain object
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest} request GetLinesByIdListRequest message or plain object
                  * @returns {Promise<app.trainlcd.grpc.MultipleLineResponse>} Promise
                  * @variation 2
                  */
@@ -4165,24 +4165,24 @@ export const app = $root.app = (() => {
                 return GetLineByIdRequest;
             })();
 
-            grpc.GetLineByIdListRequest = (function() {
+            grpc.GetLinesByIdListRequest = (function() {
 
                 /**
-                 * Properties of a GetLineByIdListRequest.
+                 * Properties of a GetLinesByIdListRequest.
                  * @memberof app.trainlcd.grpc
-                 * @interface IGetLineByIdListRequest
-                 * @property {Array.<number>|null} [lineIds] GetLineByIdListRequest lineIds
+                 * @interface IGetLinesByIdListRequest
+                 * @property {Array.<number>|null} [lineIds] GetLinesByIdListRequest lineIds
                  */
 
                 /**
-                 * Constructs a new GetLineByIdListRequest.
+                 * Constructs a new GetLinesByIdListRequest.
                  * @memberof app.trainlcd.grpc
-                 * @classdesc Represents a GetLineByIdListRequest.
-                 * @implements IGetLineByIdListRequest
+                 * @classdesc Represents a GetLinesByIdListRequest.
+                 * @implements IGetLinesByIdListRequest
                  * @constructor
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest=} [properties] Properties to set
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest=} [properties] Properties to set
                  */
-                function GetLineByIdListRequest(properties) {
+                function GetLinesByIdListRequest(properties) {
                     this.lineIds = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
@@ -4191,35 +4191,35 @@ export const app = $root.app = (() => {
                 }
 
                 /**
-                 * GetLineByIdListRequest lineIds.
+                 * GetLinesByIdListRequest lineIds.
                  * @member {Array.<number>} lineIds
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @instance
                  */
-                GetLineByIdListRequest.prototype.lineIds = $util.emptyArray;
+                GetLinesByIdListRequest.prototype.lineIds = $util.emptyArray;
 
                 /**
-                 * Creates a new GetLineByIdListRequest instance using the specified properties.
+                 * Creates a new GetLinesByIdListRequest instance using the specified properties.
                  * @function create
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest=} [properties] Properties to set
-                 * @returns {app.trainlcd.grpc.GetLineByIdListRequest} GetLineByIdListRequest instance
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.GetLinesByIdListRequest} GetLinesByIdListRequest instance
                  */
-                GetLineByIdListRequest.create = function create(properties) {
-                    return new GetLineByIdListRequest(properties);
+                GetLinesByIdListRequest.create = function create(properties) {
+                    return new GetLinesByIdListRequest(properties);
                 };
 
                 /**
-                 * Encodes the specified GetLineByIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetLineByIdListRequest.verify|verify} messages.
+                 * Encodes the specified GetLinesByIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetLinesByIdListRequest.verify|verify} messages.
                  * @function encode
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest} message GetLineByIdListRequest message or plain object to encode
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest} message GetLinesByIdListRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
-                GetLineByIdListRequest.encode = function encode(message, writer) {
+                GetLinesByIdListRequest.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
                     if (message.lineIds != null && message.lineIds.length) {
@@ -4232,33 +4232,33 @@ export const app = $root.app = (() => {
                 };
 
                 /**
-                 * Encodes the specified GetLineByIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetLineByIdListRequest.verify|verify} messages.
+                 * Encodes the specified GetLinesByIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetLinesByIdListRequest.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
-                 * @param {app.trainlcd.grpc.IGetLineByIdListRequest} message GetLineByIdListRequest message or plain object to encode
+                 * @param {app.trainlcd.grpc.IGetLinesByIdListRequest} message GetLinesByIdListRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
-                GetLineByIdListRequest.encodeDelimited = function encodeDelimited(message, writer) {
+                GetLinesByIdListRequest.encodeDelimited = function encodeDelimited(message, writer) {
                     return this.encode(message, writer).ldelim();
                 };
 
                 /**
-                 * Decodes a GetLineByIdListRequest message from the specified reader or buffer.
+                 * Decodes a GetLinesByIdListRequest message from the specified reader or buffer.
                  * @function decode
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {app.trainlcd.grpc.GetLineByIdListRequest} GetLineByIdListRequest
+                 * @returns {app.trainlcd.grpc.GetLinesByIdListRequest} GetLinesByIdListRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetLineByIdListRequest.decode = function decode(reader, length, error) {
+                GetLinesByIdListRequest.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetLineByIdListRequest();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetLinesByIdListRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -4284,30 +4284,30 @@ export const app = $root.app = (() => {
                 };
 
                 /**
-                 * Decodes a GetLineByIdListRequest message from the specified reader or buffer, length delimited.
+                 * Decodes a GetLinesByIdListRequest message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {app.trainlcd.grpc.GetLineByIdListRequest} GetLineByIdListRequest
+                 * @returns {app.trainlcd.grpc.GetLinesByIdListRequest} GetLinesByIdListRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetLineByIdListRequest.decodeDelimited = function decodeDelimited(reader) {
+                GetLinesByIdListRequest.decodeDelimited = function decodeDelimited(reader) {
                     if (!(reader instanceof $Reader))
                         reader = new $Reader(reader);
                     return this.decode(reader, reader.uint32());
                 };
 
                 /**
-                 * Verifies a GetLineByIdListRequest message.
+                 * Verifies a GetLinesByIdListRequest message.
                  * @function verify
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetLineByIdListRequest.verify = function verify(message) {
+                GetLinesByIdListRequest.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
                     if (message.lineIds != null && message.hasOwnProperty("lineIds")) {
@@ -4321,20 +4321,20 @@ export const app = $root.app = (() => {
                 };
 
                 /**
-                 * Creates a GetLineByIdListRequest message from a plain object. Also converts values to their respective internal types.
+                 * Creates a GetLinesByIdListRequest message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {app.trainlcd.grpc.GetLineByIdListRequest} GetLineByIdListRequest
+                 * @returns {app.trainlcd.grpc.GetLinesByIdListRequest} GetLinesByIdListRequest
                  */
-                GetLineByIdListRequest.fromObject = function fromObject(object) {
-                    if (object instanceof $root.app.trainlcd.grpc.GetLineByIdListRequest)
+                GetLinesByIdListRequest.fromObject = function fromObject(object) {
+                    if (object instanceof $root.app.trainlcd.grpc.GetLinesByIdListRequest)
                         return object;
-                    let message = new $root.app.trainlcd.grpc.GetLineByIdListRequest();
+                    let message = new $root.app.trainlcd.grpc.GetLinesByIdListRequest();
                     if (object.lineIds) {
                         if (!Array.isArray(object.lineIds))
-                            throw TypeError(".app.trainlcd.grpc.GetLineByIdListRequest.lineIds: array expected");
+                            throw TypeError(".app.trainlcd.grpc.GetLinesByIdListRequest.lineIds: array expected");
                         message.lineIds = [];
                         for (let i = 0; i < object.lineIds.length; ++i)
                             message.lineIds[i] = object.lineIds[i] >>> 0;
@@ -4343,15 +4343,15 @@ export const app = $root.app = (() => {
                 };
 
                 /**
-                 * Creates a plain object from a GetLineByIdListRequest message. Also converts values to other types if specified.
+                 * Creates a plain object from a GetLinesByIdListRequest message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
-                 * @param {app.trainlcd.grpc.GetLineByIdListRequest} message GetLineByIdListRequest
+                 * @param {app.trainlcd.grpc.GetLinesByIdListRequest} message GetLinesByIdListRequest
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
-                GetLineByIdListRequest.toObject = function toObject(message, options) {
+                GetLinesByIdListRequest.toObject = function toObject(message, options) {
                     if (!options)
                         options = {};
                     let object = {};
@@ -4366,32 +4366,32 @@ export const app = $root.app = (() => {
                 };
 
                 /**
-                 * Converts this GetLineByIdListRequest to JSON.
+                 * Converts this GetLinesByIdListRequest to JSON.
                  * @function toJSON
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
-                GetLineByIdListRequest.prototype.toJSON = function toJSON() {
+                GetLinesByIdListRequest.prototype.toJSON = function toJSON() {
                     return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
                 };
 
                 /**
-                 * Gets the default type url for GetLineByIdListRequest
+                 * Gets the default type url for GetLinesByIdListRequest
                  * @function getTypeUrl
-                 * @memberof app.trainlcd.grpc.GetLineByIdListRequest
+                 * @memberof app.trainlcd.grpc.GetLinesByIdListRequest
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
                  */
-                GetLineByIdListRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                GetLinesByIdListRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/app.trainlcd.grpc.GetLineByIdListRequest";
+                    return typeUrlPrefix + "/app.trainlcd.grpc.GetLinesByIdListRequest";
                 };
 
-                return GetLineByIdListRequest;
+                return GetLinesByIdListRequest;
             })();
 
             grpc.CoordinatesRequest = (function() {

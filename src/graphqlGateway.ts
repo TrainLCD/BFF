@@ -222,6 +222,10 @@ function createResolvers(client: GrpcClient) {
 			const payload = await client.call('GetLineById', grpcTypes.GetLineByIdRequest, grpcTypes.SingleLineResponse, { lineId });
 			return payload.line ?? null;
 		},
+		lines: async ({ lineIds }: { lineIds: number[] }) => {
+			const payload = await client.call('GetLinesByIdList', grpcTypes.GetLinesByIdListRequest, grpcTypes.MultipleLineResponse, { lineIds });
+			return payload.lines ?? [];
+		},
 		linesByName: async ({ name, limit }: { name: string; limit?: number }) => {
 			const payload = await client.call(
 				'GetLinesByName',
@@ -496,7 +500,7 @@ class GrpcClient {
 			'GetStationsByLineIdList',
 			'GetStationsByLineGroupIdList',
 			'GetLineById',
-			'GetLineByIdList',
+			'GetLinesByIdList',
 			'GetLinesByName',
 			'GetRoutesMinimal',
 			'GetRoutes',

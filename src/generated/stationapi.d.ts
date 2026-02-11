@@ -212,18 +212,18 @@ export namespace app {
                 public getLineById(request: app.trainlcd.grpc.IGetLineByIdRequest): Promise<app.trainlcd.grpc.SingleLineResponse>;
 
                 /**
-                 * Calls GetLineByIdList.
-                 * @param request GetLineByIdListRequest message or plain object
+                 * Calls GetLinesByIdList.
+                 * @param request GetLinesByIdListRequest message or plain object
                  * @param callback Node-style callback called with the error, if any, and MultipleLineResponse
                  */
-                public getLineByIdList(request: app.trainlcd.grpc.IGetLineByIdListRequest, callback: app.trainlcd.grpc.StationAPI.GetLineByIdListCallback): void;
+                public getLinesByIdList(request: app.trainlcd.grpc.IGetLinesByIdListRequest, callback: app.trainlcd.grpc.StationAPI.GetLinesByIdListCallback): void;
 
                 /**
-                 * Calls GetLineByIdList.
-                 * @param request GetLineByIdListRequest message or plain object
+                 * Calls GetLinesByIdList.
+                 * @param request GetLinesByIdListRequest message or plain object
                  * @returns Promise
                  */
-                public getLineByIdList(request: app.trainlcd.grpc.IGetLineByIdListRequest): Promise<app.trainlcd.grpc.MultipleLineResponse>;
+                public getLinesByIdList(request: app.trainlcd.grpc.IGetLinesByIdListRequest): Promise<app.trainlcd.grpc.MultipleLineResponse>;
 
                 /**
                  * Calls GetLinesByName.
@@ -362,11 +362,11 @@ export namespace app {
                 type GetLineByIdCallback = (error: (Error|null), response?: app.trainlcd.grpc.SingleLineResponse) => void;
 
                 /**
-                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getLineByIdList}.
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getLinesByIdList}.
                  * @param error Error, if any
                  * @param [response] MultipleLineResponse
                  */
-                type GetLineByIdListCallback = (error: (Error|null), response?: app.trainlcd.grpc.MultipleLineResponse) => void;
+                type GetLinesByIdListCallback = (error: (Error|null), response?: app.trainlcd.grpc.MultipleLineResponse) => void;
 
                 /**
                  * Callback as used by {@link app.trainlcd.grpc.StationAPI#getLinesByName}.
@@ -1722,97 +1722,97 @@ export namespace app {
                 public static getTypeUrl(typeUrlPrefix?: string): string;
             }
 
-            /** Properties of a GetLineByIdListRequest. */
-            interface IGetLineByIdListRequest {
+            /** Properties of a GetLinesByIdListRequest. */
+            interface IGetLinesByIdListRequest {
 
-                /** GetLineByIdListRequest lineIds */
+                /** GetLinesByIdListRequest lineIds */
                 lineIds?: (number[]|null);
             }
 
-            /** Represents a GetLineByIdListRequest. */
-            class GetLineByIdListRequest implements IGetLineByIdListRequest {
+            /** Represents a GetLinesByIdListRequest. */
+            class GetLinesByIdListRequest implements IGetLinesByIdListRequest {
 
                 /**
-                 * Constructs a new GetLineByIdListRequest.
+                 * Constructs a new GetLinesByIdListRequest.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: app.trainlcd.grpc.IGetLineByIdListRequest);
+                constructor(properties?: app.trainlcd.grpc.IGetLinesByIdListRequest);
 
-                /** GetLineByIdListRequest lineIds. */
+                /** GetLinesByIdListRequest lineIds. */
                 public lineIds: number[];
 
                 /**
-                 * Creates a new GetLineByIdListRequest instance using the specified properties.
+                 * Creates a new GetLinesByIdListRequest instance using the specified properties.
                  * @param [properties] Properties to set
-                 * @returns GetLineByIdListRequest instance
+                 * @returns GetLinesByIdListRequest instance
                  */
-                public static create(properties?: app.trainlcd.grpc.IGetLineByIdListRequest): app.trainlcd.grpc.GetLineByIdListRequest;
+                public static create(properties?: app.trainlcd.grpc.IGetLinesByIdListRequest): app.trainlcd.grpc.GetLinesByIdListRequest;
 
                 /**
-                 * Encodes the specified GetLineByIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetLineByIdListRequest.verify|verify} messages.
-                 * @param message GetLineByIdListRequest message or plain object to encode
+                 * Encodes the specified GetLinesByIdListRequest message. Does not implicitly {@link app.trainlcd.grpc.GetLinesByIdListRequest.verify|verify} messages.
+                 * @param message GetLinesByIdListRequest message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: app.trainlcd.grpc.IGetLineByIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: app.trainlcd.grpc.IGetLinesByIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Encodes the specified GetLineByIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetLineByIdListRequest.verify|verify} messages.
-                 * @param message GetLineByIdListRequest message or plain object to encode
+                 * Encodes the specified GetLinesByIdListRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetLinesByIdListRequest.verify|verify} messages.
+                 * @param message GetLinesByIdListRequest message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encodeDelimited(message: app.trainlcd.grpc.IGetLineByIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encodeDelimited(message: app.trainlcd.grpc.IGetLinesByIdListRequest, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Decodes a GetLineByIdListRequest message from the specified reader or buffer.
+                 * Decodes a GetLinesByIdListRequest message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
                  * @param [length] Message length if known beforehand
-                 * @returns GetLineByIdListRequest
+                 * @returns GetLinesByIdListRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.GetLineByIdListRequest;
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.GetLinesByIdListRequest;
 
                 /**
-                 * Decodes a GetLineByIdListRequest message from the specified reader or buffer, length delimited.
+                 * Decodes a GetLinesByIdListRequest message from the specified reader or buffer, length delimited.
                  * @param reader Reader or buffer to decode from
-                 * @returns GetLineByIdListRequest
+                 * @returns GetLinesByIdListRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.GetLineByIdListRequest;
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.GetLinesByIdListRequest;
 
                 /**
-                 * Verifies a GetLineByIdListRequest message.
+                 * Verifies a GetLinesByIdListRequest message.
                  * @param message Plain object to verify
                  * @returns `null` if valid, otherwise the reason why it is not
                  */
                 public static verify(message: { [k: string]: any }): (string|null);
 
                 /**
-                 * Creates a GetLineByIdListRequest message from a plain object. Also converts values to their respective internal types.
+                 * Creates a GetLinesByIdListRequest message from a plain object. Also converts values to their respective internal types.
                  * @param object Plain object
-                 * @returns GetLineByIdListRequest
+                 * @returns GetLinesByIdListRequest
                  */
-                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.GetLineByIdListRequest;
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.GetLinesByIdListRequest;
 
                 /**
-                 * Creates a plain object from a GetLineByIdListRequest message. Also converts values to other types if specified.
-                 * @param message GetLineByIdListRequest
+                 * Creates a plain object from a GetLinesByIdListRequest message. Also converts values to other types if specified.
+                 * @param message GetLinesByIdListRequest
                  * @param [options] Conversion options
                  * @returns Plain object
                  */
-                public static toObject(message: app.trainlcd.grpc.GetLineByIdListRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+                public static toObject(message: app.trainlcd.grpc.GetLinesByIdListRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
 
                 /**
-                 * Converts this GetLineByIdListRequest to JSON.
+                 * Converts this GetLinesByIdListRequest to JSON.
                  * @returns JSON object
                  */
                 public toJSON(): { [k: string]: any };
 
                 /**
-                 * Gets the default type url for GetLineByIdListRequest
+                 * Gets the default type url for GetLinesByIdListRequest
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */

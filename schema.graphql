@@ -64,6 +64,7 @@ type Query {
 	stationGroupStations(groupId: Int!, transportType: TransportType): [Station!]!
 	lineGroupStations(lineGroupId: Int!, directionId: Int, transportType: TransportType): [Station!]!
 	line(lineId: Int!): Line
+	lines(lineIds: [Int!]!): [Line!]!
 	linesByName(name: String!, limit: Int): [Line!]!
 	lineStations(lineId: Int!, stationId: Int, directionId: Int, transportType: TransportType): [Station!]!
 	lineListStations(lineIds: [Int!]!, transportType: TransportType): [Station!]!
