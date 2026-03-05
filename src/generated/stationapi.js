@@ -6177,6 +6177,7 @@ export const app = $root.app = (() => {
                  * @property {boolean|null} [hasTrainTypes] Station hasTrainTypes
                  * @property {app.trainlcd.grpc.ITrainType|null} [trainType] Station trainType
                  * @property {app.trainlcd.grpc.TransportType|null} [transportType] Station transportType
+                 * @property {string|null} [nameIpa] Station nameIpa
                  */
 
                 /**
@@ -6388,6 +6389,14 @@ export const app = $root.app = (() => {
                  */
                 Station.prototype.transportType = 0;
 
+                /**
+                 * Station nameIpa.
+                 * @member {string|null|undefined} nameIpa
+                 * @memberof app.trainlcd.grpc.Station
+                 * @instance
+                 */
+                Station.prototype.nameIpa = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -6480,6 +6489,17 @@ export const app = $root.app = (() => {
                 });
 
                 /**
+                 * Station _nameIpa.
+                 * @member {"nameIpa"|undefined} _nameIpa
+                 * @memberof app.trainlcd.grpc.Station
+                 * @instance
+                 */
+                Object.defineProperty(Station.prototype, "_nameIpa", {
+                    get: $util.oneOfGetter($oneOfFields = ["nameIpa"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
                  * Creates a new Station instance using the specified properties.
                  * @function create
                  * @memberof app.trainlcd.grpc.Station
@@ -6553,6 +6573,8 @@ export const app = $root.app = (() => {
                         $root.app.trainlcd.grpc.TrainType.encode(message.trainType, writer.uint32(/* id 23, wireType 2 =*/186).fork()).ldelim();
                     if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
                         writer.uint32(/* id 24, wireType 0 =*/192).int32(message.transportType);
+                    if (message.nameIpa != null && Object.hasOwnProperty.call(message, "nameIpa"))
+                        writer.uint32(/* id 25, wireType 2 =*/202).string(message.nameIpa);
                     return writer;
                 };
 
@@ -6687,6 +6709,10 @@ export const app = $root.app = (() => {
                             }
                         case 24: {
                                 message.transportType = reader.int32();
+                                break;
+                            }
+                        case 25: {
+                                message.nameIpa = reader.string();
                                 break;
                             }
                         default:
@@ -6853,6 +6879,11 @@ export const app = $root.app = (() => {
                         case 3:
                             break;
                         }
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        properties._nameIpa = 1;
+                        if (!$util.isString(message.nameIpa))
+                            return "nameIpa: string expected";
+                    }
                     return null;
                 };
 
@@ -7008,6 +7039,8 @@ export const app = $root.app = (() => {
                         message.transportType = 3;
                         break;
                     }
+                    if (object.nameIpa != null)
+                        message.nameIpa = String(object.nameIpa);
                     return message;
                 };
 
@@ -7122,6 +7155,11 @@ export const app = $root.app = (() => {
                     }
                     if (message.transportType != null && message.hasOwnProperty("transportType"))
                         object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        object.nameIpa = message.nameIpa;
+                        if (options.oneofs)
+                            object._nameIpa = "nameIpa";
+                    }
                     return object;
                 };
 
@@ -9873,6 +9911,7 @@ export const app = $root.app = (() => {
                  * @property {app.trainlcd.grpc.ITrainType|null} [trainType] Line trainType
                  * @property {number|null} [averageDistance] Line averageDistance
                  * @property {app.trainlcd.grpc.TransportType|null} [transportType] Line transportType
+                 * @property {string|null} [nameIpa] Line nameIpa
                  */
 
                 /**
@@ -10019,6 +10058,14 @@ export const app = $root.app = (() => {
                  */
                 Line.prototype.transportType = 0;
 
+                /**
+                 * Line nameIpa.
+                 * @member {string|null|undefined} nameIpa
+                 * @memberof app.trainlcd.grpc.Line
+                 * @instance
+                 */
+                Line.prototype.nameIpa = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -10089,6 +10136,17 @@ export const app = $root.app = (() => {
                 });
 
                 /**
+                 * Line _nameIpa.
+                 * @member {"nameIpa"|undefined} _nameIpa
+                 * @memberof app.trainlcd.grpc.Line
+                 * @instance
+                 */
+                Object.defineProperty(Line.prototype, "_nameIpa", {
+                    get: $util.oneOfGetter($oneOfFields = ["nameIpa"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
                  * Creates a new Line instance using the specified properties.
                  * @function create
                  * @memberof app.trainlcd.grpc.Line
@@ -10145,6 +10203,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 15, wireType 1 =*/121).double(message.averageDistance);
                     if (message.transportType != null && Object.hasOwnProperty.call(message, "transportType"))
                         writer.uint32(/* id 16, wireType 0 =*/128).int32(message.transportType);
+                    if (message.nameIpa != null && Object.hasOwnProperty.call(message, "nameIpa"))
+                        writer.uint32(/* id 17, wireType 2 =*/138).string(message.nameIpa);
                     return writer;
                 };
 
@@ -10245,6 +10305,10 @@ export const app = $root.app = (() => {
                             }
                         case 16: {
                                 message.transportType = reader.int32();
+                                break;
+                            }
+                        case 17: {
+                                message.nameIpa = reader.string();
                                 break;
                             }
                         default:
@@ -10380,6 +10444,11 @@ export const app = $root.app = (() => {
                         case 3:
                             break;
                         }
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        properties._nameIpa = 1;
+                        if (!$util.isString(message.nameIpa))
+                            return "nameIpa: string expected";
+                    }
                     return null;
                 };
 
@@ -10514,6 +10583,8 @@ export const app = $root.app = (() => {
                         message.transportType = 3;
                         break;
                     }
+                    if (object.nameIpa != null)
+                        message.nameIpa = String(object.nameIpa);
                     return message;
                 };
 
@@ -10596,6 +10667,11 @@ export const app = $root.app = (() => {
                         object.averageDistance = options.json && !isFinite(message.averageDistance) ? String(message.averageDistance) : message.averageDistance;
                     if (message.transportType != null && message.hasOwnProperty("transportType"))
                         object.transportType = options.enums === String ? $root.app.trainlcd.grpc.TransportType[message.transportType] === undefined ? message.transportType : $root.app.trainlcd.grpc.TransportType[message.transportType] : message.transportType;
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        object.nameIpa = message.nameIpa;
+                        if (options.oneofs)
+                            object._nameIpa = "nameIpa";
+                    }
                     return object;
                 };
 
@@ -11330,6 +11406,7 @@ export const app = $root.app = (() => {
                  * @property {app.trainlcd.grpc.StopCondition|null} [stopCondition] StationMinimal stopCondition
                  * @property {boolean|null} [hasTrainTypes] StationMinimal hasTrainTypes
                  * @property {number|null} [trainTypeId] StationMinimal trainTypeId
+                 * @property {string|null} [nameIpa] StationMinimal nameIpa
                  */
 
                 /**
@@ -11429,6 +11506,14 @@ export const app = $root.app = (() => {
                  */
                 StationMinimal.prototype.trainTypeId = null;
 
+                /**
+                 * StationMinimal nameIpa.
+                 * @member {string|null|undefined} nameIpa
+                 * @memberof app.trainlcd.grpc.StationMinimal
+                 * @instance
+                 */
+                StationMinimal.prototype.nameIpa = null;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -11462,6 +11547,17 @@ export const app = $root.app = (() => {
                  */
                 Object.defineProperty(StationMinimal.prototype, "_trainTypeId", {
                     get: $util.oneOfGetter($oneOfFields = ["trainTypeId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * StationMinimal _nameIpa.
+                 * @member {"nameIpa"|undefined} _nameIpa
+                 * @memberof app.trainlcd.grpc.StationMinimal
+                 * @instance
+                 */
+                Object.defineProperty(StationMinimal.prototype, "_nameIpa", {
+                    get: $util.oneOfGetter($oneOfFields = ["nameIpa"]),
                     set: $util.oneOfSetter($oneOfFields)
                 });
 
@@ -11514,6 +11610,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 9, wireType 0 =*/72).bool(message.hasTrainTypes);
                     if (message.trainTypeId != null && Object.hasOwnProperty.call(message, "trainTypeId"))
                         writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.trainTypeId);
+                    if (message.nameIpa != null && Object.hasOwnProperty.call(message, "nameIpa"))
+                        writer.uint32(/* id 11, wireType 2 =*/90).string(message.nameIpa);
                     return writer;
                 };
 
@@ -11597,6 +11695,10 @@ export const app = $root.app = (() => {
                             }
                         case 10: {
                                 message.trainTypeId = reader.uint32();
+                                break;
+                            }
+                        case 11: {
+                                message.nameIpa = reader.string();
                                 break;
                             }
                         default:
@@ -11690,6 +11792,11 @@ export const app = $root.app = (() => {
                         if (!$util.isInteger(message.trainTypeId))
                             return "trainTypeId: integer expected";
                     }
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        properties._nameIpa = 1;
+                        if (!$util.isString(message.nameIpa))
+                            return "nameIpa: string expected";
+                    }
                     return null;
                 };
 
@@ -11768,6 +11875,8 @@ export const app = $root.app = (() => {
                         message.hasTrainTypes = Boolean(object.hasTrainTypes);
                     if (object.trainTypeId != null)
                         message.trainTypeId = object.trainTypeId >>> 0;
+                    if (object.nameIpa != null)
+                        message.nameIpa = String(object.nameIpa);
                     return message;
                 };
 
@@ -11829,6 +11938,11 @@ export const app = $root.app = (() => {
                         object.trainTypeId = message.trainTypeId;
                         if (options.oneofs)
                             object._trainTypeId = "trainTypeId";
+                    }
+                    if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
+                        object.nameIpa = message.nameIpa;
+                        if (options.oneofs)
+                            object._nameIpa = "nameIpa";
                     }
                     return object;
                 };

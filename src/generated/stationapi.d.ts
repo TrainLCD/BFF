@@ -2552,6 +2552,9 @@ export namespace app {
 
                 /** Station transportType */
                 transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** Station nameIpa */
+                nameIpa?: (string|null);
             }
 
             /** Represents a Station. */
@@ -2635,6 +2638,9 @@ export namespace app {
                 /** Station transportType. */
                 public transportType: app.trainlcd.grpc.TransportType;
 
+                /** Station nameIpa. */
+                public nameIpa?: (string|null);
+
                 /** Station _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -2658,6 +2664,9 @@ export namespace app {
 
                 /** Station _trainType. */
                 public _trainType?: "trainType";
+
+                /** Station _nameIpa. */
+                public _nameIpa?: "nameIpa";
 
                 /**
                  * Creates a new Station instance using the specified properties.
@@ -3882,6 +3891,9 @@ export namespace app {
 
                 /** Line transportType */
                 transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** Line nameIpa */
+                nameIpa?: (string|null);
             }
 
             /** Represents a Line. */
@@ -3941,6 +3953,9 @@ export namespace app {
                 /** Line transportType. */
                 public transportType: app.trainlcd.grpc.TransportType;
 
+                /** Line nameIpa. */
+                public nameIpa?: (string|null);
+
                 /** Line _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -3958,6 +3973,9 @@ export namespace app {
 
                 /** Line _trainType. */
                 public _trainType?: "trainType";
+
+                /** Line _nameIpa. */
+                public _nameIpa?: "nameIpa";
 
                 /**
                  * Creates a new Line instance using the specified properties.
@@ -4366,6 +4384,9 @@ export namespace app {
 
                 /** StationMinimal trainTypeId */
                 trainTypeId?: (number|null);
+
+                /** StationMinimal nameIpa */
+                nameIpa?: (string|null);
             }
 
             /** Represents a StationMinimal. */
@@ -4407,6 +4428,9 @@ export namespace app {
                 /** StationMinimal trainTypeId. */
                 public trainTypeId?: (number|null);
 
+                /** StationMinimal nameIpa. */
+                public nameIpa?: (string|null);
+
                 /** StationMinimal _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -4415,6 +4439,9 @@ export namespace app {
 
                 /** StationMinimal _trainTypeId. */
                 public _trainTypeId?: "trainTypeId";
+
+                /** StationMinimal _nameIpa. */
+                public _nameIpa?: "nameIpa";
 
                 /**
                  * Creates a new StationMinimal instance using the specified properties.
