@@ -724,6 +724,7 @@ function reconstructRoutesFromMinimal(payload: Record<string, any>, fullTrainTyp
 				stopCondition: minimalStation.stopCondition,
 				hasTrainTypes: minimalStation.hasTrainTypes,
 				trainType,
+				nameIpa: minimalStation.nameIpa,
 			};
 		}
 
