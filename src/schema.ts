@@ -60,6 +60,22 @@ enum TransportType {
 	RailAndBus
 }
 
+enum TtsAlphabet {
+	TtsAlphabetUnspecified
+	Ipa
+	Yomigana
+	Plain
+}
+
+type TtsSegment {
+	surface: String
+	fallbackText: String
+	pronunciation: String
+	alphabet: TtsAlphabet
+	lang: String
+	separator: String
+}
+
 type Query {
 	station(id: Int!, transportType: TransportType): Station
 	stations(ids: [Int!]!, transportType: TransportType): [Station!]!
@@ -116,6 +132,7 @@ type Station {
 	transportType: TransportType
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type StationNested {
@@ -145,6 +162,7 @@ type StationNested {
 	transportType: TransportType
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type StationNumber {
@@ -173,6 +191,7 @@ type Line {
 	transportType: TransportType
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type LineNested {
@@ -194,6 +213,7 @@ type LineNested {
 	transportType: TransportType
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type LineSymbol {
@@ -232,6 +252,7 @@ type TrainType {
 	kind: TrainTypeKind
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type TrainTypeNested {
@@ -250,6 +271,7 @@ type TrainTypeNested {
 	kind: TrainTypeKind
 	nameIpa: String
 	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type Route {

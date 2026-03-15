@@ -5451,6 +5451,374 @@ export const app = $root.app = (() => {
             })();
 
             /**
+             * TtsAlphabet enum.
+             * @name app.trainlcd.grpc.TtsAlphabet
+             * @enum {number}
+             * @property {number} TTS_ALPHABET_UNSPECIFIED=0 TTS_ALPHABET_UNSPECIFIED value
+             * @property {number} TTS_ALPHABET_IPA=1 TTS_ALPHABET_IPA value
+             * @property {number} TTS_ALPHABET_YOMIGANA=2 TTS_ALPHABET_YOMIGANA value
+             * @property {number} TTS_ALPHABET_PLAIN=3 TTS_ALPHABET_PLAIN value
+             */
+            grpc.TtsAlphabet = (function() {
+                const valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "TTS_ALPHABET_UNSPECIFIED"] = 0;
+                values[valuesById[1] = "TTS_ALPHABET_IPA"] = 1;
+                values[valuesById[2] = "TTS_ALPHABET_YOMIGANA"] = 2;
+                values[valuesById[3] = "TTS_ALPHABET_PLAIN"] = 3;
+                return values;
+            })();
+
+            grpc.TtsSegment = (function() {
+
+                /**
+                 * Properties of a TtsSegment.
+                 * @memberof app.trainlcd.grpc
+                 * @interface ITtsSegment
+                 * @property {string|null} [surface] TtsSegment surface
+                 * @property {string|null} [fallbackText] TtsSegment fallbackText
+                 * @property {string|null} [pronunciation] TtsSegment pronunciation
+                 * @property {app.trainlcd.grpc.TtsAlphabet|null} [alphabet] TtsSegment alphabet
+                 * @property {string|null} [lang] TtsSegment lang
+                 * @property {string|null} [separator] TtsSegment separator
+                 */
+
+                /**
+                 * Constructs a new TtsSegment.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents a TtsSegment.
+                 * @implements ITtsSegment
+                 * @constructor
+                 * @param {app.trainlcd.grpc.ITtsSegment=} [properties] Properties to set
+                 */
+                function TtsSegment(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * TtsSegment surface.
+                 * @member {string} surface
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.surface = "";
+
+                /**
+                 * TtsSegment fallbackText.
+                 * @member {string} fallbackText
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.fallbackText = "";
+
+                /**
+                 * TtsSegment pronunciation.
+                 * @member {string} pronunciation
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.pronunciation = "";
+
+                /**
+                 * TtsSegment alphabet.
+                 * @member {app.trainlcd.grpc.TtsAlphabet} alphabet
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.alphabet = 0;
+
+                /**
+                 * TtsSegment lang.
+                 * @member {string} lang
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.lang = "";
+
+                /**
+                 * TtsSegment separator.
+                 * @member {string} separator
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 */
+                TtsSegment.prototype.separator = "";
+
+                /**
+                 * Creates a new TtsSegment instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITtsSegment=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.TtsSegment} TtsSegment instance
+                 */
+                TtsSegment.create = function create(properties) {
+                    return new TtsSegment(properties);
+                };
+
+                /**
+                 * Encodes the specified TtsSegment message. Does not implicitly {@link app.trainlcd.grpc.TtsSegment.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITtsSegment} message TtsSegment message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TtsSegment.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.surface != null && Object.hasOwnProperty.call(message, "surface"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.surface);
+                    if (message.fallbackText != null && Object.hasOwnProperty.call(message, "fallbackText"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.fallbackText);
+                    if (message.pronunciation != null && Object.hasOwnProperty.call(message, "pronunciation"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.pronunciation);
+                    if (message.alphabet != null && Object.hasOwnProperty.call(message, "alphabet"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).int32(message.alphabet);
+                    if (message.lang != null && Object.hasOwnProperty.call(message, "lang"))
+                        writer.uint32(/* id 5, wireType 2 =*/42).string(message.lang);
+                    if (message.separator != null && Object.hasOwnProperty.call(message, "separator"))
+                        writer.uint32(/* id 6, wireType 2 =*/50).string(message.separator);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified TtsSegment message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TtsSegment.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITtsSegment} message TtsSegment message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TtsSegment.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a TtsSegment message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.TtsSegment} TtsSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TtsSegment.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.TtsSegment();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.surface = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.fallbackText = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.pronunciation = reader.string();
+                                break;
+                            }
+                        case 4: {
+                                message.alphabet = reader.int32();
+                                break;
+                            }
+                        case 5: {
+                                message.lang = reader.string();
+                                break;
+                            }
+                        case 6: {
+                                message.separator = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a TtsSegment message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.TtsSegment} TtsSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TtsSegment.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a TtsSegment message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                TtsSegment.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.surface != null && message.hasOwnProperty("surface"))
+                        if (!$util.isString(message.surface))
+                            return "surface: string expected";
+                    if (message.fallbackText != null && message.hasOwnProperty("fallbackText"))
+                        if (!$util.isString(message.fallbackText))
+                            return "fallbackText: string expected";
+                    if (message.pronunciation != null && message.hasOwnProperty("pronunciation"))
+                        if (!$util.isString(message.pronunciation))
+                            return "pronunciation: string expected";
+                    if (message.alphabet != null && message.hasOwnProperty("alphabet"))
+                        switch (message.alphabet) {
+                        default:
+                            return "alphabet: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    if (message.lang != null && message.hasOwnProperty("lang"))
+                        if (!$util.isString(message.lang))
+                            return "lang: string expected";
+                    if (message.separator != null && message.hasOwnProperty("separator"))
+                        if (!$util.isString(message.separator))
+                            return "separator: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a TtsSegment message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.TtsSegment} TtsSegment
+                 */
+                TtsSegment.fromObject = function fromObject(object) {
+                    if (object instanceof $root.app.trainlcd.grpc.TtsSegment)
+                        return object;
+                    let message = new $root.app.trainlcd.grpc.TtsSegment();
+                    if (object.surface != null)
+                        message.surface = String(object.surface);
+                    if (object.fallbackText != null)
+                        message.fallbackText = String(object.fallbackText);
+                    if (object.pronunciation != null)
+                        message.pronunciation = String(object.pronunciation);
+                    switch (object.alphabet) {
+                    default:
+                        if (typeof object.alphabet === "number") {
+                            message.alphabet = object.alphabet;
+                            break;
+                        }
+                        break;
+                    case "TTS_ALPHABET_UNSPECIFIED":
+                    case 0:
+                        message.alphabet = 0;
+                        break;
+                    case "TTS_ALPHABET_IPA":
+                    case 1:
+                        message.alphabet = 1;
+                        break;
+                    case "TTS_ALPHABET_YOMIGANA":
+                    case 2:
+                        message.alphabet = 2;
+                        break;
+                    case "TTS_ALPHABET_PLAIN":
+                    case 3:
+                        message.alphabet = 3;
+                        break;
+                    }
+                    if (object.lang != null)
+                        message.lang = String(object.lang);
+                    if (object.separator != null)
+                        message.separator = String(object.separator);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a TtsSegment message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.TtsSegment} message TtsSegment
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                TtsSegment.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.defaults) {
+                        object.surface = "";
+                        object.fallbackText = "";
+                        object.pronunciation = "";
+                        object.alphabet = options.enums === String ? "TTS_ALPHABET_UNSPECIFIED" : 0;
+                        object.lang = "";
+                        object.separator = "";
+                    }
+                    if (message.surface != null && message.hasOwnProperty("surface"))
+                        object.surface = message.surface;
+                    if (message.fallbackText != null && message.hasOwnProperty("fallbackText"))
+                        object.fallbackText = message.fallbackText;
+                    if (message.pronunciation != null && message.hasOwnProperty("pronunciation"))
+                        object.pronunciation = message.pronunciation;
+                    if (message.alphabet != null && message.hasOwnProperty("alphabet"))
+                        object.alphabet = options.enums === String ? $root.app.trainlcd.grpc.TtsAlphabet[message.alphabet] === undefined ? message.alphabet : $root.app.trainlcd.grpc.TtsAlphabet[message.alphabet] : message.alphabet;
+                    if (message.lang != null && message.hasOwnProperty("lang"))
+                        object.lang = message.lang;
+                    if (message.separator != null && message.hasOwnProperty("separator"))
+                        object.separator = message.separator;
+                    return object;
+                };
+
+                /**
+                 * Converts this TtsSegment to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                TtsSegment.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for TtsSegment
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.TtsSegment
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                TtsSegment.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.TtsSegment";
+                };
+
+                return TtsSegment;
+            })();
+
+            /**
              * StopCondition enum.
              * @name app.trainlcd.grpc.StopCondition
              * @enum {number}
@@ -5531,6 +5899,7 @@ export const app = $root.app = (() => {
                  * @property {app.trainlcd.grpc.TrainTypeKind|null} [kind] TrainType kind
                  * @property {string|null} [nameIpa] TrainType nameIpa
                  * @property {string|null} [nameRomanIpa] TrainType nameRomanIpa
+                 * @property {Array.<app.trainlcd.grpc.ITtsSegment>|null} [nameTtsSegments] TrainType nameTtsSegments
                  */
 
                 /**
@@ -5543,6 +5912,7 @@ export const app = $root.app = (() => {
                  */
                 function TrainType(properties) {
                     this.lines = [];
+                    this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -5669,6 +6039,14 @@ export const app = $root.app = (() => {
                  */
                 TrainType.prototype.nameRomanIpa = null;
 
+                /**
+                 * TrainType nameTtsSegments.
+                 * @member {Array.<app.trainlcd.grpc.ITtsSegment>} nameTtsSegments
+                 * @memberof app.trainlcd.grpc.TrainType
+                 * @instance
+                 */
+                TrainType.prototype.nameTtsSegments = $util.emptyArray;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -5793,6 +6171,9 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 14, wireType 2 =*/114).string(message.nameIpa);
                     if (message.nameRomanIpa != null && Object.hasOwnProperty.call(message, "nameRomanIpa"))
                         writer.uint32(/* id 15, wireType 2 =*/122).string(message.nameRomanIpa);
+                    if (message.nameTtsSegments != null && message.nameTtsSegments.length)
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i)
+                            $root.app.trainlcd.grpc.TtsSegment.encode(message.nameTtsSegments[i], writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
                     return writer;
                 };
 
@@ -5889,6 +6270,12 @@ export const app = $root.app = (() => {
                             }
                         case 15: {
                                 message.nameRomanIpa = reader.string();
+                                break;
+                            }
+                        case 16: {
+                                if (!(message.nameTtsSegments && message.nameTtsSegments.length))
+                                    message.nameTtsSegments = [];
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -6008,6 +6395,15 @@ export const app = $root.app = (() => {
                         if (!$util.isString(message.nameRomanIpa))
                             return "nameRomanIpa: string expected";
                     }
+                    if (message.nameTtsSegments != null && message.hasOwnProperty("nameTtsSegments")) {
+                        if (!Array.isArray(message.nameTtsSegments))
+                            return "nameTtsSegments: array expected";
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            if (error)
+                                return "nameTtsSegments." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -6112,6 +6508,16 @@ export const app = $root.app = (() => {
                         message.nameIpa = String(object.nameIpa);
                     if (object.nameRomanIpa != null)
                         message.nameRomanIpa = String(object.nameRomanIpa);
+                    if (object.nameTtsSegments) {
+                        if (!Array.isArray(object.nameTtsSegments))
+                            throw TypeError(".app.trainlcd.grpc.TrainType.nameTtsSegments: array expected");
+                        message.nameTtsSegments = [];
+                        for (let i = 0; i < object.nameTtsSegments.length; ++i) {
+                            if (typeof object.nameTtsSegments[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.TrainType.nameTtsSegments: object expected");
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                        }
+                    }
                     return message;
                 };
 
@@ -6128,8 +6534,10 @@ export const app = $root.app = (() => {
                     if (!options)
                         options = {};
                     let object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.lines = [];
+                        object.nameTtsSegments = [];
+                    }
                     if (options.defaults) {
                         object.id = 0;
                         object.typeId = 0;
@@ -6190,6 +6598,11 @@ export const app = $root.app = (() => {
                         object.nameRomanIpa = message.nameRomanIpa;
                         if (options.oneofs)
                             object._nameRomanIpa = "nameRomanIpa";
+                    }
+                    if (message.nameTtsSegments && message.nameTtsSegments.length) {
+                        object.nameTtsSegments = [];
+                        for (let j = 0; j < message.nameTtsSegments.length; ++j)
+                            object.nameTtsSegments[j] = $root.app.trainlcd.grpc.TtsSegment.toObject(message.nameTtsSegments[j], options);
                     }
                     return object;
                 };
@@ -6255,6 +6668,7 @@ export const app = $root.app = (() => {
                  * @property {app.trainlcd.grpc.TransportType|null} [transportType] Station transportType
                  * @property {string|null} [nameIpa] Station nameIpa
                  * @property {string|null} [nameRomanIpa] Station nameRomanIpa
+                 * @property {Array.<app.trainlcd.grpc.ITtsSegment>|null} [nameTtsSegments] Station nameTtsSegments
                  */
 
                 /**
@@ -6268,6 +6682,7 @@ export const app = $root.app = (() => {
                 function Station(properties) {
                     this.lines = [];
                     this.stationNumbers = [];
+                    this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -6482,6 +6897,14 @@ export const app = $root.app = (() => {
                  */
                 Station.prototype.nameRomanIpa = null;
 
+                /**
+                 * Station nameTtsSegments.
+                 * @member {Array.<app.trainlcd.grpc.ITtsSegment>} nameTtsSegments
+                 * @memberof app.trainlcd.grpc.Station
+                 * @instance
+                 */
+                Station.prototype.nameTtsSegments = $util.emptyArray;
+
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
 
@@ -6673,6 +7096,9 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 25, wireType 2 =*/202).string(message.nameIpa);
                     if (message.nameRomanIpa != null && Object.hasOwnProperty.call(message, "nameRomanIpa"))
                         writer.uint32(/* id 26, wireType 2 =*/210).string(message.nameRomanIpa);
+                    if (message.nameTtsSegments != null && message.nameTtsSegments.length)
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i)
+                            $root.app.trainlcd.grpc.TtsSegment.encode(message.nameTtsSegments[i], writer.uint32(/* id 27, wireType 2 =*/218).fork()).ldelim();
                     return writer;
                 };
 
@@ -6815,6 +7241,12 @@ export const app = $root.app = (() => {
                             }
                         case 26: {
                                 message.nameRomanIpa = reader.string();
+                                break;
+                            }
+                        case 27: {
+                                if (!(message.nameTtsSegments && message.nameTtsSegments.length))
+                                    message.nameTtsSegments = [];
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -6991,6 +7423,15 @@ export const app = $root.app = (() => {
                         if (!$util.isString(message.nameRomanIpa))
                             return "nameRomanIpa: string expected";
                     }
+                    if (message.nameTtsSegments != null && message.hasOwnProperty("nameTtsSegments")) {
+                        if (!Array.isArray(message.nameTtsSegments))
+                            return "nameTtsSegments: array expected";
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            if (error)
+                                return "nameTtsSegments." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -7150,6 +7591,16 @@ export const app = $root.app = (() => {
                         message.nameIpa = String(object.nameIpa);
                     if (object.nameRomanIpa != null)
                         message.nameRomanIpa = String(object.nameRomanIpa);
+                    if (object.nameTtsSegments) {
+                        if (!Array.isArray(object.nameTtsSegments))
+                            throw TypeError(".app.trainlcd.grpc.Station.nameTtsSegments: array expected");
+                        message.nameTtsSegments = [];
+                        for (let i = 0; i < object.nameTtsSegments.length; ++i) {
+                            if (typeof object.nameTtsSegments[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.Station.nameTtsSegments: object expected");
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                        }
+                    }
                     return message;
                 };
 
@@ -7169,6 +7620,7 @@ export const app = $root.app = (() => {
                     if (options.arrays || options.defaults) {
                         object.lines = [];
                         object.stationNumbers = [];
+                        object.nameTtsSegments = [];
                     }
                     if (options.defaults) {
                         object.id = 0;
@@ -7273,6 +7725,11 @@ export const app = $root.app = (() => {
                         object.nameRomanIpa = message.nameRomanIpa;
                         if (options.oneofs)
                             object._nameRomanIpa = "nameRomanIpa";
+                    }
+                    if (message.nameTtsSegments && message.nameTtsSegments.length) {
+                        object.nameTtsSegments = [];
+                        for (let j = 0; j < message.nameTtsSegments.length; ++j)
+                            object.nameTtsSegments[j] = $root.app.trainlcd.grpc.TtsSegment.toObject(message.nameTtsSegments[j], options);
                     }
                     return object;
                 };
@@ -10027,6 +10484,7 @@ export const app = $root.app = (() => {
                  * @property {app.trainlcd.grpc.TransportType|null} [transportType] Line transportType
                  * @property {string|null} [nameIpa] Line nameIpa
                  * @property {string|null} [nameRomanIpa] Line nameRomanIpa
+                 * @property {Array.<app.trainlcd.grpc.ITtsSegment>|null} [nameTtsSegments] Line nameTtsSegments
                  */
 
                 /**
@@ -10039,6 +10497,7 @@ export const app = $root.app = (() => {
                  */
                 function Line(properties) {
                     this.lineSymbols = [];
+                    this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -10188,6 +10647,14 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 Line.prototype.nameRomanIpa = null;
+
+                /**
+                 * Line nameTtsSegments.
+                 * @member {Array.<app.trainlcd.grpc.ITtsSegment>} nameTtsSegments
+                 * @memberof app.trainlcd.grpc.Line
+                 * @instance
+                 */
+                Line.prototype.nameTtsSegments = $util.emptyArray;
 
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
@@ -10341,6 +10808,9 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 17, wireType 2 =*/138).string(message.nameIpa);
                     if (message.nameRomanIpa != null && Object.hasOwnProperty.call(message, "nameRomanIpa"))
                         writer.uint32(/* id 18, wireType 2 =*/146).string(message.nameRomanIpa);
+                    if (message.nameTtsSegments != null && message.nameTtsSegments.length)
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i)
+                            $root.app.trainlcd.grpc.TtsSegment.encode(message.nameTtsSegments[i], writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
                     return writer;
                 };
 
@@ -10449,6 +10919,12 @@ export const app = $root.app = (() => {
                             }
                         case 18: {
                                 message.nameRomanIpa = reader.string();
+                                break;
+                            }
+                        case 19: {
+                                if (!(message.nameTtsSegments && message.nameTtsSegments.length))
+                                    message.nameTtsSegments = [];
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -10594,6 +11070,15 @@ export const app = $root.app = (() => {
                         if (!$util.isString(message.nameRomanIpa))
                             return "nameRomanIpa: string expected";
                     }
+                    if (message.nameTtsSegments != null && message.hasOwnProperty("nameTtsSegments")) {
+                        if (!Array.isArray(message.nameTtsSegments))
+                            return "nameTtsSegments: array expected";
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            if (error)
+                                return "nameTtsSegments." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -10732,6 +11217,16 @@ export const app = $root.app = (() => {
                         message.nameIpa = String(object.nameIpa);
                     if (object.nameRomanIpa != null)
                         message.nameRomanIpa = String(object.nameRomanIpa);
+                    if (object.nameTtsSegments) {
+                        if (!Array.isArray(object.nameTtsSegments))
+                            throw TypeError(".app.trainlcd.grpc.Line.nameTtsSegments: array expected");
+                        message.nameTtsSegments = [];
+                        for (let i = 0; i < object.nameTtsSegments.length; ++i) {
+                            if (typeof object.nameTtsSegments[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.Line.nameTtsSegments: object expected");
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                        }
+                    }
                     return message;
                 };
 
@@ -10748,8 +11243,10 @@ export const app = $root.app = (() => {
                     if (!options)
                         options = {};
                     let object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.lineSymbols = [];
+                        object.nameTtsSegments = [];
+                    }
                     if (options.defaults) {
                         object.id = 0;
                         object.nameShort = "";
@@ -10823,6 +11320,11 @@ export const app = $root.app = (() => {
                         object.nameRomanIpa = message.nameRomanIpa;
                         if (options.oneofs)
                             object._nameRomanIpa = "nameRomanIpa";
+                    }
+                    if (message.nameTtsSegments && message.nameTtsSegments.length) {
+                        object.nameTtsSegments = [];
+                        for (let j = 0; j < message.nameTtsSegments.length; ++j)
+                            object.nameTtsSegments[j] = $root.app.trainlcd.grpc.TtsSegment.toObject(message.nameTtsSegments[j], options);
                     }
                     return object;
                 };
@@ -11560,6 +12062,7 @@ export const app = $root.app = (() => {
                  * @property {number|null} [trainTypeId] StationMinimal trainTypeId
                  * @property {string|null} [nameIpa] StationMinimal nameIpa
                  * @property {string|null} [nameRomanIpa] StationMinimal nameRomanIpa
+                 * @property {Array.<app.trainlcd.grpc.ITtsSegment>|null} [nameTtsSegments] StationMinimal nameTtsSegments
                  */
 
                 /**
@@ -11573,6 +12076,7 @@ export const app = $root.app = (() => {
                 function StationMinimal(properties) {
                     this.lineIds = [];
                     this.stationNumbers = [];
+                    this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -11674,6 +12178,14 @@ export const app = $root.app = (() => {
                  * @instance
                  */
                 StationMinimal.prototype.nameRomanIpa = null;
+
+                /**
+                 * StationMinimal nameTtsSegments.
+                 * @member {Array.<app.trainlcd.grpc.ITtsSegment>} nameTtsSegments
+                 * @memberof app.trainlcd.grpc.StationMinimal
+                 * @instance
+                 */
+                StationMinimal.prototype.nameTtsSegments = $util.emptyArray;
 
                 // OneOf field names bound to virtual getters and setters
                 let $oneOfFields;
@@ -11786,6 +12298,9 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 11, wireType 2 =*/90).string(message.nameIpa);
                     if (message.nameRomanIpa != null && Object.hasOwnProperty.call(message, "nameRomanIpa"))
                         writer.uint32(/* id 12, wireType 2 =*/98).string(message.nameRomanIpa);
+                    if (message.nameTtsSegments != null && message.nameTtsSegments.length)
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i)
+                            $root.app.trainlcd.grpc.TtsSegment.encode(message.nameTtsSegments[i], writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
                     return writer;
                 };
 
@@ -11877,6 +12392,12 @@ export const app = $root.app = (() => {
                             }
                         case 12: {
                                 message.nameRomanIpa = reader.string();
+                                break;
+                            }
+                        case 13: {
+                                if (!(message.nameTtsSegments && message.nameTtsSegments.length))
+                                    message.nameTtsSegments = [];
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -11980,6 +12501,15 @@ export const app = $root.app = (() => {
                         if (!$util.isString(message.nameRomanIpa))
                             return "nameRomanIpa: string expected";
                     }
+                    if (message.nameTtsSegments != null && message.hasOwnProperty("nameTtsSegments")) {
+                        if (!Array.isArray(message.nameTtsSegments))
+                            return "nameTtsSegments: array expected";
+                        for (let i = 0; i < message.nameTtsSegments.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            if (error)
+                                return "nameTtsSegments." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -12062,6 +12592,16 @@ export const app = $root.app = (() => {
                         message.nameIpa = String(object.nameIpa);
                     if (object.nameRomanIpa != null)
                         message.nameRomanIpa = String(object.nameRomanIpa);
+                    if (object.nameTtsSegments) {
+                        if (!Array.isArray(object.nameTtsSegments))
+                            throw TypeError(".app.trainlcd.grpc.StationMinimal.nameTtsSegments: array expected");
+                        message.nameTtsSegments = [];
+                        for (let i = 0; i < object.nameTtsSegments.length; ++i) {
+                            if (typeof object.nameTtsSegments[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.StationMinimal.nameTtsSegments: object expected");
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                        }
+                    }
                     return message;
                 };
 
@@ -12081,6 +12621,7 @@ export const app = $root.app = (() => {
                     if (options.arrays || options.defaults) {
                         object.lineIds = [];
                         object.stationNumbers = [];
+                        object.nameTtsSegments = [];
                     }
                     if (options.defaults) {
                         object.id = 0;
@@ -12133,6 +12674,11 @@ export const app = $root.app = (() => {
                         object.nameRomanIpa = message.nameRomanIpa;
                         if (options.oneofs)
                             object._nameRomanIpa = "nameRomanIpa";
+                    }
+                    if (message.nameTtsSegments && message.nameTtsSegments.length) {
+                        object.nameTtsSegments = [];
+                        for (let j = 0; j < message.nameTtsSegments.length; ++j)
+                            object.nameTtsSegments[j] = $root.app.trainlcd.grpc.TtsSegment.toObject(message.nameTtsSegments[j], options);
                     }
                     return object;
                 };
