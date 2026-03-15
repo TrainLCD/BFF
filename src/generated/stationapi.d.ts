@@ -2338,6 +2338,12 @@ export namespace app {
 
                 /** TrainType kind */
                 kind?: (app.trainlcd.grpc.TrainTypeKind|null);
+
+                /** TrainType nameIpa */
+                nameIpa?: (string|null);
+
+                /** TrainType nameRomanIpa */
+                nameRomanIpa?: (string|null);
             }
 
             /** Represents a TrainType. */
@@ -2388,6 +2394,12 @@ export namespace app {
                 /** TrainType kind. */
                 public kind: app.trainlcd.grpc.TrainTypeKind;
 
+                /** TrainType nameIpa. */
+                public nameIpa?: (string|null);
+
+                /** TrainType nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
                 /** TrainType _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -2399,6 +2411,12 @@ export namespace app {
 
                 /** TrainType _line. */
                 public _line?: "line";
+
+                /** TrainType _nameIpa. */
+                public _nameIpa?: "nameIpa";
+
+                /** TrainType _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new TrainType instance using the specified properties.
@@ -2555,6 +2573,9 @@ export namespace app {
 
                 /** Station nameIpa */
                 nameIpa?: (string|null);
+
+                /** Station nameRomanIpa */
+                nameRomanIpa?: (string|null);
             }
 
             /** Represents a Station. */
@@ -2641,6 +2662,9 @@ export namespace app {
                 /** Station nameIpa. */
                 public nameIpa?: (string|null);
 
+                /** Station nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
                 /** Station _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -2667,6 +2691,9 @@ export namespace app {
 
                 /** Station _nameIpa. */
                 public _nameIpa?: "nameIpa";
+
+                /** Station _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new Station instance using the specified properties.
@@ -3894,6 +3921,9 @@ export namespace app {
 
                 /** Line nameIpa */
                 nameIpa?: (string|null);
+
+                /** Line nameRomanIpa */
+                nameRomanIpa?: (string|null);
             }
 
             /** Represents a Line. */
@@ -3956,6 +3986,9 @@ export namespace app {
                 /** Line nameIpa. */
                 public nameIpa?: (string|null);
 
+                /** Line nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
                 /** Line _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -3976,6 +4009,9 @@ export namespace app {
 
                 /** Line _nameIpa. */
                 public _nameIpa?: "nameIpa";
+
+                /** Line _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new Line instance using the specified properties.
@@ -4387,6 +4423,9 @@ export namespace app {
 
                 /** StationMinimal nameIpa */
                 nameIpa?: (string|null);
+
+                /** StationMinimal nameRomanIpa */
+                nameRomanIpa?: (string|null);
             }
 
             /** Represents a StationMinimal. */
@@ -4431,6 +4470,9 @@ export namespace app {
                 /** StationMinimal nameIpa. */
                 public nameIpa?: (string|null);
 
+                /** StationMinimal nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
                 /** StationMinimal _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -4442,6 +4484,9 @@ export namespace app {
 
                 /** StationMinimal _nameIpa. */
                 public _nameIpa?: "nameIpa";
+
+                /** StationMinimal _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new StationMinimal instance using the specified properties.

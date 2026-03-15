@@ -115,6 +115,7 @@ type Station {
 	line: LineNested
 	transportType: TransportType
 	nameIpa: String
+	nameRomanIpa: String
 }
 
 type StationNested {
@@ -143,6 +144,7 @@ type StationNested {
 	line: LineNested
 	transportType: TransportType
 	nameIpa: String
+	nameRomanIpa: String
 }
 
 type StationNumber {
@@ -170,6 +172,7 @@ type Line {
 	averageDistance: Float
 	transportType: TransportType
 	nameIpa: String
+	nameRomanIpa: String
 }
 
 type LineNested {
@@ -190,6 +193,7 @@ type LineNested {
 	averageDistance: Float
 	transportType: TransportType
 	nameIpa: String
+	nameRomanIpa: String
 }
 
 type LineSymbol {
@@ -226,6 +230,8 @@ type TrainType {
 	line: LineNested
 	direction: TrainDirection
 	kind: TrainTypeKind
+	nameIpa: String
+	nameRomanIpa: String
 }
 
 type TrainTypeNested {
@@ -242,6 +248,8 @@ type TrainTypeNested {
 	line: LineNested
 	direction: TrainDirection
 	kind: TrainTypeKind
+	nameIpa: String
+	nameRomanIpa: String
 }
 
 type Route {
