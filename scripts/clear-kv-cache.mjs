@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "child_process";
-import { writeFileSync, unlinkSync, existsSync, mkdtempSync } from "fs";
+import { writeFileSync, unlinkSync, existsSync, mkdtempSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
@@ -51,8 +51,16 @@ try {
     listArgs.push("--prefix", prefix);
   }
   const raw = run("wrangler", listArgs);
-  const parsed = JSON.parse(raw);
-  const allKeys = Array.isArray(parsed) ? parsed.map((k) => k.name) : [];
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`Failed to parse wrangler output as JSON: ${e.message}\nRaw output: ${raw}`);
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error(`Expected an array from wrangler key list, got ${typeof parsed}\nRaw output: ${raw}`);
+  }
+  const allKeys = parsed.map((k) => k.name);
 
   console.log(`  Found ${allKeys.length} keys.`);
 
@@ -65,18 +73,22 @@ try {
 
   const tmpDir = mkdtempSync(join(tmpdir(), "kv-clear-"));
 
-  for (let i = 0; i < allKeys.length; i += BATCH_SIZE) {
-    const batch = allKeys.slice(i, i + BATCH_SIZE);
-    const tmpFile = join(tmpDir, `batch-${randomUUID()}.json`);
+  try {
+    for (let i = 0; i < allKeys.length; i += BATCH_SIZE) {
+      const batch = allKeys.slice(i, i + BATCH_SIZE);
+      const tmpFile = join(tmpDir, `batch-${randomUUID()}.json`);
 
-    try {
-      writeFileSync(tmpFile, JSON.stringify(batch));
-      run("wrangler", ["kv", "bulk", "delete", "--namespace-id", namespaceId, "--remote", "--force", tmpFile]);
-    } finally {
-      if (existsSync(tmpFile)) unlinkSync(tmpFile);
+      try {
+        writeFileSync(tmpFile, JSON.stringify(batch));
+        run("wrangler", ["kv", "bulk", "delete", "--namespace-id", namespaceId, "--remote", "--force", tmpFile]);
+      } finally {
+        if (existsSync(tmpFile)) unlinkSync(tmpFile);
+      }
+
+      console.log(`  Deleted ${Math.min(i + BATCH_SIZE, allKeys.length)} / ${allKeys.length} keys`);
     }
-
-    console.log(`  Deleted ${Math.min(i + BATCH_SIZE, allKeys.length)} / ${allKeys.length} keys`);
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
   }
 
   console.log("\nDone.");
