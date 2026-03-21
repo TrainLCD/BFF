@@ -622,6 +622,9 @@ async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, a
 		if (stops && Array.isArray(stops)) {
 			for (let j = 0; j < stops.length; j++) {
 				const station = stops[j];
+				if (typeof station.id !== 'number') {
+					continue;
+				}
 				if (typeof station.trainTypeId === 'number' && station.hasTrainTypes) {
 					const existing = stationTrainTypeIds.get(station.id);
 					if (existing) {
@@ -659,6 +662,9 @@ async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, a
 
 		const trainTypeById = new Map<number, any>();
 		for (const tt of trainTypes) {
+			if (typeof tt.id !== 'number') {
+				continue;
+			}
 			trainTypeById.set(tt.id, tt);
 		}
 
