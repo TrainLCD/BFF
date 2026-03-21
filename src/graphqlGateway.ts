@@ -26,7 +26,7 @@ const TtsAlphabetToGraphQL: Record<number, string> = {
 	[TtsAlphabet.TTS_ALPHABET_PLAIN]: 'Plain',
 };
 
-const CACHEABLE_METHODS = new Set([
+const cacheableMethods = new Set([
 	'GetStationById',
 	'GetStationByIdList',
 	'GetStationsByCoordinates',
@@ -518,7 +518,7 @@ class GrpcClient {
 	}
 
 	private isCacheable(methodName: string): boolean {
-		return CACHEABLE_METHODS.has(methodName);
+		return cacheableMethods.has(methodName);
 	}
 
 	private getCacheTTL(): number {
@@ -640,25 +640,34 @@ async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, a
 
 	// Fetch train types for each unique station in parallel
 	const stationIdArray = Array.from(stationTrainTypeIds.keys());
-	const trainTypePromises = stationIdArray.map((stationId) =>
-		client
-			.call('GetTrainTypesByStationId', grpcTypes.GetTrainTypesByStationIdRequest, grpcTypes.MultipleTrainTypeResponse, { stationId })
-			.then((response) => {
-				const trainTypes = response.trainTypes;
-				const neededIds = stationTrainTypeIds.get(stationId)!;
-				const results: Array<{ key: string; trainType: any }> = [];
-				for (const ttId of neededIds) {
-					const match = trainTypes && Array.isArray(trainTypes) ? trainTypes.find((tt: any) => tt.id === ttId) ?? null : null;
-					results.push({ key: `${stationId}:${ttId}`, trainType: match });
-				}
-				return results;
-			})
-			.catch((error) => {
-				console.warn(`Failed to fetch train type for station ${stationId}:`, error);
-				const neededIds = stationTrainTypeIds.get(stationId)!;
-				return Array.from(neededIds, (ttId) => ({ key: `${stationId}:${ttId}`, trainType: null }));
-			})
-	);
+	const trainTypePromises = stationIdArray.map(async (stationId) => {
+		const neededIds = stationTrainTypeIds.get(stationId)!;
+		const fallback = () => Array.from(neededIds, (ttId) => ({ key: `${stationId}:${ttId}`, trainType: null }));
+
+		let response: any;
+		try {
+			response = await client.call('GetTrainTypesByStationId', grpcTypes.GetTrainTypesByStationIdRequest, grpcTypes.MultipleTrainTypeResponse, { stationId });
+		} catch (error) {
+			console.warn(`Failed to fetch train type for station ${stationId}:`, error);
+			return fallback();
+		}
+
+		const trainTypes = response.trainTypes;
+		if (!trainTypes || !Array.isArray(trainTypes)) {
+			return fallback();
+		}
+
+		const trainTypeById = new Map<number, any>();
+		for (const tt of trainTypes) {
+			trainTypeById.set(tt.id, tt);
+		}
+
+		const results: Array<{ key: string; trainType: any }> = [];
+		for (const ttId of neededIds) {
+			results.push({ key: `${stationId}:${ttId}`, trainType: trainTypeById.get(ttId) ?? null });
+		}
+		return results;
+	});
 
 	const allResults = (await Promise.all(trainTypePromises)).flat();
 
