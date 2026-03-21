@@ -21,6 +21,11 @@
 - `npm run proto:generate`: Rebuild `src/generated/stationapi.js` / `.d.ts` from `proto/stationapi.proto` via `protobufjs`.
 - `npm run schema:generate`: Regenerate `src/schema.ts` from `schema.graphql` - run this after modifying the GraphQL schema.
 
+## Implementation Principles
+- Prioritize code quality and performance over implementation speed.
+- Always consider optimization for performance-sensitive code (e.g., unnecessary object allocations in loops, inefficient conversion logic).
+- Choose the most efficient implementation possible without sacrificing readability or maintainability.
+
 ## Coding Style & Naming Conventions
 - Preserve tab indentation and the existing single-blank-line grouping.
 - TypeScript is `strict` with `noEmit`; annotate exported members explicitly and prefer `async/await`.

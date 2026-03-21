@@ -60,6 +60,22 @@ enum TransportType {
 	RailAndBus
 }
 
+enum TtsAlphabet {
+	TtsAlphabetUnspecified
+	Ipa
+	Yomigana
+	Plain
+}
+
+type TtsSegment {
+	surface: String
+	fallbackText: String
+	pronunciation: String
+	alphabet: TtsAlphabet
+	lang: String
+	separator: String
+}
+
 type Query {
 	station(id: Int!, transportType: TransportType): Station
 	stations(ids: [Int!]!, transportType: TransportType): [Station!]!
@@ -114,6 +130,9 @@ type Station {
 	lines: [LineNested!]
 	line: LineNested
 	transportType: TransportType
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type StationNested {
@@ -141,6 +160,9 @@ type StationNested {
 	lines: [LineNested!]
 	line: LineNested
 	transportType: TransportType
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type StationNumber {
@@ -167,6 +189,9 @@ type Line {
 	trainType: TrainTypeNested
 	averageDistance: Float
 	transportType: TransportType
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type LineNested {
@@ -186,6 +211,9 @@ type LineNested {
 	trainType: TrainTypeNested
 	averageDistance: Float
 	transportType: TransportType
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type LineSymbol {
@@ -222,6 +250,9 @@ type TrainType {
 	line: LineNested
 	direction: TrainDirection
 	kind: TrainTypeKind
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type TrainTypeNested {
@@ -238,6 +269,9 @@ type TrainTypeNested {
 	line: LineNested
 	direction: TrainDirection
 	kind: TrainTypeKind
+	nameIpa: String
+	nameRomanIpa: String
+	nameTtsSegments: [TtsSegment!]
 }
 
 type Route {

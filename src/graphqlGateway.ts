@@ -16,6 +16,15 @@ const StopCondition = grpcTypes.StopCondition;
 const CompanyType = grpcTypes.CompanyType;
 const TrainDirection = grpcTypes.TrainDirection;
 const TransportType = grpcTypes.TransportType;
+const TtsAlphabet = grpcTypes.TtsAlphabet;
+
+// TtsAlphabet proto names -> GraphQL enum names
+const TtsAlphabetToGraphQL: Record<number, string> = {
+	[TtsAlphabet.TTS_ALPHABET_UNSPECIFIED]: 'TtsAlphabetUnspecified',
+	[TtsAlphabet.TTS_ALPHABET_IPA]: 'Ipa',
+	[TtsAlphabet.TTS_ALPHABET_YOMIGANA]: 'Yomigana',
+	[TtsAlphabet.TTS_ALPHABET_PLAIN]: 'Plain',
+};
 
 // Build schema once at module load time instead of per-request
 let cachedSchema: GraphQLSchema | null = null;
@@ -724,6 +733,9 @@ function reconstructRoutesFromMinimal(payload: Record<string, any>, fullTrainTyp
 				stopCondition: minimalStation.stopCondition,
 				hasTrainTypes: minimalStation.hasTrainTypes,
 				trainType,
+				nameIpa: minimalStation.nameIpa,
+			nameRomanIpa: minimalStation.nameRomanIpa,
+			nameTtsSegments: minimalStation.nameTtsSegments ?? [],
 			};
 		}
 
@@ -794,6 +806,9 @@ function convertEnumsToNames(obj: any): any {
 					break;
 				case 'transportType':
 					converted[key] = TransportType[value] ?? value;
+					break;
+				case 'alphabet':
+					converted[key] = TtsAlphabetToGraphQL[value] ?? value;
 					break;
 				default:
 					converted[key] = value;

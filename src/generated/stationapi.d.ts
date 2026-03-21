@@ -2270,6 +2270,141 @@ export namespace app {
                 public static getTypeUrl(typeUrlPrefix?: string): string;
             }
 
+            /** TtsAlphabet enum. */
+            enum TtsAlphabet {
+                TTS_ALPHABET_UNSPECIFIED = 0,
+                TTS_ALPHABET_IPA = 1,
+                TTS_ALPHABET_YOMIGANA = 2,
+                TTS_ALPHABET_PLAIN = 3
+            }
+
+            /** Properties of a TtsSegment. */
+            interface ITtsSegment {
+
+                /** TtsSegment surface */
+                surface?: (string|null);
+
+                /** TtsSegment fallbackText */
+                fallbackText?: (string|null);
+
+                /** TtsSegment pronunciation */
+                pronunciation?: (string|null);
+
+                /** TtsSegment alphabet */
+                alphabet?: (app.trainlcd.grpc.TtsAlphabet|null);
+
+                /** TtsSegment lang */
+                lang?: (string|null);
+
+                /** TtsSegment separator */
+                separator?: (string|null);
+            }
+
+            /** Represents a TtsSegment. */
+            class TtsSegment implements ITtsSegment {
+
+                /**
+                 * Constructs a new TtsSegment.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.ITtsSegment);
+
+                /** TtsSegment surface. */
+                public surface: string;
+
+                /** TtsSegment fallbackText. */
+                public fallbackText: string;
+
+                /** TtsSegment pronunciation. */
+                public pronunciation: string;
+
+                /** TtsSegment alphabet. */
+                public alphabet: app.trainlcd.grpc.TtsAlphabet;
+
+                /** TtsSegment lang. */
+                public lang: string;
+
+                /** TtsSegment separator. */
+                public separator: string;
+
+                /**
+                 * Creates a new TtsSegment instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns TtsSegment instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.ITtsSegment): app.trainlcd.grpc.TtsSegment;
+
+                /**
+                 * Encodes the specified TtsSegment message. Does not implicitly {@link app.trainlcd.grpc.TtsSegment.verify|verify} messages.
+                 * @param message TtsSegment message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.ITtsSegment, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified TtsSegment message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TtsSegment.verify|verify} messages.
+                 * @param message TtsSegment message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.ITtsSegment, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a TtsSegment message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns TtsSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.TtsSegment;
+
+                /**
+                 * Decodes a TtsSegment message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns TtsSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.TtsSegment;
+
+                /**
+                 * Verifies a TtsSegment message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a TtsSegment message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns TtsSegment
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.TtsSegment;
+
+                /**
+                 * Creates a plain object from a TtsSegment message. Also converts values to other types if specified.
+                 * @param message TtsSegment
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.TtsSegment, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this TtsSegment to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for TtsSegment
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
             /** StopCondition enum. */
             enum StopCondition {
                 All = 0,
@@ -2338,6 +2473,15 @@ export namespace app {
 
                 /** TrainType kind */
                 kind?: (app.trainlcd.grpc.TrainTypeKind|null);
+
+                /** TrainType nameIpa */
+                nameIpa?: (string|null);
+
+                /** TrainType nameRomanIpa */
+                nameRomanIpa?: (string|null);
+
+                /** TrainType nameTtsSegments */
+                nameTtsSegments?: (app.trainlcd.grpc.ITtsSegment[]|null);
             }
 
             /** Represents a TrainType. */
@@ -2388,6 +2532,15 @@ export namespace app {
                 /** TrainType kind. */
                 public kind: app.trainlcd.grpc.TrainTypeKind;
 
+                /** TrainType nameIpa. */
+                public nameIpa?: (string|null);
+
+                /** TrainType nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
+                /** TrainType nameTtsSegments. */
+                public nameTtsSegments: app.trainlcd.grpc.ITtsSegment[];
+
                 /** TrainType _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -2399,6 +2552,12 @@ export namespace app {
 
                 /** TrainType _line. */
                 public _line?: "line";
+
+                /** TrainType _nameIpa. */
+                public _nameIpa?: "nameIpa";
+
+                /** TrainType _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new TrainType instance using the specified properties.
@@ -2552,6 +2711,15 @@ export namespace app {
 
                 /** Station transportType */
                 transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** Station nameIpa */
+                nameIpa?: (string|null);
+
+                /** Station nameRomanIpa */
+                nameRomanIpa?: (string|null);
+
+                /** Station nameTtsSegments */
+                nameTtsSegments?: (app.trainlcd.grpc.ITtsSegment[]|null);
             }
 
             /** Represents a Station. */
@@ -2635,6 +2803,15 @@ export namespace app {
                 /** Station transportType. */
                 public transportType: app.trainlcd.grpc.TransportType;
 
+                /** Station nameIpa. */
+                public nameIpa?: (string|null);
+
+                /** Station nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
+                /** Station nameTtsSegments. */
+                public nameTtsSegments: app.trainlcd.grpc.ITtsSegment[];
+
                 /** Station _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -2658,6 +2835,12 @@ export namespace app {
 
                 /** Station _trainType. */
                 public _trainType?: "trainType";
+
+                /** Station _nameIpa. */
+                public _nameIpa?: "nameIpa";
+
+                /** Station _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new Station instance using the specified properties.
@@ -3882,6 +4065,15 @@ export namespace app {
 
                 /** Line transportType */
                 transportType?: (app.trainlcd.grpc.TransportType|null);
+
+                /** Line nameIpa */
+                nameIpa?: (string|null);
+
+                /** Line nameRomanIpa */
+                nameRomanIpa?: (string|null);
+
+                /** Line nameTtsSegments */
+                nameTtsSegments?: (app.trainlcd.grpc.ITtsSegment[]|null);
             }
 
             /** Represents a Line. */
@@ -3941,6 +4133,15 @@ export namespace app {
                 /** Line transportType. */
                 public transportType: app.trainlcd.grpc.TransportType;
 
+                /** Line nameIpa. */
+                public nameIpa?: (string|null);
+
+                /** Line nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
+                /** Line nameTtsSegments. */
+                public nameTtsSegments: app.trainlcd.grpc.ITtsSegment[];
+
                 /** Line _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -3958,6 +4159,12 @@ export namespace app {
 
                 /** Line _trainType. */
                 public _trainType?: "trainType";
+
+                /** Line _nameIpa. */
+                public _nameIpa?: "nameIpa";
+
+                /** Line _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new Line instance using the specified properties.
@@ -4366,6 +4573,15 @@ export namespace app {
 
                 /** StationMinimal trainTypeId */
                 trainTypeId?: (number|null);
+
+                /** StationMinimal nameIpa */
+                nameIpa?: (string|null);
+
+                /** StationMinimal nameRomanIpa */
+                nameRomanIpa?: (string|null);
+
+                /** StationMinimal nameTtsSegments */
+                nameTtsSegments?: (app.trainlcd.grpc.ITtsSegment[]|null);
             }
 
             /** Represents a StationMinimal. */
@@ -4407,6 +4623,15 @@ export namespace app {
                 /** StationMinimal trainTypeId. */
                 public trainTypeId?: (number|null);
 
+                /** StationMinimal nameIpa. */
+                public nameIpa?: (string|null);
+
+                /** StationMinimal nameRomanIpa. */
+                public nameRomanIpa?: (string|null);
+
+                /** StationMinimal nameTtsSegments. */
+                public nameTtsSegments: app.trainlcd.grpc.ITtsSegment[];
+
                 /** StationMinimal _nameRoman. */
                 public _nameRoman?: "nameRoman";
 
@@ -4415,6 +4640,12 @@ export namespace app {
 
                 /** StationMinimal _trainTypeId. */
                 public _trainTypeId?: "trainTypeId";
+
+                /** StationMinimal _nameIpa. */
+                public _nameIpa?: "nameIpa";
+
+                /** StationMinimal _nameRomanIpa. */
+                public _nameRomanIpa?: "nameRomanIpa";
 
                 /**
                  * Creates a new StationMinimal instance using the specified properties.
