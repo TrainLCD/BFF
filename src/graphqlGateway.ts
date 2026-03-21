@@ -26,6 +26,26 @@ const TtsAlphabetToGraphQL: Record<number, string> = {
 	[TtsAlphabet.TTS_ALPHABET_PLAIN]: 'Plain',
 };
 
+const cacheableMethods = new Set([
+	'GetStationById',
+	'GetStationByIdList',
+	'GetStationsByCoordinates',
+	'GetStationsByName',
+	'GetStationsByGroupId',
+	'GetStationsByLineId',
+	'GetStationsByLineGroupId',
+	'GetStationsByLineIdList',
+	'GetStationsByLineGroupIdList',
+	'GetLineById',
+	'GetLinesByIdList',
+	'GetLinesByName',
+	'GetRoutesMinimal',
+	'GetRoutes',
+	'GetRouteTypes',
+	'GetConnectedRoutes',
+	'GetTrainTypesByStationId',
+]);
+
 // Build schema once at module load time instead of per-request
 let cachedSchema: GraphQLSchema | null = null;
 function getSchema(): GraphQLSchema {
@@ -498,26 +518,7 @@ class GrpcClient {
 	}
 
 	private isCacheable(methodName: string): boolean {
-		// Only cache read operations, not writes
-		const cacheableMethods = [
-			'GetStationById',
-			'GetStationByIdList',
-			'GetStationsByName',
-			'GetStationsByGroupId',
-			'GetStationsByLineId',
-			'GetStationsByLineGroupId',
-			'GetStationsByLineIdList',
-			'GetStationsByLineGroupIdList',
-			'GetLineById',
-			'GetLinesByIdList',
-			'GetLinesByName',
-			'GetRoutesMinimal',
-			'GetRoutes',
-			'GetRouteTypes',
-			'GetConnectedRoutes',
-			'GetTrainTypesByStationId',
-		];
-		return cacheableMethods.includes(methodName);
+		return cacheableMethods.has(methodName);
 	}
 
 	private getCacheTTL(): number {
@@ -605,15 +606,15 @@ function cleanPayload<T extends Record<string, unknown>>(payload: T): T {
 }
 
 // Fetch full train type details for stations that have train types
-async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, any>): Promise<Map<number, any>> {
+async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, any>): Promise<Map<string, any>> {
 	const routes = payload.routes;
 
 	if (!routes || !Array.isArray(routes)) {
 		return new Map();
 	}
 
-	// Collect station IDs that have train types (where train_type_id is set)
-	const stationIdsWithTrainTypes = new Set<number>();
+	// Collect (stationId, trainTypeId) pairs and deduplicate gRPC calls by stationId
+	const stationTrainTypeIds = new Map<number, Set<number>>(); // stationId -> Set of trainTypeIds
 	for (let i = 0; i < routes.length; i++) {
 		const route = routes[i];
 		const stops = route.stops;
@@ -621,44 +622,67 @@ async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, a
 		if (stops && Array.isArray(stops)) {
 			for (let j = 0; j < stops.length; j++) {
 				const station = stops[j];
-				// If trainTypeId is set, we need to fetch the full TrainType for this station
+				if (typeof station.id !== 'number') {
+					continue;
+				}
 				if (typeof station.trainTypeId === 'number' && station.hasTrainTypes) {
-					stationIdsWithTrainTypes.add(station.id);
+					const existing = stationTrainTypeIds.get(station.id);
+					if (existing) {
+						existing.add(station.trainTypeId);
+					} else {
+						stationTrainTypeIds.set(station.id, new Set([station.trainTypeId]));
+					}
 				}
 			}
 		}
 	}
 
-	// Return empty map if no stations with train types
-	if (stationIdsWithTrainTypes.size === 0) {
+	if (stationTrainTypeIds.size === 0) {
 		return new Map();
 	}
 
-	// Fetch train types for each station in parallel
-	const stationIdArray = Array.from(stationIdsWithTrainTypes);
-	const trainTypePromises = stationIdArray.map((stationId) =>
-		client
-			.call('GetTrainTypesByStationId', grpcTypes.GetTrainTypesByStationIdRequest, grpcTypes.MultipleTrainTypeResponse, { stationId })
-			.then((response) => {
-				const trainTypes = response.trainTypes;
-				// Return the first train type (or find by ID if needed)
-				const trainType = trainTypes && Array.isArray(trainTypes) && trainTypes.length > 0 ? trainTypes[0] : null;
-				return { stationId, trainType };
-			})
-			.catch((error) => {
-				console.warn(`Failed to fetch train type for station ${stationId}:`, error);
-				return { stationId, trainType: null };
-			})
-	);
+	// Fetch train types for each unique station in parallel
+	const stationIdArray = Array.from(stationTrainTypeIds.keys());
+	const trainTypePromises = stationIdArray.map(async (stationId) => {
+		const neededIds = stationTrainTypeIds.get(stationId)!;
+		const fallback = () => Array.from(neededIds, (ttId) => ({ key: `${stationId}:${ttId}`, trainType: null }));
 
-	const trainTypeResults = await Promise.all(trainTypePromises);
+		let response: any;
+		try {
+			response = await client.call('GetTrainTypesByStationId', grpcTypes.GetTrainTypesByStationIdRequest, grpcTypes.MultipleTrainTypeResponse, { stationId });
+		} catch (error) {
+			console.warn(`Failed to fetch train type for station ${stationId}:`, error);
+			return fallback();
+		}
 
-	// Build map of station ID to TrainType object
-	const trainTypeMap = new Map<number, any>();
-	for (let i = 0; i < trainTypeResults.length; i++) {
-		const result = trainTypeResults[i];
+		const trainTypes = response.trainTypes;
+		if (!trainTypes || !Array.isArray(trainTypes)) {
+			return fallback();
+		}
+
+		const trainTypeById = new Map<number, any>();
+		for (const tt of trainTypes) {
+			if (typeof tt.id !== 'number') {
+				continue;
+			}
+			trainTypeById.set(tt.id, tt);
+		}
+
+		const results: Array<{ key: string; trainType: any }> = [];
+		for (const ttId of neededIds) {
+			results.push({ key: `${stationId}:${ttId}`, trainType: trainTypeById.get(ttId) ?? null });
+		}
+		return results;
+	});
+
+	const allResults = (await Promise.all(trainTypePromises)).flat();
+
+	// Build map of "stationId:trainTypeId" to TrainType object
+	const trainTypeMap = new Map<string, any>();
+	for (let i = 0; i < allResults.length; i++) {
+		const result = allResults[i];
 		if (result.trainType) {
-			trainTypeMap.set(result.stationId, result.trainType);
+			trainTypeMap.set(result.key, result.trainType);
 		}
 	}
 
@@ -666,7 +690,7 @@ async function fetchFullTrainTypes(client: GrpcClient, payload: Record<string, a
 }
 
 // Reconstruct full routes from minimal response using LineMinimal from the response
-function reconstructRoutesFromMinimal(payload: Record<string, any>, fullTrainTypeMap: Map<number, any>): any[] {
+function reconstructRoutesFromMinimal(payload: Record<string, any>, fullTrainTypeMap: Map<string, any>): any[] {
 	const routes = payload.routes;
 	const responseLines = payload.lines; // LineMinimal array from RouteMinimalResponse
 
@@ -716,9 +740,11 @@ function reconstructRoutesFromMinimal(payload: Record<string, any>, fullTrainTyp
 				stationLines = resolvedLines;
 			}
 
-			// Resolve train type from the map using station ID
+			// Resolve train type from the map using composite key (stationId:trainTypeId)
 			const trainType =
-				minimalStation.hasTrainTypes && typeof minimalStation.id === 'number' ? fullTrainTypeMap.get(minimalStation.id) ?? null : null;
+				minimalStation.hasTrainTypes && typeof minimalStation.id === 'number' && typeof minimalStation.trainTypeId === 'number'
+					? fullTrainTypeMap.get(`${minimalStation.id}:${minimalStation.trainTypeId}`) ?? null
+					: null;
 
 			// Build full Station object matching the GraphQL schema
 			reconstructedStops[j] = {
@@ -772,10 +798,11 @@ function convertEnumsToNames(obj: any): any {
 	}
 
 	const converted: any = {};
-	const entries = Object.entries(obj);
+	const keys = Object.keys(obj);
 
-	for (let i = 0; i < entries.length; i++) {
-		const [key, value] = entries[i];
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		const value = obj[key];
 
 		// Skip null/undefined values early
 		if (value === null || value === undefined) {
