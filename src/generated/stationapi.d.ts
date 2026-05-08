@@ -2429,7 +2429,8 @@ export namespace app {
                 Rapid = 2,
                 Express = 3,
                 LimitedExpress = 4,
-                HighSpeedRapid = 5
+                HighSpeedRapid = 5,
+                CommuterRapid = 6
             }
 
             /** Properties of a TrainType. */
