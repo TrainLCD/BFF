@@ -651,7 +651,7 @@ export const app = $root.app = (() => {
                 function GetStationByIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -740,9 +740,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByIdRequest.decode = function decode(reader, length, error) {
+                GetStationByIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -758,7 +762,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -789,9 +793,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByIdRequest.verify = function verify(message) {
+                GetStationByIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -819,9 +827,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByIdRequest} GetStationByIdRequest
                  */
-                GetStationByIdRequest.fromObject = function fromObject(object) {
+                GetStationByIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByIdRequest();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -928,7 +940,7 @@ export const app = $root.app = (() => {
                     this.ids = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -1021,9 +1033,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByIdListRequest.decode = function decode(reader, length, error) {
+                GetStationByIdListRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByIdListRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -1046,7 +1062,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -1077,9 +1093,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByIdListRequest.verify = function verify(message) {
+                GetStationByIdListRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.ids != null && message.hasOwnProperty("ids")) {
                         if (!Array.isArray(message.ids))
@@ -1111,9 +1131,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByIdListRequest} GetStationByIdListRequest
                  */
-                GetStationByIdListRequest.fromObject = function fromObject(object) {
+                GetStationByIdListRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByIdListRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByIdListRequest();
                     if (object.ids) {
                         if (!Array.isArray(object.ids))
@@ -1227,7 +1251,7 @@ export const app = $root.app = (() => {
                 function GetStationByGroupIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -1316,9 +1340,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByGroupIdRequest.decode = function decode(reader, length, error) {
+                GetStationByGroupIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByGroupIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -1334,7 +1362,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -1365,9 +1393,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByGroupIdRequest.verify = function verify(message) {
+                GetStationByGroupIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.groupId != null && message.hasOwnProperty("groupId"))
                         if (!$util.isInteger(message.groupId))
@@ -1395,9 +1427,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByGroupIdRequest} GetStationByGroupIdRequest
                  */
-                GetStationByGroupIdRequest.fromObject = function fromObject(object) {
+                GetStationByGroupIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByGroupIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByGroupIdRequest();
                     if (object.groupId != null)
                         message.groupId = object.groupId >>> 0;
@@ -1505,7 +1541,7 @@ export const app = $root.app = (() => {
                 function GetStationByCoordinatesRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -1625,9 +1661,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByCoordinatesRequest.decode = function decode(reader, length, error) {
+                GetStationByCoordinatesRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByCoordinatesRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -1651,7 +1691,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -1682,9 +1722,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByCoordinatesRequest.verify = function verify(message) {
+                GetStationByCoordinatesRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.latitude != null && message.hasOwnProperty("latitude"))
                         if (typeof message.latitude !== "number")
@@ -1720,9 +1764,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByCoordinatesRequest} GetStationByCoordinatesRequest
                  */
-                GetStationByCoordinatesRequest.fromObject = function fromObject(object) {
+                GetStationByCoordinatesRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByCoordinatesRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByCoordinatesRequest();
                     if (object.latitude != null)
                         message.latitude = Number(object.latitude);
@@ -1843,7 +1891,7 @@ export const app = $root.app = (() => {
                 function GetStationByLineIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -1974,9 +2022,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByLineIdRequest.decode = function decode(reader, length, error) {
+                GetStationByLineIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByLineIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -2000,7 +2052,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -2031,9 +2083,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByLineIdRequest.verify = function verify(message) {
+                GetStationByLineIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.lineId != null && message.hasOwnProperty("lineId"))
                         if (!$util.isInteger(message.lineId))
@@ -2071,9 +2127,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByLineIdRequest} GetStationByLineIdRequest
                  */
-                GetStationByLineIdRequest.fromObject = function fromObject(object) {
+                GetStationByLineIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByLineIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByLineIdRequest();
                     if (object.lineId != null)
                         message.lineId = object.lineId >>> 0;
@@ -2194,7 +2254,7 @@ export const app = $root.app = (() => {
                     this.lineIds = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -2287,9 +2347,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationByLineIdListRequest.decode = function decode(reader, length, error) {
+                GetStationByLineIdListRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationByLineIdListRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -2312,7 +2376,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -2343,9 +2407,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationByLineIdListRequest.verify = function verify(message) {
+                GetStationByLineIdListRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.lineIds != null && message.hasOwnProperty("lineIds")) {
                         if (!Array.isArray(message.lineIds))
@@ -2377,9 +2445,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationByLineIdListRequest} GetStationByLineIdListRequest
                  */
-                GetStationByLineIdListRequest.fromObject = function fromObject(object) {
+                GetStationByLineIdListRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationByLineIdListRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationByLineIdListRequest();
                     if (object.lineIds) {
                         if (!Array.isArray(object.lineIds))
@@ -2495,7 +2567,7 @@ export const app = $root.app = (() => {
                 function GetStationsByNameRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -2626,9 +2698,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationsByNameRequest.decode = function decode(reader, length, error) {
+                GetStationsByNameRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationsByNameRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -2652,7 +2728,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -2683,9 +2759,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationsByNameRequest.verify = function verify(message) {
+                GetStationsByNameRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.stationName != null && message.hasOwnProperty("stationName"))
                         if (!$util.isString(message.stationName))
@@ -2723,9 +2803,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationsByNameRequest} GetStationsByNameRequest
                  */
-                GetStationsByNameRequest.fromObject = function fromObject(object) {
+                GetStationsByNameRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationsByNameRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationsByNameRequest();
                     if (object.stationName != null)
                         message.stationName = String(object.stationName);
@@ -2848,7 +2932,7 @@ export const app = $root.app = (() => {
                 function GetRouteRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -2967,9 +3051,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetRouteRequest.decode = function decode(reader, length, error) {
+                GetRouteRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetRouteRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -2997,7 +3085,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -3028,9 +3116,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetRouteRequest.verify = function verify(message) {
+                GetRouteRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
                         if (!$util.isInteger(message.fromStationGroupId))
@@ -3060,9 +3152,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetRouteRequest} GetRouteRequest
                  */
-                GetRouteRequest.fromObject = function fromObject(object) {
+                GetRouteRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetRouteRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetRouteRequest();
                     if (object.fromStationGroupId != null)
                         message.fromStationGroupId = object.fromStationGroupId >>> 0;
@@ -3163,7 +3259,7 @@ export const app = $root.app = (() => {
                 function GetStationsByLineGroupIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -3273,9 +3369,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationsByLineGroupIdRequest.decode = function decode(reader, length, error) {
+                GetStationsByLineGroupIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationsByLineGroupIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -3295,7 +3395,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -3326,9 +3426,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationsByLineGroupIdRequest.verify = function verify(message) {
+                GetStationsByLineGroupIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId"))
                         if (!$util.isInteger(message.lineGroupId))
@@ -3361,9 +3465,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationsByLineGroupIdRequest} GetStationsByLineGroupIdRequest
                  */
-                GetStationsByLineGroupIdRequest.fromObject = function fromObject(object) {
+                GetStationsByLineGroupIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationsByLineGroupIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationsByLineGroupIdRequest();
                     if (object.lineGroupId != null)
                         message.lineGroupId = object.lineGroupId >>> 0;
@@ -3477,7 +3585,7 @@ export const app = $root.app = (() => {
                     this.lineGroupIds = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -3570,9 +3678,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetStationsByLineGroupIdListRequest.decode = function decode(reader, length, error) {
+                GetStationsByLineGroupIdListRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetStationsByLineGroupIdListRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -3595,7 +3707,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -3626,9 +3738,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetStationsByLineGroupIdListRequest.verify = function verify(message) {
+                GetStationsByLineGroupIdListRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.lineGroupIds != null && message.hasOwnProperty("lineGroupIds")) {
                         if (!Array.isArray(message.lineGroupIds))
@@ -3660,9 +3776,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetStationsByLineGroupIdListRequest} GetStationsByLineGroupIdListRequest
                  */
-                GetStationsByLineGroupIdListRequest.fromObject = function fromObject(object) {
+                GetStationsByLineGroupIdListRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetStationsByLineGroupIdListRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetStationsByLineGroupIdListRequest();
                     if (object.lineGroupIds) {
                         if (!Array.isArray(object.lineGroupIds))
@@ -3775,7 +3895,7 @@ export const app = $root.app = (() => {
                 function GetTrainTypesByStationIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -3840,9 +3960,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetTrainTypesByStationIdRequest.decode = function decode(reader, length, error) {
+                GetTrainTypesByStationIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetTrainTypesByStationIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -3854,7 +3978,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -3885,9 +4009,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetTrainTypesByStationIdRequest.verify = function verify(message) {
+                GetTrainTypesByStationIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.stationId != null && message.hasOwnProperty("stationId"))
                         if (!$util.isInteger(message.stationId))
                             return "stationId: integer expected";
@@ -3902,9 +4030,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetTrainTypesByStationIdRequest} GetTrainTypesByStationIdRequest
                  */
-                GetTrainTypesByStationIdRequest.fromObject = function fromObject(object) {
+                GetTrainTypesByStationIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetTrainTypesByStationIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetTrainTypesByStationIdRequest();
                     if (object.stationId != null)
                         message.stationId = object.stationId >>> 0;
@@ -3980,7 +4112,7 @@ export const app = $root.app = (() => {
                 function GetLineByIdRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -4045,9 +4177,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetLineByIdRequest.decode = function decode(reader, length, error) {
+                GetLineByIdRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetLineByIdRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -4059,7 +4195,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -4090,9 +4226,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetLineByIdRequest.verify = function verify(message) {
+                GetLineByIdRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.lineId != null && message.hasOwnProperty("lineId"))
                         if (!$util.isInteger(message.lineId))
                             return "lineId: integer expected";
@@ -4107,9 +4247,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetLineByIdRequest} GetLineByIdRequest
                  */
-                GetLineByIdRequest.fromObject = function fromObject(object) {
+                GetLineByIdRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetLineByIdRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetLineByIdRequest();
                     if (object.lineId != null)
                         message.lineId = object.lineId >>> 0;
@@ -4186,7 +4330,7 @@ export const app = $root.app = (() => {
                     this.lineIds = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -4255,9 +4399,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetLinesByIdListRequest.decode = function decode(reader, length, error) {
+                GetLinesByIdListRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetLinesByIdListRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -4276,7 +4424,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -4307,9 +4455,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetLinesByIdListRequest.verify = function verify(message) {
+                GetLinesByIdListRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.lineIds != null && message.hasOwnProperty("lineIds")) {
                         if (!Array.isArray(message.lineIds))
                             return "lineIds: array expected";
@@ -4328,9 +4480,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetLinesByIdListRequest} GetLinesByIdListRequest
                  */
-                GetLinesByIdListRequest.fromObject = function fromObject(object) {
+                GetLinesByIdListRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetLinesByIdListRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetLinesByIdListRequest();
                     if (object.lineIds) {
                         if (!Array.isArray(object.lineIds))
@@ -4416,7 +4572,7 @@ export const app = $root.app = (() => {
                 function CoordinatesRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -4515,9 +4671,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                CoordinatesRequest.decode = function decode(reader, length, error) {
+                CoordinatesRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.CoordinatesRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -4537,7 +4697,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -4568,9 +4728,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                CoordinatesRequest.verify = function verify(message) {
+                CoordinatesRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.latitude != null && message.hasOwnProperty("latitude"))
                         if (typeof message.latitude !== "number")
@@ -4594,9 +4758,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.CoordinatesRequest} CoordinatesRequest
                  */
-                CoordinatesRequest.fromObject = function fromObject(object) {
+                CoordinatesRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.CoordinatesRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.CoordinatesRequest();
                     if (object.latitude != null)
                         message.latitude = Number(object.latitude);
@@ -4686,7 +4854,7 @@ export const app = $root.app = (() => {
                 function GetLinesByNameRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -4775,9 +4943,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetLinesByNameRequest.decode = function decode(reader, length, error) {
+                GetLinesByNameRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetLinesByNameRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -4793,7 +4965,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -4824,9 +4996,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetLinesByNameRequest.verify = function verify(message) {
+                GetLinesByNameRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.lineName != null && message.hasOwnProperty("lineName"))
                         if (!$util.isString(message.lineName))
@@ -4847,9 +5023,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetLinesByNameRequest} GetLinesByNameRequest
                  */
-                GetLinesByNameRequest.fromObject = function fromObject(object) {
+                GetLinesByNameRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetLinesByNameRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetLinesByNameRequest();
                     if (object.lineName != null)
                         message.lineName = String(object.lineName);
@@ -4933,7 +5113,7 @@ export const app = $root.app = (() => {
                 function GetConnectedStationsRequest(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -5008,9 +5188,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GetConnectedStationsRequest.decode = function decode(reader, length, error) {
+                GetConnectedStationsRequest.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetConnectedStationsRequest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -5026,7 +5210,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -5057,9 +5241,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                GetConnectedStationsRequest.verify = function verify(message) {
+                GetConnectedStationsRequest.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
                         if (!$util.isInteger(message.fromStationGroupId))
                             return "fromStationGroupId: integer expected";
@@ -5077,9 +5265,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.GetConnectedStationsRequest} GetConnectedStationsRequest
                  */
-                GetConnectedStationsRequest.fromObject = function fromObject(object) {
+                GetConnectedStationsRequest.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.GetConnectedStationsRequest)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetConnectedStationsRequest();
                     if (object.fromStationGroupId != null)
                         message.fromStationGroupId = object.fromStationGroupId >>> 0;
@@ -5198,7 +5390,7 @@ export const app = $root.app = (() => {
                 function StationNumber(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -5293,9 +5485,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                StationNumber.decode = function decode(reader, length, error) {
+                StationNumber.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.StationNumber();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -5319,7 +5515,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -5350,9 +5546,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                StationNumber.verify = function verify(message) {
+                StationNumber.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.lineSymbol != null && message.hasOwnProperty("lineSymbol"))
                         if (!$util.isString(message.lineSymbol))
                             return "lineSymbol: string expected";
@@ -5376,9 +5576,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.StationNumber} StationNumber
                  */
-                StationNumber.fromObject = function fromObject(object) {
+                StationNumber.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.StationNumber)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.StationNumber();
                     if (object.lineSymbol != null)
                         message.lineSymbol = String(object.lineSymbol);
@@ -5493,7 +5697,7 @@ export const app = $root.app = (() => {
                 function TtsSegment(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -5608,9 +5812,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                TtsSegment.decode = function decode(reader, length, error) {
+                TtsSegment.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.TtsSegment();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -5642,7 +5850,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -5673,9 +5881,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                TtsSegment.verify = function verify(message) {
+                TtsSegment.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.surface != null && message.hasOwnProperty("surface"))
                         if (!$util.isString(message.surface))
                             return "surface: string expected";
@@ -5712,9 +5924,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.TtsSegment} TtsSegment
                  */
-                TtsSegment.fromObject = function fromObject(object) {
+                TtsSegment.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.TtsSegment)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.TtsSegment();
                     if (object.surface != null)
                         message.surface = String(object.surface);
@@ -5866,6 +6082,7 @@ export const app = $root.app = (() => {
              * @property {number} Express=3 Express value
              * @property {number} LimitedExpress=4 LimitedExpress value
              * @property {number} HighSpeedRapid=5 HighSpeedRapid value
+             * @property {number} CommuterRapid=6 CommuterRapid value
              */
             grpc.TrainTypeKind = (function() {
                 const valuesById = {}, values = Object.create(valuesById);
@@ -5875,6 +6092,7 @@ export const app = $root.app = (() => {
                 values[valuesById[3] = "Express"] = 3;
                 values[valuesById[4] = "LimitedExpress"] = 4;
                 values[valuesById[5] = "HighSpeedRapid"] = 5;
+                values[valuesById[6] = "CommuterRapid"] = 6;
                 return values;
             })();
 
@@ -5915,7 +6133,7 @@ export const app = $root.app = (() => {
                     this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -6201,9 +6419,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                TrainType.decode = function decode(reader, length, error) {
+                TrainType.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.TrainType();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -6249,11 +6471,11 @@ export const app = $root.app = (() => {
                         case 10: {
                                 if (!(message.lines && message.lines.length))
                                     message.lines = [];
-                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32()));
+                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 11: {
-                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32());
+                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 12: {
@@ -6275,11 +6497,11 @@ export const app = $root.app = (() => {
                         case 16: {
                                 if (!(message.nameTtsSegments && message.nameTtsSegments.length))
                                     message.nameTtsSegments = [];
-                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -6310,9 +6532,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                TrainType.verify = function verify(message) {
+                TrainType.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -6351,7 +6577,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.lines))
                             return "lines: array expected";
                         for (let i = 0; i < message.lines.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i]);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i], long + 1);
                             if (error)
                                 return "lines." + error;
                         }
@@ -6359,7 +6585,7 @@ export const app = $root.app = (() => {
                     if (message.line != null && message.hasOwnProperty("line")) {
                         properties._line = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.line);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.line, long + 1);
                             if (error)
                                 return "line." + error;
                         }
@@ -6383,6 +6609,7 @@ export const app = $root.app = (() => {
                         case 3:
                         case 4:
                         case 5:
+                        case 6:
                             break;
                         }
                     if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
@@ -6399,7 +6626,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.nameTtsSegments))
                             return "nameTtsSegments: array expected";
                         for (let i = 0; i < message.nameTtsSegments.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i], long + 1);
                             if (error)
                                 return "nameTtsSegments." + error;
                         }
@@ -6415,9 +6642,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.TrainType} TrainType
                  */
-                TrainType.fromObject = function fromObject(object) {
+                TrainType.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.TrainType)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.TrainType();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -6444,13 +6675,13 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lines.length; ++i) {
                             if (typeof object.lines[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.TrainType.lines: object expected");
-                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i]);
+                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i], long + 1);
                         }
                     }
                     if (object.line != null) {
                         if (typeof object.line !== "object")
                             throw TypeError(".app.trainlcd.grpc.TrainType.line: object expected");
-                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line);
+                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line, long + 1);
                     }
                     switch (object.direction) {
                     default:
@@ -6503,6 +6734,10 @@ export const app = $root.app = (() => {
                     case 5:
                         message.kind = 5;
                         break;
+                    case "CommuterRapid":
+                    case 6:
+                        message.kind = 6;
+                        break;
                     }
                     if (object.nameIpa != null)
                         message.nameIpa = String(object.nameIpa);
@@ -6515,7 +6750,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.nameTtsSegments.length; ++i) {
                             if (typeof object.nameTtsSegments[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.TrainType.nameTtsSegments: object expected");
-                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i], long + 1);
                         }
                     }
                     return message;
@@ -6685,7 +6920,7 @@ export const app = $root.app = (() => {
                     this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -7126,9 +7361,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Station.decode = function decode(reader, length, error) {
+                Station.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.Station();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -7170,11 +7409,11 @@ export const app = $root.app = (() => {
                         case 9: {
                                 if (!(message.lines && message.lines.length))
                                     message.lines = [];
-                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32()));
+                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 10: {
-                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32());
+                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 11: {
@@ -7212,7 +7451,7 @@ export const app = $root.app = (() => {
                         case 19: {
                                 if (!(message.stationNumbers && message.stationNumbers.length))
                                     message.stationNumbers = [];
-                                message.stationNumbers.push($root.app.trainlcd.grpc.StationNumber.decode(reader, reader.uint32()));
+                                message.stationNumbers.push($root.app.trainlcd.grpc.StationNumber.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 20: {
@@ -7228,7 +7467,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         case 23: {
-                                message.trainType = $root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32());
+                                message.trainType = $root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 24: {
@@ -7246,11 +7485,11 @@ export const app = $root.app = (() => {
                         case 27: {
                                 if (!(message.nameTtsSegments && message.nameTtsSegments.length))
                                     message.nameTtsSegments = [];
-                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -7281,9 +7520,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                Station.verify = function verify(message) {
+                Station.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -7321,7 +7564,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.lines))
                             return "lines: array expected";
                         for (let i = 0; i < message.lines.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i]);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i], long + 1);
                             if (error)
                                 return "lines." + error;
                         }
@@ -7329,7 +7572,7 @@ export const app = $root.app = (() => {
                     if (message.line != null && message.hasOwnProperty("line")) {
                         properties._line = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.line);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.line, long + 1);
                             if (error)
                                 return "line." + error;
                         }
@@ -7368,7 +7611,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.stationNumbers))
                             return "stationNumbers: array expected";
                         for (let i = 0; i < message.stationNumbers.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.StationNumber.verify(message.stationNumbers[i]);
+                            let error = $root.app.trainlcd.grpc.StationNumber.verify(message.stationNumbers[i], long + 1);
                             if (error)
                                 return "stationNumbers." + error;
                         }
@@ -7398,7 +7641,7 @@ export const app = $root.app = (() => {
                     if (message.trainType != null && message.hasOwnProperty("trainType")) {
                         properties._trainType = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainType);
+                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainType, long + 1);
                             if (error)
                                 return "trainType." + error;
                         }
@@ -7427,7 +7670,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.nameTtsSegments))
                             return "nameTtsSegments: array expected";
                         for (let i = 0; i < message.nameTtsSegments.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i], long + 1);
                             if (error)
                                 return "nameTtsSegments." + error;
                         }
@@ -7443,9 +7686,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.Station} Station
                  */
-                Station.fromObject = function fromObject(object) {
+                Station.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.Station)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.Station();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -7470,13 +7717,13 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lines.length; ++i) {
                             if (typeof object.lines[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Station.lines: object expected");
-                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i]);
+                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i], long + 1);
                         }
                     }
                     if (object.line != null) {
                         if (typeof object.line !== "object")
                             throw TypeError(".app.trainlcd.grpc.Station.line: object expected");
-                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line);
+                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line, long + 1);
                     }
                     if (object.prefectureId != null)
                         message.prefectureId = object.prefectureId >>> 0;
@@ -7519,7 +7766,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.stationNumbers.length; ++i) {
                             if (typeof object.stationNumbers[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Station.stationNumbers: object expected");
-                            message.stationNumbers[i] = $root.app.trainlcd.grpc.StationNumber.fromObject(object.stationNumbers[i]);
+                            message.stationNumbers[i] = $root.app.trainlcd.grpc.StationNumber.fromObject(object.stationNumbers[i], long + 1);
                         }
                     }
                     switch (object.stopCondition) {
@@ -7561,7 +7808,7 @@ export const app = $root.app = (() => {
                     if (object.trainType != null) {
                         if (typeof object.trainType !== "object")
                             throw TypeError(".app.trainlcd.grpc.Station.trainType: object expected");
-                        message.trainType = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainType);
+                        message.trainType = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainType, long + 1);
                     }
                     switch (object.transportType) {
                     default:
@@ -7598,7 +7845,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.nameTtsSegments.length; ++i) {
                             if (typeof object.nameTtsSegments[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Station.nameTtsSegments: object expected");
-                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i], long + 1);
                         }
                     }
                     return message;
@@ -7783,7 +8030,7 @@ export const app = $root.app = (() => {
                 function SingleStationResponse(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -7848,9 +8095,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                SingleStationResponse.decode = function decode(reader, length, error) {
+                SingleStationResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.SingleStationResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -7858,11 +8109,11 @@ export const app = $root.app = (() => {
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.station = $root.app.trainlcd.grpc.Station.decode(reader, reader.uint32());
+                                message.station = $root.app.trainlcd.grpc.Station.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -7893,11 +8144,15 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                SingleStationResponse.verify = function verify(message) {
+                SingleStationResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.station != null && message.hasOwnProperty("station")) {
-                        let error = $root.app.trainlcd.grpc.Station.verify(message.station);
+                        let error = $root.app.trainlcd.grpc.Station.verify(message.station, long + 1);
                         if (error)
                             return "station." + error;
                     }
@@ -7912,14 +8167,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.SingleStationResponse} SingleStationResponse
                  */
-                SingleStationResponse.fromObject = function fromObject(object) {
+                SingleStationResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.SingleStationResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.SingleStationResponse();
                     if (object.station != null) {
                         if (typeof object.station !== "object")
                             throw TypeError(".app.trainlcd.grpc.SingleStationResponse.station: object expected");
-                        message.station = $root.app.trainlcd.grpc.Station.fromObject(object.station);
+                        message.station = $root.app.trainlcd.grpc.Station.fromObject(object.station, long + 1);
                     }
                     return message;
                 };
@@ -7994,7 +8253,7 @@ export const app = $root.app = (() => {
                     this.stations = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -8060,9 +8319,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                MultipleStationResponse.decode = function decode(reader, length, error) {
+                MultipleStationResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.MultipleStationResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -8072,11 +8335,11 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.stations && message.stations.length))
                                     message.stations = [];
-                                message.stations.push($root.app.trainlcd.grpc.Station.decode(reader, reader.uint32()));
+                                message.stations.push($root.app.trainlcd.grpc.Station.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -8107,14 +8370,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                MultipleStationResponse.verify = function verify(message) {
+                MultipleStationResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.stations != null && message.hasOwnProperty("stations")) {
                         if (!Array.isArray(message.stations))
                             return "stations: array expected";
                         for (let i = 0; i < message.stations.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Station.verify(message.stations[i]);
+                            let error = $root.app.trainlcd.grpc.Station.verify(message.stations[i], long + 1);
                             if (error)
                                 return "stations." + error;
                         }
@@ -8130,9 +8397,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.MultipleStationResponse} MultipleStationResponse
                  */
-                MultipleStationResponse.fromObject = function fromObject(object) {
+                MultipleStationResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.MultipleStationResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.MultipleStationResponse();
                     if (object.stations) {
                         if (!Array.isArray(object.stations))
@@ -8141,7 +8412,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.stations.length; ++i) {
                             if (typeof object.stations[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.MultipleStationResponse.stations: object expected");
-                            message.stations[i] = $root.app.trainlcd.grpc.Station.fromObject(object.stations[i]);
+                            message.stations[i] = $root.app.trainlcd.grpc.Station.fromObject(object.stations[i], long + 1);
                         }
                     }
                     return message;
@@ -8220,7 +8491,7 @@ export const app = $root.app = (() => {
                     this.trainTypes = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -8286,9 +8557,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                MultipleTrainTypeResponse.decode = function decode(reader, length, error) {
+                MultipleTrainTypeResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.MultipleTrainTypeResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -8298,11 +8573,11 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.trainTypes && message.trainTypes.length))
                                     message.trainTypes = [];
-                                message.trainTypes.push($root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32()));
+                                message.trainTypes.push($root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -8333,14 +8608,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                MultipleTrainTypeResponse.verify = function verify(message) {
+                MultipleTrainTypeResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.trainTypes != null && message.hasOwnProperty("trainTypes")) {
                         if (!Array.isArray(message.trainTypes))
                             return "trainTypes: array expected";
                         for (let i = 0; i < message.trainTypes.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainTypes[i]);
+                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainTypes[i], long + 1);
                             if (error)
                                 return "trainTypes." + error;
                         }
@@ -8356,9 +8635,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.MultipleTrainTypeResponse} MultipleTrainTypeResponse
                  */
-                MultipleTrainTypeResponse.fromObject = function fromObject(object) {
+                MultipleTrainTypeResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.MultipleTrainTypeResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.MultipleTrainTypeResponse();
                     if (object.trainTypes) {
                         if (!Array.isArray(object.trainTypes))
@@ -8367,7 +8650,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.trainTypes.length; ++i) {
                             if (typeof object.trainTypes[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.MultipleTrainTypeResponse.trainTypes: object expected");
-                            message.trainTypes[i] = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainTypes[i]);
+                            message.trainTypes[i] = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainTypes[i], long + 1);
                         }
                     }
                     return message;
@@ -8445,7 +8728,7 @@ export const app = $root.app = (() => {
                 function SingleLineResponse(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -8510,9 +8793,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                SingleLineResponse.decode = function decode(reader, length, error) {
+                SingleLineResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.SingleLineResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -8520,11 +8807,11 @@ export const app = $root.app = (() => {
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32());
+                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -8555,11 +8842,15 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                SingleLineResponse.verify = function verify(message) {
+                SingleLineResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.line != null && message.hasOwnProperty("line")) {
-                        let error = $root.app.trainlcd.grpc.Line.verify(message.line);
+                        let error = $root.app.trainlcd.grpc.Line.verify(message.line, long + 1);
                         if (error)
                             return "line." + error;
                     }
@@ -8574,14 +8865,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.SingleLineResponse} SingleLineResponse
                  */
-                SingleLineResponse.fromObject = function fromObject(object) {
+                SingleLineResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.SingleLineResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.SingleLineResponse();
                     if (object.line != null) {
                         if (typeof object.line !== "object")
                             throw TypeError(".app.trainlcd.grpc.SingleLineResponse.line: object expected");
-                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line);
+                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line, long + 1);
                     }
                     return message;
                 };
@@ -8656,7 +8951,7 @@ export const app = $root.app = (() => {
                     this.lines = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -8722,9 +9017,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                MultipleLineResponse.decode = function decode(reader, length, error) {
+                MultipleLineResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.MultipleLineResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -8734,11 +9033,11 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.lines && message.lines.length))
                                     message.lines = [];
-                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32()));
+                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -8769,14 +9068,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                MultipleLineResponse.verify = function verify(message) {
+                MultipleLineResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.lines != null && message.hasOwnProperty("lines")) {
                         if (!Array.isArray(message.lines))
                             return "lines: array expected";
                         for (let i = 0; i < message.lines.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i]);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i], long + 1);
                             if (error)
                                 return "lines." + error;
                         }
@@ -8792,9 +9095,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.MultipleLineResponse} MultipleLineResponse
                  */
-                MultipleLineResponse.fromObject = function fromObject(object) {
+                MultipleLineResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.MultipleLineResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.MultipleLineResponse();
                     if (object.lines) {
                         if (!Array.isArray(object.lines))
@@ -8803,7 +9110,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lines.length; ++i) {
                             if (typeof object.lines[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.MultipleLineResponse.lines: object expected");
-                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i]);
+                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i], long + 1);
                         }
                     }
                     return message;
@@ -8899,7 +9206,7 @@ export const app = $root.app = (() => {
                 function DistanceResponse(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -8984,9 +9291,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                DistanceResponse.decode = function decode(reader, length, error) {
+                DistanceResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.DistanceResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -9006,7 +9317,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -9037,9 +9348,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                DistanceResponse.verify = function verify(message) {
+                DistanceResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.stationId != null && message.hasOwnProperty("stationId"))
                         if (!$util.isInteger(message.stationId))
                             return "stationId: integer expected";
@@ -9066,9 +9381,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.DistanceResponse} DistanceResponse
                  */
-                DistanceResponse.fromObject = function fromObject(object) {
+                DistanceResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.DistanceResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.DistanceResponse();
                     if (object.stationId != null)
                         message.stationId = object.stationId >>> 0;
@@ -9175,7 +9494,7 @@ export const app = $root.app = (() => {
                     this.routes = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -9251,9 +9570,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                RouteResponse.decode = function decode(reader, length, error) {
+                RouteResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.RouteResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -9263,7 +9586,7 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.routes && message.routes.length))
                                     message.routes = [];
-                                message.routes.push($root.app.trainlcd.grpc.Route.decode(reader, reader.uint32()));
+                                message.routes.push($root.app.trainlcd.grpc.Route.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 2: {
@@ -9271,7 +9594,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -9302,14 +9625,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                RouteResponse.verify = function verify(message) {
+                RouteResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.routes != null && message.hasOwnProperty("routes")) {
                         if (!Array.isArray(message.routes))
                             return "routes: array expected";
                         for (let i = 0; i < message.routes.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Route.verify(message.routes[i]);
+                            let error = $root.app.trainlcd.grpc.Route.verify(message.routes[i], long + 1);
                             if (error)
                                 return "routes." + error;
                         }
@@ -9328,9 +9655,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.RouteResponse} RouteResponse
                  */
-                RouteResponse.fromObject = function fromObject(object) {
+                RouteResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.RouteResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.RouteResponse();
                     if (object.routes) {
                         if (!Array.isArray(object.routes))
@@ -9339,7 +9670,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.routes.length; ++i) {
                             if (typeof object.routes[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.RouteResponse.routes: object expected");
-                            message.routes[i] = $root.app.trainlcd.grpc.Route.fromObject(object.routes[i]);
+                            message.routes[i] = $root.app.trainlcd.grpc.Route.fromObject(object.routes[i], long + 1);
                         }
                     }
                     if (object.nextPageToken != null)
@@ -9425,7 +9756,7 @@ export const app = $root.app = (() => {
                     this.trainTypes = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -9501,9 +9832,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                RouteTypeResponse.decode = function decode(reader, length, error) {
+                RouteTypeResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.RouteTypeResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -9513,7 +9848,7 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.trainTypes && message.trainTypes.length))
                                     message.trainTypes = [];
-                                message.trainTypes.push($root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32()));
+                                message.trainTypes.push($root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 2: {
@@ -9521,7 +9856,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -9552,14 +9887,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                RouteTypeResponse.verify = function verify(message) {
+                RouteTypeResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.trainTypes != null && message.hasOwnProperty("trainTypes")) {
                         if (!Array.isArray(message.trainTypes))
                             return "trainTypes: array expected";
                         for (let i = 0; i < message.trainTypes.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainTypes[i]);
+                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainTypes[i], long + 1);
                             if (error)
                                 return "trainTypes." + error;
                         }
@@ -9578,9 +9917,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.RouteTypeResponse} RouteTypeResponse
                  */
-                RouteTypeResponse.fromObject = function fromObject(object) {
+                RouteTypeResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.RouteTypeResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.RouteTypeResponse();
                     if (object.trainTypes) {
                         if (!Array.isArray(object.trainTypes))
@@ -9589,7 +9932,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.trainTypes.length; ++i) {
                             if (typeof object.trainTypes[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.RouteTypeResponse.trainTypes: object expected");
-                            message.trainTypes[i] = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainTypes[i]);
+                            message.trainTypes[i] = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainTypes[i], long + 1);
                         }
                     }
                     if (object.nextPageToken != null)
@@ -9697,7 +10040,7 @@ export const app = $root.app = (() => {
                 function LineSymbol(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -9782,9 +10125,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                LineSymbol.decode = function decode(reader, length, error) {
+                LineSymbol.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.LineSymbol();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -9804,7 +10151,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -9835,9 +10182,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                LineSymbol.verify = function verify(message) {
+                LineSymbol.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.symbol != null && message.hasOwnProperty("symbol"))
                         if (!$util.isString(message.symbol))
                             return "symbol: string expected";
@@ -9858,9 +10209,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.LineSymbol} LineSymbol
                  */
-                LineSymbol.fromObject = function fromObject(object) {
+                LineSymbol.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.LineSymbol)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.LineSymbol();
                     if (object.symbol != null)
                         message.symbol = String(object.symbol);
@@ -9977,7 +10332,7 @@ export const app = $root.app = (() => {
                 function Company(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -10156,9 +10511,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Company.decode = function decode(reader, length, error) {
+                Company.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.Company();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -10210,7 +10569,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -10241,9 +10600,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                Company.verify = function verify(message) {
+                Company.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -10305,9 +10668,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.Company} Company
                  */
-                Company.fromObject = function fromObject(object) {
+                Company.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.Company)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.Company();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -10500,7 +10867,7 @@ export const app = $root.app = (() => {
                     this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -10838,9 +11205,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Line.decode = function decode(reader, length, error) {
+                Line.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.Line();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -10886,7 +11257,7 @@ export const app = $root.app = (() => {
                         case 10: {
                                 if (!(message.lineSymbols && message.lineSymbols.length))
                                     message.lineSymbols = [];
-                                message.lineSymbols.push($root.app.trainlcd.grpc.LineSymbol.decode(reader, reader.uint32()));
+                                message.lineSymbols.push($root.app.trainlcd.grpc.LineSymbol.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 11: {
@@ -10894,15 +11265,15 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         case 12: {
-                                message.station = $root.app.trainlcd.grpc.Station.decode(reader, reader.uint32());
+                                message.station = $root.app.trainlcd.grpc.Station.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 13: {
-                                message.company = $root.app.trainlcd.grpc.Company.decode(reader, reader.uint32());
+                                message.company = $root.app.trainlcd.grpc.Company.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 14: {
-                                message.trainType = $root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32());
+                                message.trainType = $root.app.trainlcd.grpc.TrainType.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 15: {
@@ -10924,11 +11295,11 @@ export const app = $root.app = (() => {
                         case 19: {
                                 if (!(message.nameTtsSegments && message.nameTtsSegments.length))
                                     message.nameTtsSegments = [];
-                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -10959,9 +11330,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                Line.verify = function verify(message) {
+                Line.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -11009,7 +11384,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.lineSymbols))
                             return "lineSymbols: array expected";
                         for (let i = 0; i < message.lineSymbols.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.LineSymbol.verify(message.lineSymbols[i]);
+                            let error = $root.app.trainlcd.grpc.LineSymbol.verify(message.lineSymbols[i], long + 1);
                             if (error)
                                 return "lineSymbols." + error;
                         }
@@ -11026,7 +11401,7 @@ export const app = $root.app = (() => {
                     if (message.station != null && message.hasOwnProperty("station")) {
                         properties._station = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.Station.verify(message.station);
+                            let error = $root.app.trainlcd.grpc.Station.verify(message.station, long + 1);
                             if (error)
                                 return "station." + error;
                         }
@@ -11034,7 +11409,7 @@ export const app = $root.app = (() => {
                     if (message.company != null && message.hasOwnProperty("company")) {
                         properties._company = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.Company.verify(message.company);
+                            let error = $root.app.trainlcd.grpc.Company.verify(message.company, long + 1);
                             if (error)
                                 return "company." + error;
                         }
@@ -11042,7 +11417,7 @@ export const app = $root.app = (() => {
                     if (message.trainType != null && message.hasOwnProperty("trainType")) {
                         properties._trainType = 1;
                         {
-                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainType);
+                            let error = $root.app.trainlcd.grpc.TrainType.verify(message.trainType, long + 1);
                             if (error)
                                 return "trainType." + error;
                         }
@@ -11074,7 +11449,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.nameTtsSegments))
                             return "nameTtsSegments: array expected";
                         for (let i = 0; i < message.nameTtsSegments.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i], long + 1);
                             if (error)
                                 return "nameTtsSegments." + error;
                         }
@@ -11090,9 +11465,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.Line} Line
                  */
-                Line.fromObject = function fromObject(object) {
+                Line.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.Line)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.Line();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -11149,7 +11528,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lineSymbols.length; ++i) {
                             if (typeof object.lineSymbols[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Line.lineSymbols: object expected");
-                            message.lineSymbols[i] = $root.app.trainlcd.grpc.LineSymbol.fromObject(object.lineSymbols[i]);
+                            message.lineSymbols[i] = $root.app.trainlcd.grpc.LineSymbol.fromObject(object.lineSymbols[i], long + 1);
                         }
                     }
                     switch (object.status) {
@@ -11175,17 +11554,17 @@ export const app = $root.app = (() => {
                     if (object.station != null) {
                         if (typeof object.station !== "object")
                             throw TypeError(".app.trainlcd.grpc.Line.station: object expected");
-                        message.station = $root.app.trainlcd.grpc.Station.fromObject(object.station);
+                        message.station = $root.app.trainlcd.grpc.Station.fromObject(object.station, long + 1);
                     }
                     if (object.company != null) {
                         if (typeof object.company !== "object")
                             throw TypeError(".app.trainlcd.grpc.Line.company: object expected");
-                        message.company = $root.app.trainlcd.grpc.Company.fromObject(object.company);
+                        message.company = $root.app.trainlcd.grpc.Company.fromObject(object.company, long + 1);
                     }
                     if (object.trainType != null) {
                         if (typeof object.trainType !== "object")
                             throw TypeError(".app.trainlcd.grpc.Line.trainType: object expected");
-                        message.trainType = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainType);
+                        message.trainType = $root.app.trainlcd.grpc.TrainType.fromObject(object.trainType, long + 1);
                     }
                     if (object.averageDistance != null)
                         message.averageDistance = Number(object.averageDistance);
@@ -11224,7 +11603,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.nameTtsSegments.length; ++i) {
                             if (typeof object.nameTtsSegments[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Line.nameTtsSegments: object expected");
-                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i], long + 1);
                         }
                     }
                     return message;
@@ -11378,7 +11757,7 @@ export const app = $root.app = (() => {
                 function SingleLine(properties) {
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -11443,9 +11822,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                SingleLine.decode = function decode(reader, length, error) {
+                SingleLine.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.SingleLine();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -11453,11 +11836,11 @@ export const app = $root.app = (() => {
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32());
+                                message.line = $root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -11488,11 +11871,15 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                SingleLine.verify = function verify(message) {
+                SingleLine.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.line != null && message.hasOwnProperty("line")) {
-                        let error = $root.app.trainlcd.grpc.Line.verify(message.line);
+                        let error = $root.app.trainlcd.grpc.Line.verify(message.line, long + 1);
                         if (error)
                             return "line." + error;
                     }
@@ -11507,14 +11894,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.SingleLine} SingleLine
                  */
-                SingleLine.fromObject = function fromObject(object) {
+                SingleLine.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.SingleLine)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.SingleLine();
                     if (object.line != null) {
                         if (typeof object.line !== "object")
                             throw TypeError(".app.trainlcd.grpc.SingleLine.line: object expected");
-                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line);
+                        message.line = $root.app.trainlcd.grpc.Line.fromObject(object.line, long + 1);
                     }
                     return message;
                 };
@@ -11589,7 +11980,7 @@ export const app = $root.app = (() => {
                     this.lines = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -11655,9 +12046,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                MultipleLine.decode = function decode(reader, length, error) {
+                MultipleLine.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.MultipleLine();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -11667,11 +12062,11 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.lines && message.lines.length))
                                     message.lines = [];
-                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32()));
+                                message.lines.push($root.app.trainlcd.grpc.Line.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -11702,14 +12097,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                MultipleLine.verify = function verify(message) {
+                MultipleLine.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.lines != null && message.hasOwnProperty("lines")) {
                         if (!Array.isArray(message.lines))
                             return "lines: array expected";
                         for (let i = 0; i < message.lines.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i]);
+                            let error = $root.app.trainlcd.grpc.Line.verify(message.lines[i], long + 1);
                             if (error)
                                 return "lines." + error;
                         }
@@ -11725,9 +12124,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.MultipleLine} MultipleLine
                  */
-                MultipleLine.fromObject = function fromObject(object) {
+                MultipleLine.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.MultipleLine)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.MultipleLine();
                     if (object.lines) {
                         if (!Array.isArray(object.lines))
@@ -11736,7 +12139,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lines.length; ++i) {
                             if (typeof object.lines[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.MultipleLine.lines: object expected");
-                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i]);
+                            message.lines[i] = $root.app.trainlcd.grpc.Line.fromObject(object.lines[i], long + 1);
                         }
                     }
                     return message;
@@ -11816,7 +12219,7 @@ export const app = $root.app = (() => {
                     this.stops = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -11892,9 +12295,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Route.decode = function decode(reader, length, error) {
+                Route.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.Route();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -11908,11 +12315,11 @@ export const app = $root.app = (() => {
                         case 2: {
                                 if (!(message.stops && message.stops.length))
                                     message.stops = [];
-                                message.stops.push($root.app.trainlcd.grpc.Station.decode(reader, reader.uint32()));
+                                message.stops.push($root.app.trainlcd.grpc.Station.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -11943,9 +12350,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                Route.verify = function verify(message) {
+                Route.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
                             return "id: integer expected";
@@ -11953,7 +12364,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.stops))
                             return "stops: array expected";
                         for (let i = 0; i < message.stops.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.Station.verify(message.stops[i]);
+                            let error = $root.app.trainlcd.grpc.Station.verify(message.stops[i], long + 1);
                             if (error)
                                 return "stops." + error;
                         }
@@ -11969,9 +12380,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.Route} Route
                  */
-                Route.fromObject = function fromObject(object) {
+                Route.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.Route)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.Route();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -11982,7 +12397,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.stops.length; ++i) {
                             if (typeof object.stops[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.Route.stops: object expected");
-                            message.stops[i] = $root.app.trainlcd.grpc.Station.fromObject(object.stops[i]);
+                            message.stops[i] = $root.app.trainlcd.grpc.Station.fromObject(object.stops[i], long + 1);
                         }
                     }
                     return message;
@@ -12079,7 +12494,7 @@ export const app = $root.app = (() => {
                     this.nameTtsSegments = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -12328,9 +12743,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                StationMinimal.decode = function decode(reader, length, error) {
+                StationMinimal.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.StationMinimal();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -12371,7 +12790,7 @@ export const app = $root.app = (() => {
                         case 7: {
                                 if (!(message.stationNumbers && message.stationNumbers.length))
                                     message.stationNumbers = [];
-                                message.stationNumbers.push($root.app.trainlcd.grpc.StationNumber.decode(reader, reader.uint32()));
+                                message.stationNumbers.push($root.app.trainlcd.grpc.StationNumber.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 8: {
@@ -12397,11 +12816,11 @@ export const app = $root.app = (() => {
                         case 13: {
                                 if (!(message.nameTtsSegments && message.nameTtsSegments.length))
                                     message.nameTtsSegments = [];
-                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32()));
+                                message.nameTtsSegments.push($root.app.trainlcd.grpc.TtsSegment.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -12432,9 +12851,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                StationMinimal.verify = function verify(message) {
+                StationMinimal.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     let properties = {};
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
@@ -12464,7 +12887,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.stationNumbers))
                             return "stationNumbers: array expected";
                         for (let i = 0; i < message.stationNumbers.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.StationNumber.verify(message.stationNumbers[i]);
+                            let error = $root.app.trainlcd.grpc.StationNumber.verify(message.stationNumbers[i], long + 1);
                             if (error)
                                 return "stationNumbers." + error;
                         }
@@ -12505,7 +12928,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.nameTtsSegments))
                             return "nameTtsSegments: array expected";
                         for (let i = 0; i < message.nameTtsSegments.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i]);
+                            let error = $root.app.trainlcd.grpc.TtsSegment.verify(message.nameTtsSegments[i], long + 1);
                             if (error)
                                 return "nameTtsSegments." + error;
                         }
@@ -12521,9 +12944,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.StationMinimal} StationMinimal
                  */
-                StationMinimal.fromObject = function fromObject(object) {
+                StationMinimal.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.StationMinimal)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.StationMinimal();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -12549,7 +12976,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.stationNumbers.length; ++i) {
                             if (typeof object.stationNumbers[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.StationMinimal.stationNumbers: object expected");
-                            message.stationNumbers[i] = $root.app.trainlcd.grpc.StationNumber.fromObject(object.stationNumbers[i]);
+                            message.stationNumbers[i] = $root.app.trainlcd.grpc.StationNumber.fromObject(object.stationNumbers[i], long + 1);
                         }
                     }
                     switch (object.stopCondition) {
@@ -12599,7 +13026,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.nameTtsSegments.length; ++i) {
                             if (typeof object.nameTtsSegments[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.StationMinimal.nameTtsSegments: object expected");
-                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i]);
+                            message.nameTtsSegments[i] = $root.app.trainlcd.grpc.TtsSegment.fromObject(object.nameTtsSegments[i], long + 1);
                         }
                     }
                     return message;
@@ -12737,7 +13164,7 @@ export const app = $root.app = (() => {
                     this.lineSymbols = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -12843,9 +13270,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                LineMinimal.decode = function decode(reader, length, error) {
+                LineMinimal.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.LineMinimal();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -12871,11 +13302,11 @@ export const app = $root.app = (() => {
                         case 5: {
                                 if (!(message.lineSymbols && message.lineSymbols.length))
                                     message.lineSymbols = [];
-                                message.lineSymbols.push($root.app.trainlcd.grpc.LineSymbol.decode(reader, reader.uint32()));
+                                message.lineSymbols.push($root.app.trainlcd.grpc.LineSymbol.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -12906,9 +13337,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                LineMinimal.verify = function verify(message) {
+                LineMinimal.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
                             return "id: integer expected";
@@ -12934,7 +13369,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.lineSymbols))
                             return "lineSymbols: array expected";
                         for (let i = 0; i < message.lineSymbols.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.LineSymbol.verify(message.lineSymbols[i]);
+                            let error = $root.app.trainlcd.grpc.LineSymbol.verify(message.lineSymbols[i], long + 1);
                             if (error)
                                 return "lineSymbols." + error;
                         }
@@ -12950,9 +13385,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.LineMinimal} LineMinimal
                  */
-                LineMinimal.fromObject = function fromObject(object) {
+                LineMinimal.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.LineMinimal)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.LineMinimal();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -12999,7 +13438,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lineSymbols.length; ++i) {
                             if (typeof object.lineSymbols[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.LineMinimal.lineSymbols: object expected");
-                            message.lineSymbols[i] = $root.app.trainlcd.grpc.LineSymbol.fromObject(object.lineSymbols[i]);
+                            message.lineSymbols[i] = $root.app.trainlcd.grpc.LineSymbol.fromObject(object.lineSymbols[i], long + 1);
                         }
                     }
                     return message;
@@ -13093,7 +13532,7 @@ export const app = $root.app = (() => {
                     this.stops = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -13169,9 +13608,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                RouteMinimal.decode = function decode(reader, length, error) {
+                RouteMinimal.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.RouteMinimal();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -13185,11 +13628,11 @@ export const app = $root.app = (() => {
                         case 2: {
                                 if (!(message.stops && message.stops.length))
                                     message.stops = [];
-                                message.stops.push($root.app.trainlcd.grpc.StationMinimal.decode(reader, reader.uint32()));
+                                message.stops.push($root.app.trainlcd.grpc.StationMinimal.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -13220,9 +13663,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                RouteMinimal.verify = function verify(message) {
+                RouteMinimal.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.id != null && message.hasOwnProperty("id"))
                         if (!$util.isInteger(message.id))
                             return "id: integer expected";
@@ -13230,7 +13677,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.stops))
                             return "stops: array expected";
                         for (let i = 0; i < message.stops.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.StationMinimal.verify(message.stops[i]);
+                            let error = $root.app.trainlcd.grpc.StationMinimal.verify(message.stops[i], long + 1);
                             if (error)
                                 return "stops." + error;
                         }
@@ -13246,9 +13693,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.RouteMinimal} RouteMinimal
                  */
-                RouteMinimal.fromObject = function fromObject(object) {
+                RouteMinimal.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.RouteMinimal)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.RouteMinimal();
                     if (object.id != null)
                         message.id = object.id >>> 0;
@@ -13259,7 +13710,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.stops.length; ++i) {
                             if (typeof object.stops[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.RouteMinimal.stops: object expected");
-                            message.stops[i] = $root.app.trainlcd.grpc.StationMinimal.fromObject(object.stops[i]);
+                            message.stops[i] = $root.app.trainlcd.grpc.StationMinimal.fromObject(object.stops[i], long + 1);
                         }
                     }
                     return message;
@@ -13345,7 +13796,7 @@ export const app = $root.app = (() => {
                     this.lines = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
                                 this[keys[i]] = properties[keys[i]];
                 }
 
@@ -13432,9 +13883,13 @@ export const app = $root.app = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                RouteMinimalResponse.decode = function decode(reader, length, error) {
+                RouteMinimalResponse.decode = function decode(reader, length, error, long) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.RouteMinimalResponse();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
@@ -13444,13 +13899,13 @@ export const app = $root.app = (() => {
                         case 1: {
                                 if (!(message.routes && message.routes.length))
                                     message.routes = [];
-                                message.routes.push($root.app.trainlcd.grpc.RouteMinimal.decode(reader, reader.uint32()));
+                                message.routes.push($root.app.trainlcd.grpc.RouteMinimal.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 2: {
                                 if (!(message.lines && message.lines.length))
                                     message.lines = [];
-                                message.lines.push($root.app.trainlcd.grpc.LineMinimal.decode(reader, reader.uint32()));
+                                message.lines.push($root.app.trainlcd.grpc.LineMinimal.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         case 3: {
@@ -13458,7 +13913,7 @@ export const app = $root.app = (() => {
                                 break;
                             }
                         default:
-                            reader.skipType(tag & 7);
+                            reader.skipType(tag & 7, long);
                             break;
                         }
                     }
@@ -13489,14 +13944,18 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                RouteMinimalResponse.verify = function verify(message) {
+                RouteMinimalResponse.verify = function verify(message, long) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
                     if (message.routes != null && message.hasOwnProperty("routes")) {
                         if (!Array.isArray(message.routes))
                             return "routes: array expected";
                         for (let i = 0; i < message.routes.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.RouteMinimal.verify(message.routes[i]);
+                            let error = $root.app.trainlcd.grpc.RouteMinimal.verify(message.routes[i], long + 1);
                             if (error)
                                 return "routes." + error;
                         }
@@ -13505,7 +13964,7 @@ export const app = $root.app = (() => {
                         if (!Array.isArray(message.lines))
                             return "lines: array expected";
                         for (let i = 0; i < message.lines.length; ++i) {
-                            let error = $root.app.trainlcd.grpc.LineMinimal.verify(message.lines[i]);
+                            let error = $root.app.trainlcd.grpc.LineMinimal.verify(message.lines[i], long + 1);
                             if (error)
                                 return "lines." + error;
                         }
@@ -13524,9 +13983,13 @@ export const app = $root.app = (() => {
                  * @param {Object.<string,*>} object Plain object
                  * @returns {app.trainlcd.grpc.RouteMinimalResponse} RouteMinimalResponse
                  */
-                RouteMinimalResponse.fromObject = function fromObject(object) {
+                RouteMinimalResponse.fromObject = function fromObject(object, long) {
                     if (object instanceof $root.app.trainlcd.grpc.RouteMinimalResponse)
                         return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.RouteMinimalResponse();
                     if (object.routes) {
                         if (!Array.isArray(object.routes))
@@ -13535,7 +13998,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.routes.length; ++i) {
                             if (typeof object.routes[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.RouteMinimalResponse.routes: object expected");
-                            message.routes[i] = $root.app.trainlcd.grpc.RouteMinimal.fromObject(object.routes[i]);
+                            message.routes[i] = $root.app.trainlcd.grpc.RouteMinimal.fromObject(object.routes[i], long + 1);
                         }
                     }
                     if (object.lines) {
@@ -13545,7 +14008,7 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.lines.length; ++i) {
                             if (typeof object.lines[i] !== "object")
                                 throw TypeError(".app.trainlcd.grpc.RouteMinimalResponse.lines: object expected");
-                            message.lines[i] = $root.app.trainlcd.grpc.LineMinimal.fromObject(object.lines[i]);
+                            message.lines[i] = $root.app.trainlcd.grpc.LineMinimal.fromObject(object.lines[i], long + 1);
                         }
                     }
                     if (object.nextPageToken != null)
