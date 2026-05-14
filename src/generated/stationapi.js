@@ -6083,6 +6083,7 @@ export const app = $root.app = (() => {
              * @property {number} LimitedExpress=4 LimitedExpress value
              * @property {number} HighSpeedRapid=5 HighSpeedRapid value
              * @property {number} CommuterRapid=6 CommuterRapid value
+             * @property {number} BusRoute=7 BusRoute value
              */
             grpc.TrainTypeKind = (function() {
                 const valuesById = {}, values = Object.create(valuesById);
@@ -6093,6 +6094,7 @@ export const app = $root.app = (() => {
                 values[valuesById[4] = "LimitedExpress"] = 4;
                 values[valuesById[5] = "HighSpeedRapid"] = 5;
                 values[valuesById[6] = "CommuterRapid"] = 6;
+                values[valuesById[7] = "BusRoute"] = 7;
                 return values;
             })();
 
@@ -6610,6 +6612,7 @@ export const app = $root.app = (() => {
                         case 4:
                         case 5:
                         case 6:
+                        case 7:
                             break;
                         }
                     if (message.nameIpa != null && message.hasOwnProperty("nameIpa")) {
@@ -6737,6 +6740,10 @@ export const app = $root.app = (() => {
                     case "CommuterRapid":
                     case 6:
                         message.kind = 6;
+                        break;
+                    case "BusRoute":
+                    case 7:
+                        message.kind = 7;
                         break;
                     }
                     if (object.nameIpa != null)

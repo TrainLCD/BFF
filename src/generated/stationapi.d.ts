@@ -2430,7 +2430,8 @@ export namespace app {
                 Express = 3,
                 LimitedExpress = 4,
                 HighSpeedRapid = 5,
-                CommuterRapid = 6
+                CommuterRapid = 6,
+                BusRoute = 7
             }
 
             /** Properties of a TrainType. */
