@@ -23,6 +23,7 @@ enum TrainTypeKind {
 	LimitedExpress
 	HighSpeedRapid
 	CommuterRapid
+	BusRoute
 }
 
 enum OperationStatus {
