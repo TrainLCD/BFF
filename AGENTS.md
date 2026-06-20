@@ -9,7 +9,7 @@
 - Runtime configuration lives in `wrangler.jsonc`, while type generation flows through `worker-configuration.d.ts`. Application code compiles via `tsconfig.json`; tests use `test/tsconfig.json`.
 
 ## Environment Configuration
-- Define `GRPC_TARGET_ORIGIN` with Wrangler `vars` for every environment. The worker returns HTTP 500 when the value is missing or invalid.
+- Register `GRPC_TARGET_ORIGIN` as a Wrangler secret for every environment (`wrangler secret put GRPC_TARGET_ORIGIN`, add `--env production` for prod); it is no longer a `vars` entry. The worker returns HTTP 500 when the value is missing or invalid.
 - Optionally configure `GRPC_ALLOWED_ORIGINS` as a comma-separated allowlist; omit to allow all origins.
 - Use `.dev.vars` for local settings and `wrangler secret put` or `wrangler deploy --env` for remote secrets and variables.
 

@@ -20,10 +20,17 @@ npm install
 
 ## Environment Variables
 
-- `GRPC_TARGET_ORIGIN` (required): Origin of the upstream gRPC-Web endpoint, for example `https://grpc.example.com`. The worker returns HTTP 500 if this value is missing or invalid.
+- `GRPC_TARGET_ORIGIN` (required, **secret**): Origin of the upstream gRPC-Web endpoint, for example `https://grpc.example.com`. The worker returns HTTP 500 if this value is missing or invalid.
 - `GRPC_ALLOWED_ORIGINS` (optional): Comma-separated list of origins allowed via CORS. Omit to allow all origins.
 
-For local development set these in `.dev.vars` or the `vars` section of `wrangler.jsonc`. Configure environment-specific values before deploying.
+For local development set these in `.dev.vars` (gitignored). For remote environments register `GRPC_TARGET_ORIGIN` as a secret rather than a `vars` entry:
+
+```bash
+wrangler secret put GRPC_TARGET_ORIGIN                 # staging
+wrangler secret put GRPC_TARGET_ORIGIN --env production
+```
+
+Configure environment-specific values before deploying.
 
 ## Local Development
 
