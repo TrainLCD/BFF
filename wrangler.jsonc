@@ -1,0 +1,46 @@
+{
+    "$schema": "./node_modules/wrangler/config-schema.json",
+    "name": "sapi-bff-stg",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-02-24",
+    "compatibility_flags": [],
+    "observability": {
+        "enabled": true
+    },
+    "kv_namespaces": [
+        {
+            "binding": "GRPC_CACHE",
+            "id": "bf3aac35b78e42a8968a90d59a5abeb2"
+        }
+    ],
+    "route": {
+        "custom_domain": true,
+        "pattern": "gql-stg.trainlcd.app",
+        "zone_name": "trainlcd.app"
+    },
+    "vars": {
+        "DISABLE_KV_CACHE": "true"
+    },
+    "env": {
+        "production": {
+            "name": "sapi-bff",
+            "kv_namespaces": [
+                {
+                    "binding": "GRPC_CACHE",
+                    "id": "b6a4b3cf357a4f0bb7524325a9d59e8e"
+                }
+            ],
+            "route": {
+                "custom_domain": true,
+                "pattern": "gql.trainlcd.app",
+                "zone_name": "trainlcd.app"
+            },
+            "observability": {
+                "enabled": true
+            },
+            "vars": {
+                "DISABLE_KV_CACHE": "true"
+            }
+        }
+    }
+}
