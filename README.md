@@ -4,6 +4,15 @@
 
 Cloudflare Workers-based backend-for-frontend (BFF) that exposes a GraphQL API backed by the upstream gRPC-Web service defined by `GRPC_TARGET_ORIGIN`. GraphQL resolvers translate queries into protobuf payloads generated from `proto/stationapi.proto`, forward them via gRPC-Web, and map responses back into the GraphQL schema. Development, testing, and deployment rely on Wrangler v4 and Vitest.
 
+## Repository Layout
+
+This repository is a monorepo containing two independent Cloudflare Workers:
+
+- **Root (`/`)** — the GraphQL BFF Worker described above (`sapi-bff`). Its source lives in `src/`, configured by `wrangler.jsonc`.
+- **[`functions/`](functions/README.md)** — the TrainLCD backend Worker (`trainlcd-worker`, formerly Firebase Cloud Functions). It handles TTS synthesis, session issuance, feedback intake/triage, image upload, app config delivery, and hourly review notifications via `fetch` / `queue` / `scheduled` handlers. It keeps its own `package.json`, `wrangler.jsonc`, and toolchain (Biome + Jest); see [`functions/README.md`](functions/README.md) for setup, bindings, and deployment.
+
+Each Worker is built, tested, and deployed independently from its own directory. The commands below apply to the root BFF Worker.
+
 ## Prerequisites
 
 - Node.js 18 or later
