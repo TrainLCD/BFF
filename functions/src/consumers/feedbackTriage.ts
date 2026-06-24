@@ -396,10 +396,13 @@ function normalizeTriageResponse(resp: unknown): unknown | null {
   return null;
 }
 
-/** ログ用に応答を短いプレビュー文字列へ。 */
-function previewResponse(resp: unknown): string {
+/**
+ * ログ用に応答の長さだけを返す。モデルが入力（report.description）や few-shot を
+ * そのまま echo した場合でも、ユーザー投稿本文を Workers ログに残さないため。
+ */
+function responseLength(resp: unknown): number {
   const s = typeof resp === 'string' ? resp : JSON.stringify(resp ?? null);
-  return s.slice(0, 200);
+  return s.length;
 }
 
 export const processFeedbackMessage = async (
@@ -415,17 +418,17 @@ export const processFeedbackMessage = async (
   // ここで諦めても原文（report.description）は Issue 本文に必ず残すため、フィードバックは捨てない。
   const MAX_TRIAGE_ATTEMPTS = 3;
   let raw: unknown = null;
-  let lastPreview = '';
+  let lastResponseLength = 0;
   for (let attempt = 1; attempt <= MAX_TRIAGE_ATTEMPTS; attempt++) {
     const resp = await runTriage(env, fewshot, report.description, attempt > 1);
-    lastPreview = previewResponse(resp);
+    lastResponseLength = responseLength(resp);
     raw = normalizeTriageResponse(resp);
     if (raw !== null) break;
     console.warn('feedbackTriage: モデル応答の JSON パースに失敗（再試行）', {
       reportId: report.id,
       attempt,
       maxAttempts: MAX_TRIAGE_ATTEMPTS,
-      responsePreview: lastPreview,
+      responseLength: lastResponseLength,
     });
   }
 
@@ -450,7 +453,7 @@ export const processFeedbackMessage = async (
     if (!aiReport.isSpam && String(rawSummary ?? '').trim() === '') {
       console.warn(
         'feedbackTriage: モデルが summary を空/欠落で返却（title にフォールバック）',
-        { reportId: report.id, responsePreview: lastPreview }
+        { reportId: report.id, responseLength: lastResponseLength }
       );
     }
   }
@@ -667,9 +670,15 @@ ${reporterUid}
             .slice(0, 10)
             .join('\n')}\n${stacktraceTooLong ? '...' : ''}\`\`\``;
 
+    // 注意: ここから先（GitHub Issue 作成後）の Discord 通知は失敗しても throw しない。
+    // throw すると queue ハンドラが retry し、同一レポートで Issue が重複作成されるため、
+    // 通知の失敗・URL 未設定はログに留める。
     switch (reportType) {
       case 'feedback': {
-        if (!csWHUrl) throw new Error('DISCORD_CS_WEBHOOK_URL is not set!');
+        if (!csWHUrl) {
+          console.error('DISCORD_CS_WEBHOOK_URL is not set; skipping notify');
+          break;
+        }
         const whRes = await fetch(csWHUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -688,8 +697,12 @@ ${reporterUid}
         break;
       }
       case 'crash': {
-        if (!crashWHUrl)
-          throw new Error('DISCORD_CRASH_WEBHOOK_URL is not set!');
+        if (!crashWHUrl) {
+          console.error(
+            'DISCORD_CRASH_WEBHOOK_URL is not set; skipping notify'
+          );
+          break;
+        }
         const whRes = await fetch(crashWHUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

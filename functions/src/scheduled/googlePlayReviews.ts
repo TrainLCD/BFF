@@ -66,26 +66,31 @@ export function toPlayReviews(rs?: PlayReviewsResponse | null): PlayReview[] {
     const reviewId = r.reviewId ?? '';
     const author = r.authorName ?? undefined;
     const comments = r.comments ?? [];
+    // lastModified を有効な ISO に変換できるコメントだけを対象にする。先頭要素の
+    // 時刻が壊れていても、後続の有効な時刻が選べるようにする（レビュー丸ごと落とさない）。
     const userComments = comments
       .map((c) => c.userComment)
-      .filter((u): u is NonNullable<typeof u> => !!u);
+      .filter((u): u is NonNullable<typeof u> => !!u)
+      .map((comment) => ({ comment, updated: tsToIso(comment.lastModified) }))
+      .filter(
+        (item): item is { comment: PlayUserComment; updated: string } =>
+          typeof item.updated === 'string'
+      );
     if (!reviewId || userComments.length === 0) continue;
     const latest = userComments.reduce((p, c) => {
-      const pMs = dayjs(tsToIso(p.lastModified)).valueOf();
-      const cMs = dayjs(tsToIso(c.lastModified)).valueOf();
+      const pMs = dayjs(p.updated).valueOf();
+      const cMs = dayjs(c.updated).valueOf();
       return cMs > pMs ? c : p;
     });
-    const updated = tsToIso(latest.lastModified);
-    if (!updated) continue;
     out.push({
-      id: `${reviewId}:${updated}`,
+      id: `${reviewId}:${latest.updated}`,
       reviewId,
-      updated,
-      content: String(latest.text ?? '').trim(),
-      rating: Number(latest.starRating ?? 0) || 0,
-      versionName: latest.appVersionName ?? undefined,
+      updated: latest.updated,
+      content: String(latest.comment.text ?? '').trim(),
+      rating: Number(latest.comment.starRating ?? 0) || 0,
+      versionName: latest.comment.appVersionName ?? undefined,
       author,
-      language: latest.reviewerLanguage ?? undefined,
+      language: latest.comment.reviewerLanguage ?? undefined,
     });
   }
   return out;
@@ -202,7 +207,12 @@ export async function runGooglePlayReviewJob(env: Env): Promise<void> {
   if (debug) console.log('[PlayJob] fetched total', { parsed: all.length });
 
   const newcomers = all
-    .filter((r) => !lastUpdated || dayjs(r.updated).isAfter(lastUpdated))
+    .filter(
+      (r) =>
+        !lastUpdated ||
+        dayjs(r.updated).isAfter(lastUpdated) ||
+        dayjs(r.updated).isSame(lastUpdated)
+    )
     .filter((r) => !lastIds.has(r.id))
     .sort((a, b) => dayjs(a.updated).valueOf() - dayjs(b.updated).valueOf());
 
@@ -232,11 +242,14 @@ export async function runGooglePlayReviewJob(env: Env): Promise<void> {
       (p, c) => (dayjs(c.updated).isAfter(dayjs(p.updated)) ? c : p),
       all[0]
     );
+    // 最新時刻と同じ updated を持つレビューの ID を保持する。これにより同秒に複数件
+    // 投稿されても、次回 isSame で拾いつつ lastIds で既通知分だけ除外できる。
+    const newestUpdated = dayjs(newest.updated);
+    const newestIds = all
+      .filter((r) => dayjs(r.updated).isSame(newestUpdated))
+      .map((r) => r.id);
     const updatedIds = [
-      ...new Set([
-        ...(state.lastIds ?? []).slice(-20),
-        ...all.slice(0, 20).map((r) => r.id),
-      ]),
+      ...new Set([...(state.lastIds ?? []).slice(-20), ...newestIds]),
     ].slice(-60);
     await saveReviewState(env.STATE_KV, STATE_KEY, {
       lastUpdated: newest.updated,

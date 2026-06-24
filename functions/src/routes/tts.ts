@@ -34,7 +34,7 @@ interface VoiceCacheMeta {
 
 const TEXT_BYTE_LIMIT = 4000;
 const RAW_SSML_BYTE_LIMIT = 10000;
-const HASH_VERSION = 11;
+const HASH_VERSION = 12;
 const TTS_CONFIG_CACHE_TTL_MS = 5 * 60 * 1000;
 
 let ttsConfigCache: { data: TtsConfig; fetchedAt: number } | null = null;
@@ -62,6 +62,7 @@ const computeId = async (payload: {
   jaVoiceName: string;
   ssmlEn: string;
   ssmlJa: string;
+  ttsOptions: TtsOptions;
 }): Promise<string> => {
   const obj = { ...payload, version: HASH_VERSION } as const;
   const hashPayload = JSON.stringify(obj, Object.keys(obj).sort());
@@ -88,8 +89,10 @@ export const handleTts = async (
   const data = await parseCallableData<TtsRequest>(req);
 
   const ssmlJa = requireString(data.ssmlJa, 'ssmlJa');
-  requireString(data.ssmlEn, 'ssmlEn');
-  const ssmlEn = normalizeRomanText(data.ssmlEn as string);
+  // 生入力を保持し、バイト数上限は正規化前の値で判定する（正規化での展開/削除で
+  // 本来通る入力を弾いたり、上限超え入力を通したりしないため）。
+  const rawSsmlEn = requireString(data.ssmlEn, 'ssmlEn');
+  const ssmlEn = normalizeRomanText(rawSsmlEn);
   if (ssmlEn.trim().length === 0) {
     throw new CallableError(
       'invalid-argument',
@@ -142,7 +145,7 @@ export const handleTts = async (
   // 可視テキストだけでなく生 SSML のバイト長にも上限を設け、タグ膨張入力を弾く
   if (
     utf8ByteLength(ssmlJa) > RAW_SSML_BYTE_LIMIT ||
-    utf8ByteLength(ssmlEn) > RAW_SSML_BYTE_LIMIT
+    utf8ByteLength(rawSsmlEn) > RAW_SSML_BYTE_LIMIT
   ) {
     throw new CallableError(
       'invalid-argument',
@@ -150,7 +153,22 @@ export const handleTts = async (
     );
   }
 
-  const id = await computeId({ enVoiceName, jaVoiceName, ssmlEn, ssmlJa });
+  // 合成オプションもキャッシュキーに含める（outputFormat/style/styleDegree/pitch を
+  // 変えたら別の音声になるため、同じ voice:${id} を再利用させない）。
+  const ttsOptions: TtsOptions = {
+    outputFormat: env.AZURE_TTS_OUTPUT_FORMAT || undefined,
+    style: env.AZURE_TTS_STYLE || undefined,
+    styleDegree: env.AZURE_TTS_STYLE_DEGREE || undefined,
+    pitch: env.AZURE_TTS_PITCH || undefined,
+  };
+
+  const id = await computeId({
+    enVoiceName,
+    jaVoiceName,
+    ssmlEn,
+    ssmlJa,
+    ttsOptions,
+  });
 
   // --- キャッシュ照会 ---
   const meta = await env.TTS_KV.get<VoiceCacheMeta>(`voice:${id}`, 'json');
@@ -182,13 +200,7 @@ export const handleTts = async (
   }
 
   // --- 合成（Azure） ---
-  // 音質・スタイル・プロソディは env で調整可能（未設定なら高音質既定のみ）
-  const ttsOptions: TtsOptions = {
-    outputFormat: env.AZURE_TTS_OUTPUT_FORMAT || undefined,
-    style: env.AZURE_TTS_STYLE || undefined,
-    styleDegree: env.AZURE_TTS_STYLE_DEGREE || undefined,
-    pitch: env.AZURE_TTS_PITCH || undefined,
-  };
+  // 音質・スタイル・プロソディは env で調整可能（ttsOptions は上で構築済み）
   const [jaAudio, enAudio] = await Promise.all([
     synthesizeSpeech(
       env.AZURE_SPEECH_REGION,

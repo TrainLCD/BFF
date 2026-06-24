@@ -12,7 +12,7 @@ export const handleFeedback = async (
   req: Request,
   env: Env
 ): Promise<Response> => {
-  await verifySessionToken(env, req.headers.get('Authorization'));
+  const uid = await verifySessionToken(env, req.headers.get('Authorization'));
 
   const data = await parseCallableData<{ report?: Report }>(req);
   const report = data.report;
@@ -20,11 +20,15 @@ export const handleFeedback = async (
     throw new CallableError('invalid-argument', 'report.id required');
   }
 
+  // reporterUid はクライアント申告を信用せず、検証済みトークンの sub で上書きする。
+  // （他ユーザーの UID を名乗って Issue/Discord に載せるなりすましを防ぐ）
+  const verifiedReport: Report = { ...report, reporterUid: uid };
+
   // 重要: 生本文はログに出さない
   await env.FEEDBACK_QUEUE.send({
-    id: report.id,
+    id: verifiedReport.id,
     receivedAt: new Date().toISOString(),
-    report,
+    report: verifiedReport,
     version: 1,
   });
 

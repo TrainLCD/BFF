@@ -40,7 +40,9 @@ export const handleUploadImage = async (
     throw new CallableError('invalid-argument', 'image too large');
   }
 
-  const key = `report-images/${feedbackId}.png`;
+  // feedbackId はクライアント生成のため、それだけをキーにすると同一 ID の再 upload で
+  // 既存の公開画像を上書きできてしまう。サーバ生成の乱数を付与して上書き不能にする。
+  const key = `report-images/${feedbackId}-${crypto.randomUUID()}.png`;
   await env.UPLOAD_BUCKET.put(key, bytes, {
     httpMetadata: { contentType: 'image/png' },
   });

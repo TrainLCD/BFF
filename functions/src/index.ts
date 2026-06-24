@@ -19,7 +19,7 @@ const notFound = () =>
     headers: { 'content-type': 'application/json; charset=UTF-8' },
   });
 
-export default {
+const worker: ExportedHandler<Env, FeedbackQueueMessage> = {
   async fetch(
     req: Request,
     env: Env,
@@ -95,3 +95,5 @@ export default {
     );
   },
 };
+
+export default worker;

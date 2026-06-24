@@ -20,6 +20,15 @@ export interface TtsOptions {
   pitch?: string;
 }
 
+/** XML 属性値をエスケープする（", &, <, >, ' を含む値で不正 XML になるのを防ぐ）。 */
+const escapeXmlAttr = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&apos;');
+
 /** クライアント SSML から外側の <speak> を剥がして中身だけ返す。 */
 const extractSpeakInner = (ssml: string): string => {
   const trimmed = ssml.trim();
@@ -40,12 +49,14 @@ export const buildAzureSsml = (
   const isHd = isAzureHdVoiceName(voiceName);
 
   if (!isHd && opts.pitch) {
-    content = `<prosody pitch="${opts.pitch}">${content}</prosody>`;
+    content = `<prosody pitch="${escapeXmlAttr(opts.pitch)}">${content}</prosody>`;
   }
 
   if (!isHd && opts.style) {
-    const degree = opts.styleDegree ? ` styledegree="${opts.styleDegree}"` : '';
-    content = `<mstts:express-as style="${opts.style}"${degree}>${content}</mstts:express-as>`;
+    const degree = opts.styleDegree
+      ? ` styledegree="${escapeXmlAttr(opts.styleDegree)}"`
+      : '';
+    content = `<mstts:express-as style="${escapeXmlAttr(opts.style)}"${degree}>${content}</mstts:express-as>`;
   }
 
   return (

@@ -34,7 +34,12 @@ export const pemToArrayBuffer = (pem: string): ArrayBuffer => {
     .replace(/-----BEGIN [^-]+-----/, '')
     .replace(/-----END [^-]+-----/, '')
     .replace(/\s+/g, '');
-  return Buffer.from(body, 'base64').buffer as ArrayBuffer;
+  const buf = Buffer.from(body, 'base64');
+  // Buffer はプール上の backing store を共有しうるため、デコード範囲だけを切り出す。
+  return buf.buffer.slice(
+    buf.byteOffset,
+    buf.byteOffset + buf.byteLength
+  ) as ArrayBuffer;
 };
 
 /** タイミング安全な文字列比較。 */

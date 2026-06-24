@@ -10,6 +10,7 @@ const SECRET_NAMES = [
   'SESSION_JWT_SECRET',
   'AZURE_SPEECH_KEY',
   'GOOGLE_PLAY_SA_KEY',
+  'APPSTORE_CONNECT_KEY',
   'OCTOKIT_PAT',
   'DISCORD_CS_WEBHOOK_URL',
   'DISCORD_CRASH_WEBHOOK_URL',
@@ -51,7 +52,8 @@ try {
 
 // GOOGLE_PLAY_SA_KEY はファイル指定があれば中身をそのまま採用。
 // 指定は 環境変数 GOOGLE_PLAY_SA_KEY_FILE でも .secrets.env の GOOGLE_PLAY_SA_KEY_FILE 行でも可。
-const saFile = process.env.GOOGLE_PLAY_SA_KEY_FILE ?? values.GOOGLE_PLAY_SA_KEY_FILE;
+const saFile =
+  process.env.GOOGLE_PLAY_SA_KEY_FILE ?? values.GOOGLE_PLAY_SA_KEY_FILE;
 if (saFile) {
   try {
     values.GOOGLE_PLAY_SA_KEY = readFileSync(saFile, 'utf8');
