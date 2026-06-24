@@ -11,13 +11,14 @@
  *   npm run find-tts-cache -- "東京" --delete
  *   npm run find-tts-cache -- "東京" --env production --delete
  */
-import { confirm, type VoiceCacheRecord } from './lib/cloudflare';
 import {
+  confirm,
   kvDeleteKey,
   kvGetMany,
   kvListKeys,
   r2DeleteObject,
   resolveR2BucketName,
+  type VoiceCacheRecord,
 } from './lib/wrangler';
 
 const KV_BINDING = 'TTS_KV';
