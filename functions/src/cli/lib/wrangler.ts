@@ -9,7 +9,8 @@
  * 引き続き S3 互換 API（lib/cloudflare.ts）を使う。
  */
 import { execFile } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -68,6 +69,98 @@ export async function kvListKeys(
   ]);
   const parsed = JSON.parse(extractJsonArray(out)) as { name: string }[];
   return parsed.map((k) => k.name);
+}
+
+// CF の bulk/get API は 1 リクエストあたりのキー数に上限があるため分割する。
+const BULK_GET_CHUNK = 100;
+
+function extractJsonObject(out: string): string {
+  const start = out.indexOf('{');
+  const end = out.lastIndexOf('}');
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error(
+      `wrangler の出力を JSON オブジェクトとして解釈できませんでした: ${out.slice(0, 200)}`
+    );
+  }
+  return out.slice(start, end + 1);
+}
+
+// `wrangler kv bulk get` の値は環境により文字列 / { value } の両形がありうるため吸収する。
+function normalizeBulkValue(entry: unknown): string | null {
+  if (entry == null) return null;
+  if (typeof entry === 'string') return entry;
+  if (typeof entry === 'object' && 'value' in entry) {
+    const v = (entry as { value: unknown }).value;
+    return typeof v === 'string' ? v : null;
+  }
+  return null;
+}
+
+/**
+ * KV から複数キーの値をまとめて取得する（`wrangler kv bulk get`、open beta）。
+ * 戻り値は存在したキーのみを含む Map。上限を超えないようチャンク分割して呼ぶ。
+ */
+export async function kvGetMany(
+  binding: string,
+  keys: string[],
+  env?: string
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  for (let i = 0; i < keys.length; i += BULK_GET_CHUNK) {
+    const chunk = keys.slice(i, i + BULK_GET_CHUNK);
+    const dir = mkdtempSync(path.join(tmpdir(), 'tts-kv-'));
+    const file = path.join(dir, 'keys.json');
+    try {
+      writeFileSync(file, JSON.stringify(chunk));
+      const stdout = await runWrangler([
+        'kv',
+        'bulk',
+        'get',
+        file,
+        '--binding',
+        binding,
+        '--remote',
+        ...envArgs(env),
+      ]);
+      const values = JSON.parse(extractJsonObject(stdout)) as Record<
+        string,
+        unknown
+      >;
+      for (const [k, entry] of Object.entries(values)) {
+        const v = normalizeBulkValue(entry);
+        if (v !== null) out.set(k, v);
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+  return out;
+}
+
+/** KV の単一キーを削除する（`wrangler kv key delete`。確認プロンプトは出ない）。 */
+export async function kvDeleteKey(
+  binding: string,
+  key: string,
+  env?: string
+): Promise<void> {
+  await runWrangler([
+    'kv',
+    'key',
+    'delete',
+    key,
+    '--binding',
+    binding,
+    '--remote',
+    ...envArgs(env),
+  ]);
+}
+
+/** R2 の単一オブジェクトを削除する（`wrangler r2 object delete <bucket>/<key>`）。 */
+export async function r2DeleteObject(
+  bucket: string,
+  key: string
+): Promise<void> {
+  await runWrangler(['r2', 'object', 'delete', `${bucket}/${key}`, '--remote']);
 }
 
 interface WranglerR2Binding {

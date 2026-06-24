@@ -1,23 +1,18 @@
 /**
- * メンテ用 CLI から Cloudflare KV / R2 を操作する共有ヘルパー。
- * KV は Cloudflare REST API、R2 は S3 互換 API（aws4fetch で SigV4 署名）を使う。
+ * メンテ用 CLI から R2 を S3 互換 API（aws4fetch で SigV4 署名）で操作する共有ヘルパー。
+ * R2 にはオブジェクト一覧コマンドが wrangler に無いため、列挙はこの S3 API を使う。
+ * KV 操作とバケット名解決は lib/wrangler.ts（wrangler CLI）側に集約している。
  *
  * 必要な環境変数:
- *   CF_ACCOUNT_ID         Cloudflare アカウント ID
- *   CF_API_TOKEN          KV 読み書き権限を持つ API トークン
- *   CF_KV_NAMESPACE_ID    対象環境の TTS_KV ネームスペース ID
+ *   CF_ACCOUNT_ID         Cloudflare アカウント ID（R2 の S3 エンドポイント用）
  *   R2_ACCESS_KEY_ID      R2 の S3 アクセスキー ID
  *   R2_SECRET_ACCESS_KEY  R2 の S3 シークレットアクセスキー
- *   R2_BUCKET             対象環境の音声バケット名（例: trainlcd-tts / trainlcd-tts-dev）
+ * バケット名は呼び出し側が wrangler.jsonc から解決して渡す。
  */
 import { AwsClient } from 'aws4fetch';
 
-const API_BASE = 'https://api.cloudflare.com/client/v4';
-
 export interface CfConfig {
   accountId: string;
-  apiToken: string;
-  kvNamespaceId: string;
   r2AccessKeyId: string;
   r2SecretAccessKey: string;
   r2Bucket: string;
@@ -26,9 +21,6 @@ export interface CfConfig {
 export function loadConfig(overrides: Partial<CfConfig> = {}): CfConfig {
   const cfg: CfConfig = {
     accountId: overrides.accountId ?? process.env.CF_ACCOUNT_ID ?? '',
-    apiToken: overrides.apiToken ?? process.env.CF_API_TOKEN ?? '',
-    kvNamespaceId:
-      overrides.kvNamespaceId ?? process.env.CF_KV_NAMESPACE_ID ?? '',
     r2AccessKeyId:
       overrides.r2AccessKeyId ?? process.env.R2_ACCESS_KEY_ID ?? '',
     r2SecretAccessKey:
@@ -36,19 +28,6 @@ export function loadConfig(overrides: Partial<CfConfig> = {}): CfConfig {
     r2Bucket: overrides.r2Bucket ?? process.env.R2_BUCKET ?? '',
   };
   return cfg;
-}
-
-export function requireKvConfig(cfg: CfConfig): void {
-  const missing = (
-    ['accountId', 'apiToken', 'kvNamespaceId'] as (keyof CfConfig)[]
-  ).filter((k) => !cfg[k]);
-  if (missing.length) {
-    throw new Error(
-      `KV 操作に必要な設定が不足しています: ${missing
-        .map((k) => k)
-        .join(', ')}（CF_ACCOUNT_ID / CF_API_TOKEN / CF_KV_NAMESPACE_ID）`
-    );
-  }
 }
 
 export function requireR2Config(cfg: CfConfig): void {
@@ -66,64 +45,6 @@ export function requireR2Config(cfg: CfConfig): void {
         ', '
       )}（CF_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET）`
     );
-  }
-}
-
-// --- KV (Cloudflare REST API) ---
-
-const kvUrl = (cfg: CfConfig, path: string): string =>
-  `${API_BASE}/accounts/${cfg.accountId}/storage/kv/namespaces/${cfg.kvNamespaceId}${path}`;
-
-const kvHeaders = (cfg: CfConfig) => ({
-  Authorization: `Bearer ${cfg.apiToken}`,
-});
-
-export async function kvListKeys(
-  cfg: CfConfig,
-  prefix: string
-): Promise<string[]> {
-  const keys: string[] = [];
-  let cursor = '';
-  do {
-    const qs = new URLSearchParams({ limit: '1000', prefix });
-    if (cursor) qs.set('cursor', cursor);
-    const res = await fetch(kvUrl(cfg, `/keys?${qs.toString()}`), {
-      headers: kvHeaders(cfg),
-    });
-    if (!res.ok) {
-      throw new Error(`KV list failed ${res.status}: ${await res.text()}`);
-    }
-    const json = (await res.json()) as {
-      result: { name: string }[];
-      result_info?: { cursor?: string };
-    };
-    for (const k of json.result) keys.push(k.name);
-    cursor = json.result_info?.cursor ?? '';
-  } while (cursor);
-  return keys;
-}
-
-export async function kvGet(
-  cfg: CfConfig,
-  key: string
-): Promise<string | null> {
-  const res = await fetch(kvUrl(cfg, `/values/${encodeURIComponent(key)}`), {
-    headers: kvHeaders(cfg),
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`KV get failed ${res.status}: ${await res.text()}`);
-  }
-  return res.text();
-}
-
-export async function kvDelete(cfg: CfConfig, key: string): Promise<void> {
-  const res = await fetch(kvUrl(cfg, `/values/${encodeURIComponent(key)}`), {
-    method: 'DELETE',
-    headers: kvHeaders(cfg),
-  });
-  if (!res.ok && res.status !== 404) {
-    throw new Error(`KV delete failed ${res.status}: ${await res.text()}`);
   }
 }
 
