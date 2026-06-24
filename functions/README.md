@@ -135,8 +135,34 @@ fail-hard guard that prevents mis-training).
 ## Maintenance CLI
 
 Maintenance tools that operate directly on KV (TTS_KV) and R2 (the audio bucket).
-They use the Cloudflare REST API (KV) and the S3-compatible API (R2). Connection
-details are passed via environment variables:
+
+### `find-orphaned-tts`
+
+Detects audio that exists in R2 but has no KV metadata (and optionally deletes it).
+KV key listing and the bucket name are resolved via `wrangler` (it reads the
+binding from `wrangler.jsonc` and uses your logged-in account), so **no KV API
+token or namespace ID is required** — just run `wrangler login` first. Because
+`wrangler` has no R2 object-listing command, R2 enumeration still uses the
+S3-compatible API, so only those credentials are passed via environment
+variables:
+
+```bash
+export CF_ACCOUNT_ID=...           # Cloudflare account ID (for the R2 S3 endpoint)
+export R2_ACCESS_KEY_ID=...        # R2 S3 access key
+export R2_SECRET_ACCESS_KEY=...
+
+# dev (default)
+npm run find-orphaned-tts
+npm run find-orphaned-tts -- --delete
+# production (--env selects the KV namespace and R2 bucket from wrangler.jsonc)
+npm run find-orphaned-tts -- --env production --delete
+```
+
+### `find-tts-cache`
+
+Searches the TTS cache by SSML body and optionally deletes the matching KV
+document and R2 audio. It reads every KV value to match, so it still uses the
+Cloudflare REST API (KV) and the S3-compatible API (R2) directly:
 
 ```bash
 export CF_ACCOUNT_ID=...          # Cloudflare account ID
@@ -146,11 +172,6 @@ export R2_ACCESS_KEY_ID=...       # R2 S3 access key
 export R2_SECRET_ACCESS_KEY=...
 export R2_BUCKET=trainlcd-tts-dev # audio bucket name for the target environment
 
-# Search the TTS cache by SSML body (delete if needed)
 npm run find-tts-cache -- "東京" --field ssmlJa
 npm run find-tts-cache -- "東京" --delete
-
-# Detect orphaned audio that exists in R2 but has no KV metadata (delete if needed)
-npm run find-orphaned-tts
-npm run find-orphaned-tts -- --delete
 ```

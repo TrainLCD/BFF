@@ -2,51 +2,77 @@
  * R2 に存在するが KV(TTS_KV) に voice: メタが無い「孤立」音声ファイルを検出し、
  * 必要なら削除する。旧 Firestore+GCS 版の Cloudflare 移植。
  *
+ * KV のキー一覧とバケット名は wrangler（wrangler.jsonc + ログイン済みアカウント）
+ * から取得するため、API トークンやネームスペース ID は不要。R2 の列挙には wrangler に
+ * 一覧コマンドが無いため、S3 互換 API 用の認証情報のみ環境変数で渡す。
+ *
  * 例:
- *   CF_ACCOUNT_ID=... CF_API_TOKEN=... CF_KV_NAMESPACE_ID=... \
- *   R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... R2_BUCKET=trainlcd-tts-dev \
+ *   # dev（既定）
+ *   CF_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
  *   npm run find-orphaned-tts -- --delete
+ *   # production
+ *   CF_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
+ *   npm run find-orphaned-tts -- --env production --delete
  */
 import {
   confirm,
-  kvListKeys,
   loadConfig,
   r2Delete,
   r2ListKeys,
-  requireKvConfig,
   requireR2Config,
 } from './lib/cloudflare';
+import { kvListKeys, resolveR2BucketName } from './lib/wrangler';
 
 const ID_FROM_R2_KEY = /caches\/tts\/(?:ja|en)\/(.+)\.[^.]+$/;
 
 function printUsage(): void {
-  console.error('Usage: npm run find-orphaned-tts -- [--delete]');
+  console.error(
+    'Usage: npm run find-orphaned-tts -- [--env <name>] [--delete]'
+  );
   console.error('');
   console.error(
     'R2 に存在するが KV にメタが無い孤立した TTS 音声ファイルを検出します。'
   );
+  console.error(
+    '  --env <name>             対象環境（例: production。省略時は dev）'
+  );
   console.error('  --delete                 孤立ファイルを確認後に削除');
   console.error('');
   console.error(
-    '接続情報は環境変数で指定: CF_ACCOUNT_ID / CF_API_TOKEN / CF_KV_NAMESPACE_ID /'
+    'KV のキー一覧とバケット名は wrangler（要 `wrangler login`）から取得します。'
   );
-  console.error('  R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET');
+  console.error(
+    'R2 列挙用の接続情報のみ環境変数で指定: CF_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY'
+  );
 }
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const deleteMode = args.includes('--delete');
-  if (args.some((a) => a !== '--delete')) {
-    printUsage();
-    process.exit(1);
+  let deleteMode = false;
+  let env: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === '--delete') {
+      deleteMode = true;
+    } else if (a === '--env') {
+      env = args[++i];
+      if (!env) {
+        printUsage();
+        process.exit(1);
+      }
+    } else {
+      printUsage();
+      process.exit(1);
+    }
   }
 
-  const cfg = loadConfig();
-  requireKvConfig(cfg);
+  const bucket = resolveR2BucketName('TTS_BUCKET', env);
+  const cfg = loadConfig({ r2Bucket: bucket });
   requireR2Config(cfg);
 
+  console.log(`対象環境: ${env ?? 'dev (default)'} / R2 バケット: ${bucket}`);
   console.log('KV の voice: 一覧を取得中...');
-  const kvKeys = await kvListKeys(cfg, 'voice:');
+  const kvKeys = await kvListKeys('TTS_KV', 'voice:', env);
   const kvIds = new Set(kvKeys.map((k) => k.replace(/^voice:/, '')));
   console.log(`  KV メタ数: ${kvIds.size}`);
 
