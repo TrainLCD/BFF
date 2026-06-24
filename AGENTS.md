@@ -1,6 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
+- This is a monorepo with two independent Workers: the root GraphQL BFF Worker (this directory) and the `functions/` Worker (the TrainLCD backend; see `functions/README.md`). The `functions/` Worker keeps its own toolchain (Biome + Jest, two-space indentation) and is built, tested, and deployed from its own directory — the guidelines below cover the root BFF Worker only.
 - Keep `src/index.ts` minimal; delegate logic to helper modules such as `src/graphqlGateway.ts`.
 - Implement new GraphQL fields or gRPC-Web integrations in composable utilities under `src/` beside `graphqlGateway.ts`.
 - Store protobuf assets under `proto/` and regenerate static modules in `src/generated/` when the schema changes.
