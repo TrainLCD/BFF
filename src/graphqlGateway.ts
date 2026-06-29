@@ -44,6 +44,8 @@ const cacheableMethods = new Set([
 	'GetRouteTypes',
 	'GetConnectedRoutes',
 	'GetTrainTypesByStationId',
+	'EstimateArrivalTimes',
+	'GetTrainRoute',
 ]);
 
 // Build schema once at module load time instead of per-request
@@ -354,6 +356,49 @@ function createResolvers(client: GrpcClient) {
 			return {
 				trainTypes: payload.trainTypes ?? [],
 				nextPageToken: payload.nextPageToken ?? null,
+			};
+		},
+		estimateArrivalTimes: async ({
+			fromStationGroupId,
+			toStationGroupId,
+			viaLineId,
+			pageSize,
+			pageToken,
+		}: {
+			fromStationGroupId: number;
+			toStationGroupId: number;
+			viaLineId?: number;
+			pageSize?: number;
+			pageToken?: string;
+		}) => {
+			const payload = await client.call(
+				'EstimateArrivalTimes',
+				grpcTypes.GetRouteRequest,
+				grpcTypes.EstimatedArrivalResponse,
+				cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize, pageToken })
+			);
+			return {
+				routes: payload.routes ?? [],
+				nextPageToken: payload.nextPageToken ?? null,
+			};
+		},
+		trainRoute: async ({
+			fromStationGroupId,
+			toStationGroupId,
+			lineGroupId,
+		}: {
+			fromStationGroupId: number;
+			toStationGroupId: number;
+			lineGroupId?: number;
+		}) => {
+			const payload = await client.call(
+				'GetTrainRoute',
+				grpcTypes.GetTrainRouteRequest,
+				grpcTypes.TrainRouteResponse,
+				cleanPayload({ fromStationGroupId, toStationGroupId, lineGroupId })
+			);
+			return {
+				segments: payload.segments ?? [],
 			};
 		},
 		connectedRoutes: async ({ fromStationGroupId, toStationGroupId }: { fromStationGroupId: number; toStationGroupId: number }) => {

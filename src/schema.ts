@@ -95,6 +95,8 @@ type Query {
 	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!
 	connectedRoutes(fromStationGroupId: Int!, toStationGroupId: Int!): [Route!]!
+	estimateArrivalTimes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): EstimatedArrivalPage!
+	trainRoute(fromStationGroupId: Int!, toStationGroupId: Int!, lineGroupId: Int): TrainRouteResponse!
 }
 
 type RoutePage {
@@ -279,5 +281,35 @@ type TrainTypeNested {
 type Route {
 	id: Int
 	stops: [StationNested!]
+}
+
+type EstimatedArrivalStop {
+	stationId: Int
+	stationGroupId: Int
+	cumulativeMinutes: Float
+	stopsHere: Boolean
+}
+
+type EstimatedArrivalRoute {
+	id: Int
+	stops: [EstimatedArrivalStop!]
+}
+
+type EstimatedArrivalPage {
+	routes: [EstimatedArrivalRoute!]
+	nextPageToken: String
+}
+
+type TrainRouteSegment {
+	station: StationNested
+	stops: Boolean
+	distanceFromPrevious: Float
+	maxSpeed: Float
+	maxAcceleration: Float
+	maxDeceleration: Float
+}
+
+type TrainRouteResponse {
+	segments: [TrainRouteSegment!]
 }
 `;
