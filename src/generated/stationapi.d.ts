@@ -269,17 +269,17 @@ export namespace app {
 
                 /**
                  * Calls EstimateArrivalTimes.
-                 * @param request GetRouteRequest message or plain object
+                 * @param request EstimateArrivalTimesRequest message or plain object
                  * @param callback Node-style callback called with the error, if any, and EstimatedArrivalResponse
                  */
-                public estimateArrivalTimes(request: app.trainlcd.grpc.IGetRouteRequest, callback: app.trainlcd.grpc.StationAPI.EstimateArrivalTimesCallback): void;
+                public estimateArrivalTimes(request: app.trainlcd.grpc.IEstimateArrivalTimesRequest, callback: app.trainlcd.grpc.StationAPI.EstimateArrivalTimesCallback): void;
 
                 /**
                  * Calls EstimateArrivalTimes.
-                 * @param request GetRouteRequest message or plain object
+                 * @param request EstimateArrivalTimesRequest message or plain object
                  * @returns Promise
                  */
-                public estimateArrivalTimes(request: app.trainlcd.grpc.IGetRouteRequest): Promise<app.trainlcd.grpc.EstimatedArrivalResponse>;
+                public estimateArrivalTimes(request: app.trainlcd.grpc.IEstimateArrivalTimesRequest): Promise<app.trainlcd.grpc.EstimatedArrivalResponse>;
 
                 /**
                  * Calls GetTrainRoute.
@@ -1343,6 +1343,115 @@ export namespace app {
 
                 /**
                  * Gets the default type url for GetRouteRequest
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an EstimateArrivalTimesRequest. */
+            interface IEstimateArrivalTimesRequest {
+
+                /** EstimateArrivalTimesRequest fromStationId */
+                fromStationId?: (number|null);
+
+                /** EstimateArrivalTimesRequest toStationId */
+                toStationId?: (number|null);
+
+                /** EstimateArrivalTimesRequest viaLineIds */
+                viaLineIds?: (number[]|null);
+            }
+
+            /** Represents an EstimateArrivalTimesRequest. */
+            class EstimateArrivalTimesRequest implements IEstimateArrivalTimesRequest {
+
+                /**
+                 * Constructs a new EstimateArrivalTimesRequest.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IEstimateArrivalTimesRequest);
+
+                /** EstimateArrivalTimesRequest fromStationId. */
+                public fromStationId: number;
+
+                /** EstimateArrivalTimesRequest toStationId. */
+                public toStationId: number;
+
+                /** EstimateArrivalTimesRequest viaLineIds. */
+                public viaLineIds: number[];
+
+                /**
+                 * Creates a new EstimateArrivalTimesRequest instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns EstimateArrivalTimesRequest instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IEstimateArrivalTimesRequest): app.trainlcd.grpc.EstimateArrivalTimesRequest;
+
+                /**
+                 * Encodes the specified EstimateArrivalTimesRequest message. Does not implicitly {@link app.trainlcd.grpc.EstimateArrivalTimesRequest.verify|verify} messages.
+                 * @param message EstimateArrivalTimesRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IEstimateArrivalTimesRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified EstimateArrivalTimesRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimateArrivalTimesRequest.verify|verify} messages.
+                 * @param message EstimateArrivalTimesRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IEstimateArrivalTimesRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an EstimateArrivalTimesRequest message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns EstimateArrivalTimesRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.EstimateArrivalTimesRequest;
+
+                /**
+                 * Decodes an EstimateArrivalTimesRequest message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns EstimateArrivalTimesRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.EstimateArrivalTimesRequest;
+
+                /**
+                 * Verifies an EstimateArrivalTimesRequest message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an EstimateArrivalTimesRequest message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns EstimateArrivalTimesRequest
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.EstimateArrivalTimesRequest;
+
+                /**
+                 * Creates a plain object from an EstimateArrivalTimesRequest message. Also converts values to other types if specified.
+                 * @param message EstimateArrivalTimesRequest
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.EstimateArrivalTimesRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this EstimateArrivalTimesRequest to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for EstimateArrivalTimesRequest
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */

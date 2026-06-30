@@ -95,7 +95,7 @@ type Query {
 	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!
 	connectedRoutes(fromStationGroupId: Int!, toStationGroupId: Int!): [Route!]!
-	estimateArrivalTimes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): EstimatedArrivalPage!
+	estimateArrivalTimes(fromStationId: Int!, toStationId: Int!, viaLineIds: [Int!]): EstimatedArrivalPage!
 	trainRoute(fromStationGroupId: Int!, toStationGroupId: Int!, lineGroupId: Int): TrainRouteResponse!
 }
 
@@ -297,7 +297,6 @@ type EstimatedArrivalRoute {
 
 type EstimatedArrivalPage {
 	routes: [EstimatedArrivalRoute!]
-	nextPageToken: String
 }
 
 type TrainRouteSegment {
