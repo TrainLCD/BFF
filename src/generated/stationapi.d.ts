@@ -266,6 +266,34 @@ export namespace app {
                  * @returns Promise
                  */
                 public getRouteTypes(request: app.trainlcd.grpc.IGetRouteRequest): Promise<app.trainlcd.grpc.RouteTypeResponse>;
+
+                /**
+                 * Calls EstimateArrivalTimes.
+                 * @param request GetRouteRequest message or plain object
+                 * @param callback Node-style callback called with the error, if any, and EstimatedArrivalResponse
+                 */
+                public estimateArrivalTimes(request: app.trainlcd.grpc.IGetRouteRequest, callback: app.trainlcd.grpc.StationAPI.EstimateArrivalTimesCallback): void;
+
+                /**
+                 * Calls EstimateArrivalTimes.
+                 * @param request GetRouteRequest message or plain object
+                 * @returns Promise
+                 */
+                public estimateArrivalTimes(request: app.trainlcd.grpc.IGetRouteRequest): Promise<app.trainlcd.grpc.EstimatedArrivalResponse>;
+
+                /**
+                 * Calls GetTrainRoute.
+                 * @param request GetTrainRouteRequest message or plain object
+                 * @param callback Node-style callback called with the error, if any, and TrainRouteResponse
+                 */
+                public getTrainRoute(request: app.trainlcd.grpc.IGetTrainRouteRequest, callback: app.trainlcd.grpc.StationAPI.GetTrainRouteCallback): void;
+
+                /**
+                 * Calls GetTrainRoute.
+                 * @param request GetTrainRouteRequest message or plain object
+                 * @returns Promise
+                 */
+                public getTrainRoute(request: app.trainlcd.grpc.IGetTrainRouteRequest): Promise<app.trainlcd.grpc.TrainRouteResponse>;
             }
 
             namespace StationAPI {
@@ -388,6 +416,20 @@ export namespace app {
                  * @param [response] RouteTypeResponse
                  */
                 type GetRouteTypesCallback = (error: (Error|null), response?: app.trainlcd.grpc.RouteTypeResponse) => void;
+
+                /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#estimateArrivalTimes}.
+                 * @param error Error, if any
+                 * @param [response] EstimatedArrivalResponse
+                 */
+                type EstimateArrivalTimesCallback = (error: (Error|null), response?: app.trainlcd.grpc.EstimatedArrivalResponse) => void;
+
+                /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getTrainRoute}.
+                 * @param error Error, if any
+                 * @param [response] TrainRouteResponse
+                 */
+                type GetTrainRouteCallback = (error: (Error|null), response?: app.trainlcd.grpc.TrainRouteResponse) => void;
             }
 
             /** Properties of a GetStationByIdRequest. */
@@ -5054,6 +5096,663 @@ export namespace app {
 
                 /**
                  * Gets the default type url for RouteMinimalResponse
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an EstimatedArrivalStop. */
+            interface IEstimatedArrivalStop {
+
+                /** EstimatedArrivalStop stationId */
+                stationId?: (number|null);
+
+                /** EstimatedArrivalStop stationGroupId */
+                stationGroupId?: (number|null);
+
+                /** EstimatedArrivalStop cumulativeMinutes */
+                cumulativeMinutes?: (number|null);
+
+                /** EstimatedArrivalStop stopsHere */
+                stopsHere?: (boolean|null);
+            }
+
+            /** Represents an EstimatedArrivalStop. */
+            class EstimatedArrivalStop implements IEstimatedArrivalStop {
+
+                /**
+                 * Constructs a new EstimatedArrivalStop.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IEstimatedArrivalStop);
+
+                /** EstimatedArrivalStop stationId. */
+                public stationId: number;
+
+                /** EstimatedArrivalStop stationGroupId. */
+                public stationGroupId: number;
+
+                /** EstimatedArrivalStop cumulativeMinutes. */
+                public cumulativeMinutes: number;
+
+                /** EstimatedArrivalStop stopsHere. */
+                public stopsHere: boolean;
+
+                /**
+                 * Creates a new EstimatedArrivalStop instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns EstimatedArrivalStop instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IEstimatedArrivalStop): app.trainlcd.grpc.EstimatedArrivalStop;
+
+                /**
+                 * Encodes the specified EstimatedArrivalStop message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalStop.verify|verify} messages.
+                 * @param message EstimatedArrivalStop message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IEstimatedArrivalStop, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified EstimatedArrivalStop message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalStop.verify|verify} messages.
+                 * @param message EstimatedArrivalStop message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IEstimatedArrivalStop, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an EstimatedArrivalStop message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns EstimatedArrivalStop
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.EstimatedArrivalStop;
+
+                /**
+                 * Decodes an EstimatedArrivalStop message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns EstimatedArrivalStop
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.EstimatedArrivalStop;
+
+                /**
+                 * Verifies an EstimatedArrivalStop message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an EstimatedArrivalStop message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns EstimatedArrivalStop
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.EstimatedArrivalStop;
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalStop message. Also converts values to other types if specified.
+                 * @param message EstimatedArrivalStop
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.EstimatedArrivalStop, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this EstimatedArrivalStop to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalStop
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an EstimatedArrivalRoute. */
+            interface IEstimatedArrivalRoute {
+
+                /** EstimatedArrivalRoute id */
+                id?: (number|null);
+
+                /** EstimatedArrivalRoute stops */
+                stops?: (app.trainlcd.grpc.IEstimatedArrivalStop[]|null);
+            }
+
+            /** Represents an EstimatedArrivalRoute. */
+            class EstimatedArrivalRoute implements IEstimatedArrivalRoute {
+
+                /**
+                 * Constructs a new EstimatedArrivalRoute.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IEstimatedArrivalRoute);
+
+                /** EstimatedArrivalRoute id. */
+                public id: number;
+
+                /** EstimatedArrivalRoute stops. */
+                public stops: app.trainlcd.grpc.IEstimatedArrivalStop[];
+
+                /**
+                 * Creates a new EstimatedArrivalRoute instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns EstimatedArrivalRoute instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IEstimatedArrivalRoute): app.trainlcd.grpc.EstimatedArrivalRoute;
+
+                /**
+                 * Encodes the specified EstimatedArrivalRoute message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalRoute.verify|verify} messages.
+                 * @param message EstimatedArrivalRoute message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IEstimatedArrivalRoute, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified EstimatedArrivalRoute message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalRoute.verify|verify} messages.
+                 * @param message EstimatedArrivalRoute message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IEstimatedArrivalRoute, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an EstimatedArrivalRoute message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns EstimatedArrivalRoute
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.EstimatedArrivalRoute;
+
+                /**
+                 * Decodes an EstimatedArrivalRoute message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns EstimatedArrivalRoute
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.EstimatedArrivalRoute;
+
+                /**
+                 * Verifies an EstimatedArrivalRoute message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an EstimatedArrivalRoute message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns EstimatedArrivalRoute
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.EstimatedArrivalRoute;
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalRoute message. Also converts values to other types if specified.
+                 * @param message EstimatedArrivalRoute
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.EstimatedArrivalRoute, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this EstimatedArrivalRoute to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalRoute
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an EstimatedArrivalResponse. */
+            interface IEstimatedArrivalResponse {
+
+                /** EstimatedArrivalResponse routes */
+                routes?: (app.trainlcd.grpc.IEstimatedArrivalRoute[]|null);
+
+                /** EstimatedArrivalResponse nextPageToken */
+                nextPageToken?: (string|null);
+            }
+
+            /** Represents an EstimatedArrivalResponse. */
+            class EstimatedArrivalResponse implements IEstimatedArrivalResponse {
+
+                /**
+                 * Constructs a new EstimatedArrivalResponse.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IEstimatedArrivalResponse);
+
+                /** EstimatedArrivalResponse routes. */
+                public routes: app.trainlcd.grpc.IEstimatedArrivalRoute[];
+
+                /** EstimatedArrivalResponse nextPageToken. */
+                public nextPageToken: string;
+
+                /**
+                 * Creates a new EstimatedArrivalResponse instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns EstimatedArrivalResponse instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IEstimatedArrivalResponse): app.trainlcd.grpc.EstimatedArrivalResponse;
+
+                /**
+                 * Encodes the specified EstimatedArrivalResponse message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalResponse.verify|verify} messages.
+                 * @param message EstimatedArrivalResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IEstimatedArrivalResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified EstimatedArrivalResponse message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalResponse.verify|verify} messages.
+                 * @param message EstimatedArrivalResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IEstimatedArrivalResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an EstimatedArrivalResponse message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns EstimatedArrivalResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.EstimatedArrivalResponse;
+
+                /**
+                 * Decodes an EstimatedArrivalResponse message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns EstimatedArrivalResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.EstimatedArrivalResponse;
+
+                /**
+                 * Verifies an EstimatedArrivalResponse message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an EstimatedArrivalResponse message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns EstimatedArrivalResponse
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.EstimatedArrivalResponse;
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalResponse message. Also converts values to other types if specified.
+                 * @param message EstimatedArrivalResponse
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.EstimatedArrivalResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this EstimatedArrivalResponse to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalResponse
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a GetTrainRouteRequest. */
+            interface IGetTrainRouteRequest {
+
+                /** GetTrainRouteRequest fromStationGroupId */
+                fromStationGroupId?: (number|null);
+
+                /** GetTrainRouteRequest toStationGroupId */
+                toStationGroupId?: (number|null);
+
+                /** GetTrainRouteRequest lineGroupId */
+                lineGroupId?: (number|null);
+            }
+
+            /** Represents a GetTrainRouteRequest. */
+            class GetTrainRouteRequest implements IGetTrainRouteRequest {
+
+                /**
+                 * Constructs a new GetTrainRouteRequest.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.IGetTrainRouteRequest);
+
+                /** GetTrainRouteRequest fromStationGroupId. */
+                public fromStationGroupId: number;
+
+                /** GetTrainRouteRequest toStationGroupId. */
+                public toStationGroupId: number;
+
+                /** GetTrainRouteRequest lineGroupId. */
+                public lineGroupId?: (number|null);
+
+                /** GetTrainRouteRequest _lineGroupId. */
+                public _lineGroupId?: "lineGroupId";
+
+                /**
+                 * Creates a new GetTrainRouteRequest instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns GetTrainRouteRequest instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.IGetTrainRouteRequest): app.trainlcd.grpc.GetTrainRouteRequest;
+
+                /**
+                 * Encodes the specified GetTrainRouteRequest message. Does not implicitly {@link app.trainlcd.grpc.GetTrainRouteRequest.verify|verify} messages.
+                 * @param message GetTrainRouteRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.IGetTrainRouteRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified GetTrainRouteRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetTrainRouteRequest.verify|verify} messages.
+                 * @param message GetTrainRouteRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.IGetTrainRouteRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a GetTrainRouteRequest message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns GetTrainRouteRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.GetTrainRouteRequest;
+
+                /**
+                 * Decodes a GetTrainRouteRequest message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns GetTrainRouteRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.GetTrainRouteRequest;
+
+                /**
+                 * Verifies a GetTrainRouteRequest message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a GetTrainRouteRequest message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns GetTrainRouteRequest
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.GetTrainRouteRequest;
+
+                /**
+                 * Creates a plain object from a GetTrainRouteRequest message. Also converts values to other types if specified.
+                 * @param message GetTrainRouteRequest
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.GetTrainRouteRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this GetTrainRouteRequest to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for GetTrainRouteRequest
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a TrainRouteSegment. */
+            interface ITrainRouteSegment {
+
+                /** TrainRouteSegment station */
+                station?: (app.trainlcd.grpc.IStation|null);
+
+                /** TrainRouteSegment stops */
+                stops?: (boolean|null);
+
+                /** TrainRouteSegment distanceFromPrevious */
+                distanceFromPrevious?: (number|null);
+
+                /** TrainRouteSegment maxSpeed */
+                maxSpeed?: (number|null);
+
+                /** TrainRouteSegment maxAcceleration */
+                maxAcceleration?: (number|null);
+
+                /** TrainRouteSegment maxDeceleration */
+                maxDeceleration?: (number|null);
+            }
+
+            /** Represents a TrainRouteSegment. */
+            class TrainRouteSegment implements ITrainRouteSegment {
+
+                /**
+                 * Constructs a new TrainRouteSegment.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.ITrainRouteSegment);
+
+                /** TrainRouteSegment station. */
+                public station?: (app.trainlcd.grpc.IStation|null);
+
+                /** TrainRouteSegment stops. */
+                public stops: boolean;
+
+                /** TrainRouteSegment distanceFromPrevious. */
+                public distanceFromPrevious: number;
+
+                /** TrainRouteSegment maxSpeed. */
+                public maxSpeed: number;
+
+                /** TrainRouteSegment maxAcceleration. */
+                public maxAcceleration: number;
+
+                /** TrainRouteSegment maxDeceleration. */
+                public maxDeceleration: number;
+
+                /**
+                 * Creates a new TrainRouteSegment instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns TrainRouteSegment instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.ITrainRouteSegment): app.trainlcd.grpc.TrainRouteSegment;
+
+                /**
+                 * Encodes the specified TrainRouteSegment message. Does not implicitly {@link app.trainlcd.grpc.TrainRouteSegment.verify|verify} messages.
+                 * @param message TrainRouteSegment message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.ITrainRouteSegment, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified TrainRouteSegment message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TrainRouteSegment.verify|verify} messages.
+                 * @param message TrainRouteSegment message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.ITrainRouteSegment, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a TrainRouteSegment message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns TrainRouteSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.TrainRouteSegment;
+
+                /**
+                 * Decodes a TrainRouteSegment message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns TrainRouteSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.TrainRouteSegment;
+
+                /**
+                 * Verifies a TrainRouteSegment message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a TrainRouteSegment message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns TrainRouteSegment
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.TrainRouteSegment;
+
+                /**
+                 * Creates a plain object from a TrainRouteSegment message. Also converts values to other types if specified.
+                 * @param message TrainRouteSegment
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.TrainRouteSegment, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this TrainRouteSegment to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for TrainRouteSegment
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a TrainRouteResponse. */
+            interface ITrainRouteResponse {
+
+                /** TrainRouteResponse segments */
+                segments?: (app.trainlcd.grpc.ITrainRouteSegment[]|null);
+            }
+
+            /** Represents a TrainRouteResponse. */
+            class TrainRouteResponse implements ITrainRouteResponse {
+
+                /**
+                 * Constructs a new TrainRouteResponse.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: app.trainlcd.grpc.ITrainRouteResponse);
+
+                /** TrainRouteResponse segments. */
+                public segments: app.trainlcd.grpc.ITrainRouteSegment[];
+
+                /**
+                 * Creates a new TrainRouteResponse instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns TrainRouteResponse instance
+                 */
+                public static create(properties?: app.trainlcd.grpc.ITrainRouteResponse): app.trainlcd.grpc.TrainRouteResponse;
+
+                /**
+                 * Encodes the specified TrainRouteResponse message. Does not implicitly {@link app.trainlcd.grpc.TrainRouteResponse.verify|verify} messages.
+                 * @param message TrainRouteResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: app.trainlcd.grpc.ITrainRouteResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified TrainRouteResponse message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TrainRouteResponse.verify|verify} messages.
+                 * @param message TrainRouteResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: app.trainlcd.grpc.ITrainRouteResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a TrainRouteResponse message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns TrainRouteResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): app.trainlcd.grpc.TrainRouteResponse;
+
+                /**
+                 * Decodes a TrainRouteResponse message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns TrainRouteResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): app.trainlcd.grpc.TrainRouteResponse;
+
+                /**
+                 * Verifies a TrainRouteResponse message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a TrainRouteResponse message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns TrainRouteResponse
+                 */
+                public static fromObject(object: { [k: string]: any }): app.trainlcd.grpc.TrainRouteResponse;
+
+                /**
+                 * Creates a plain object from a TrainRouteResponse message. Also converts values to other types if specified.
+                 * @param message TrainRouteResponse
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: app.trainlcd.grpc.TrainRouteResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this TrainRouteResponse to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for TrainRouteResponse
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */

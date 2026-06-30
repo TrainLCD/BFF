@@ -627,6 +627,72 @@ export const app = $root.app = (() => {
                  * @variation 2
                  */
 
+                /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#estimateArrivalTimes}.
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @typedef EstimateArrivalTimesCallback
+                 * @type {function}
+                 * @param {Error|null} error Error, if any
+                 * @param {app.trainlcd.grpc.EstimatedArrivalResponse} [response] EstimatedArrivalResponse
+                 */
+
+                /**
+                 * Calls EstimateArrivalTimes.
+                 * @function estimateArrivalTimes
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetRouteRequest} request GetRouteRequest message or plain object
+                 * @param {app.trainlcd.grpc.StationAPI.EstimateArrivalTimesCallback} callback Node-style callback called with the error, if any, and EstimatedArrivalResponse
+                 * @returns {undefined}
+                 * @variation 1
+                 */
+                Object.defineProperty(StationAPI.prototype.estimateArrivalTimes = function estimateArrivalTimes(request, callback) {
+                    return this.rpcCall(estimateArrivalTimes, $root.app.trainlcd.grpc.GetRouteRequest, $root.app.trainlcd.grpc.EstimatedArrivalResponse, request, callback);
+                }, "name", { value: "EstimateArrivalTimes" });
+
+                /**
+                 * Calls EstimateArrivalTimes.
+                 * @function estimateArrivalTimes
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetRouteRequest} request GetRouteRequest message or plain object
+                 * @returns {Promise<app.trainlcd.grpc.EstimatedArrivalResponse>} Promise
+                 * @variation 2
+                 */
+
+                /**
+                 * Callback as used by {@link app.trainlcd.grpc.StationAPI#getTrainRoute}.
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @typedef GetTrainRouteCallback
+                 * @type {function}
+                 * @param {Error|null} error Error, if any
+                 * @param {app.trainlcd.grpc.TrainRouteResponse} [response] TrainRouteResponse
+                 */
+
+                /**
+                 * Calls GetTrainRoute.
+                 * @function getTrainRoute
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest} request GetTrainRouteRequest message or plain object
+                 * @param {app.trainlcd.grpc.StationAPI.GetTrainRouteCallback} callback Node-style callback called with the error, if any, and TrainRouteResponse
+                 * @returns {undefined}
+                 * @variation 1
+                 */
+                Object.defineProperty(StationAPI.prototype.getTrainRoute = function getTrainRoute(request, callback) {
+                    return this.rpcCall(getTrainRoute, $root.app.trainlcd.grpc.GetTrainRouteRequest, $root.app.trainlcd.grpc.TrainRouteResponse, request, callback);
+                }, "name", { value: "GetTrainRoute" });
+
+                /**
+                 * Calls GetTrainRoute.
+                 * @function getTrainRoute
+                 * @memberof app.trainlcd.grpc.StationAPI
+                 * @instance
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest} request GetTrainRouteRequest message or plain object
+                 * @returns {Promise<app.trainlcd.grpc.TrainRouteResponse>} Promise
+                 * @variation 2
+                 */
+
                 return StationAPI;
             })();
 
@@ -14084,6 +14150,1676 @@ export const app = $root.app = (() => {
                 };
 
                 return RouteMinimalResponse;
+            })();
+
+            grpc.EstimatedArrivalStop = (function() {
+
+                /**
+                 * Properties of an EstimatedArrivalStop.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IEstimatedArrivalStop
+                 * @property {number|null} [stationId] EstimatedArrivalStop stationId
+                 * @property {number|null} [stationGroupId] EstimatedArrivalStop stationGroupId
+                 * @property {number|null} [cumulativeMinutes] EstimatedArrivalStop cumulativeMinutes
+                 * @property {boolean|null} [stopsHere] EstimatedArrivalStop stopsHere
+                 */
+
+                /**
+                 * Constructs a new EstimatedArrivalStop.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents an EstimatedArrivalStop.
+                 * @implements IEstimatedArrivalStop
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalStop=} [properties] Properties to set
+                 */
+                function EstimatedArrivalStop(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * EstimatedArrivalStop stationId.
+                 * @member {number} stationId
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 */
+                EstimatedArrivalStop.prototype.stationId = 0;
+
+                /**
+                 * EstimatedArrivalStop stationGroupId.
+                 * @member {number} stationGroupId
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 */
+                EstimatedArrivalStop.prototype.stationGroupId = 0;
+
+                /**
+                 * EstimatedArrivalStop cumulativeMinutes.
+                 * @member {number} cumulativeMinutes
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 */
+                EstimatedArrivalStop.prototype.cumulativeMinutes = 0;
+
+                /**
+                 * EstimatedArrivalStop stopsHere.
+                 * @member {boolean} stopsHere
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 */
+                EstimatedArrivalStop.prototype.stopsHere = false;
+
+                /**
+                 * Creates a new EstimatedArrivalStop instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalStop=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalStop} EstimatedArrivalStop instance
+                 */
+                EstimatedArrivalStop.create = function create(properties) {
+                    return new EstimatedArrivalStop(properties);
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalStop message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalStop.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalStop} message EstimatedArrivalStop message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalStop.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.stationId != null && Object.hasOwnProperty.call(message, "stationId"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.stationId);
+                    if (message.stationGroupId != null && Object.hasOwnProperty.call(message, "stationGroupId"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.stationGroupId);
+                    if (message.cumulativeMinutes != null && Object.hasOwnProperty.call(message, "cumulativeMinutes"))
+                        writer.uint32(/* id 3, wireType 1 =*/25).double(message.cumulativeMinutes);
+                    if (message.stopsHere != null && Object.hasOwnProperty.call(message, "stopsHere"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).bool(message.stopsHere);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalStop message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalStop.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalStop} message EstimatedArrivalStop message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalStop.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalStop message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalStop} EstimatedArrivalStop
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalStop.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.EstimatedArrivalStop();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.stationId = reader.uint32();
+                                break;
+                            }
+                        case 2: {
+                                message.stationGroupId = reader.uint32();
+                                break;
+                            }
+                        case 3: {
+                                message.cumulativeMinutes = reader.double();
+                                break;
+                            }
+                        case 4: {
+                                message.stopsHere = reader.bool();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalStop message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalStop} EstimatedArrivalStop
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalStop.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies an EstimatedArrivalStop message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                EstimatedArrivalStop.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.stationId != null && message.hasOwnProperty("stationId"))
+                        if (!$util.isInteger(message.stationId))
+                            return "stationId: integer expected";
+                    if (message.stationGroupId != null && message.hasOwnProperty("stationGroupId"))
+                        if (!$util.isInteger(message.stationGroupId))
+                            return "stationGroupId: integer expected";
+                    if (message.cumulativeMinutes != null && message.hasOwnProperty("cumulativeMinutes"))
+                        if (typeof message.cumulativeMinutes !== "number")
+                            return "cumulativeMinutes: number expected";
+                    if (message.stopsHere != null && message.hasOwnProperty("stopsHere"))
+                        if (typeof message.stopsHere !== "boolean")
+                            return "stopsHere: boolean expected";
+                    return null;
+                };
+
+                /**
+                 * Creates an EstimatedArrivalStop message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalStop} EstimatedArrivalStop
+                 */
+                EstimatedArrivalStop.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.EstimatedArrivalStop)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.EstimatedArrivalStop();
+                    if (object.stationId != null)
+                        message.stationId = object.stationId >>> 0;
+                    if (object.stationGroupId != null)
+                        message.stationGroupId = object.stationGroupId >>> 0;
+                    if (object.cumulativeMinutes != null)
+                        message.cumulativeMinutes = Number(object.cumulativeMinutes);
+                    if (object.stopsHere != null)
+                        message.stopsHere = Boolean(object.stopsHere);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalStop message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {app.trainlcd.grpc.EstimatedArrivalStop} message EstimatedArrivalStop
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                EstimatedArrivalStop.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.defaults) {
+                        object.stationId = 0;
+                        object.stationGroupId = 0;
+                        object.cumulativeMinutes = 0;
+                        object.stopsHere = false;
+                    }
+                    if (message.stationId != null && message.hasOwnProperty("stationId"))
+                        object.stationId = message.stationId;
+                    if (message.stationGroupId != null && message.hasOwnProperty("stationGroupId"))
+                        object.stationGroupId = message.stationGroupId;
+                    if (message.cumulativeMinutes != null && message.hasOwnProperty("cumulativeMinutes"))
+                        object.cumulativeMinutes = options.json && !isFinite(message.cumulativeMinutes) ? String(message.cumulativeMinutes) : message.cumulativeMinutes;
+                    if (message.stopsHere != null && message.hasOwnProperty("stopsHere"))
+                        object.stopsHere = message.stopsHere;
+                    return object;
+                };
+
+                /**
+                 * Converts this EstimatedArrivalStop to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                EstimatedArrivalStop.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalStop
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                EstimatedArrivalStop.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.EstimatedArrivalStop";
+                };
+
+                return EstimatedArrivalStop;
+            })();
+
+            grpc.EstimatedArrivalRoute = (function() {
+
+                /**
+                 * Properties of an EstimatedArrivalRoute.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IEstimatedArrivalRoute
+                 * @property {number|null} [id] EstimatedArrivalRoute id
+                 * @property {Array.<app.trainlcd.grpc.IEstimatedArrivalStop>|null} [stops] EstimatedArrivalRoute stops
+                 */
+
+                /**
+                 * Constructs a new EstimatedArrivalRoute.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents an EstimatedArrivalRoute.
+                 * @implements IEstimatedArrivalRoute
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalRoute=} [properties] Properties to set
+                 */
+                function EstimatedArrivalRoute(properties) {
+                    this.stops = [];
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * EstimatedArrivalRoute id.
+                 * @member {number} id
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @instance
+                 */
+                EstimatedArrivalRoute.prototype.id = 0;
+
+                /**
+                 * EstimatedArrivalRoute stops.
+                 * @member {Array.<app.trainlcd.grpc.IEstimatedArrivalStop>} stops
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @instance
+                 */
+                EstimatedArrivalRoute.prototype.stops = $util.emptyArray;
+
+                /**
+                 * Creates a new EstimatedArrivalRoute instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalRoute=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalRoute} EstimatedArrivalRoute instance
+                 */
+                EstimatedArrivalRoute.create = function create(properties) {
+                    return new EstimatedArrivalRoute(properties);
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalRoute message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalRoute.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalRoute} message EstimatedArrivalRoute message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalRoute.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.id);
+                    if (message.stops != null && message.stops.length)
+                        for (let i = 0; i < message.stops.length; ++i)
+                            $root.app.trainlcd.grpc.EstimatedArrivalStop.encode(message.stops[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalRoute message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalRoute.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalRoute} message EstimatedArrivalRoute message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalRoute.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalRoute message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalRoute} EstimatedArrivalRoute
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalRoute.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.EstimatedArrivalRoute();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.id = reader.uint32();
+                                break;
+                            }
+                        case 2: {
+                                if (!(message.stops && message.stops.length))
+                                    message.stops = [];
+                                message.stops.push($root.app.trainlcd.grpc.EstimatedArrivalStop.decode(reader, reader.uint32(), undefined, long + 1));
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalRoute message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalRoute} EstimatedArrivalRoute
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalRoute.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies an EstimatedArrivalRoute message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                EstimatedArrivalRoute.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.id != null && message.hasOwnProperty("id"))
+                        if (!$util.isInteger(message.id))
+                            return "id: integer expected";
+                    if (message.stops != null && message.hasOwnProperty("stops")) {
+                        if (!Array.isArray(message.stops))
+                            return "stops: array expected";
+                        for (let i = 0; i < message.stops.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.EstimatedArrivalStop.verify(message.stops[i], long + 1);
+                            if (error)
+                                return "stops." + error;
+                        }
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates an EstimatedArrivalRoute message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalRoute} EstimatedArrivalRoute
+                 */
+                EstimatedArrivalRoute.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.EstimatedArrivalRoute)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.EstimatedArrivalRoute();
+                    if (object.id != null)
+                        message.id = object.id >>> 0;
+                    if (object.stops) {
+                        if (!Array.isArray(object.stops))
+                            throw TypeError(".app.trainlcd.grpc.EstimatedArrivalRoute.stops: array expected");
+                        message.stops = [];
+                        for (let i = 0; i < object.stops.length; ++i) {
+                            if (typeof object.stops[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.EstimatedArrivalRoute.stops: object expected");
+                            message.stops[i] = $root.app.trainlcd.grpc.EstimatedArrivalStop.fromObject(object.stops[i], long + 1);
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalRoute message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {app.trainlcd.grpc.EstimatedArrivalRoute} message EstimatedArrivalRoute
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                EstimatedArrivalRoute.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.arrays || options.defaults)
+                        object.stops = [];
+                    if (options.defaults)
+                        object.id = 0;
+                    if (message.id != null && message.hasOwnProperty("id"))
+                        object.id = message.id;
+                    if (message.stops && message.stops.length) {
+                        object.stops = [];
+                        for (let j = 0; j < message.stops.length; ++j)
+                            object.stops[j] = $root.app.trainlcd.grpc.EstimatedArrivalStop.toObject(message.stops[j], options);
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this EstimatedArrivalRoute to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                EstimatedArrivalRoute.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalRoute
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalRoute
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                EstimatedArrivalRoute.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.EstimatedArrivalRoute";
+                };
+
+                return EstimatedArrivalRoute;
+            })();
+
+            grpc.EstimatedArrivalResponse = (function() {
+
+                /**
+                 * Properties of an EstimatedArrivalResponse.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IEstimatedArrivalResponse
+                 * @property {Array.<app.trainlcd.grpc.IEstimatedArrivalRoute>|null} [routes] EstimatedArrivalResponse routes
+                 * @property {string|null} [nextPageToken] EstimatedArrivalResponse nextPageToken
+                 */
+
+                /**
+                 * Constructs a new EstimatedArrivalResponse.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents an EstimatedArrivalResponse.
+                 * @implements IEstimatedArrivalResponse
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalResponse=} [properties] Properties to set
+                 */
+                function EstimatedArrivalResponse(properties) {
+                    this.routes = [];
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * EstimatedArrivalResponse routes.
+                 * @member {Array.<app.trainlcd.grpc.IEstimatedArrivalRoute>} routes
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @instance
+                 */
+                EstimatedArrivalResponse.prototype.routes = $util.emptyArray;
+
+                /**
+                 * EstimatedArrivalResponse nextPageToken.
+                 * @member {string} nextPageToken
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @instance
+                 */
+                EstimatedArrivalResponse.prototype.nextPageToken = "";
+
+                /**
+                 * Creates a new EstimatedArrivalResponse instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalResponse=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalResponse} EstimatedArrivalResponse instance
+                 */
+                EstimatedArrivalResponse.create = function create(properties) {
+                    return new EstimatedArrivalResponse(properties);
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalResponse message. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalResponse.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalResponse} message EstimatedArrivalResponse message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalResponse.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.routes != null && message.routes.length)
+                        for (let i = 0; i < message.routes.length; ++i)
+                            $root.app.trainlcd.grpc.EstimatedArrivalRoute.encode(message.routes[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    if (message.nextPageToken != null && Object.hasOwnProperty.call(message, "nextPageToken"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.nextPageToken);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified EstimatedArrivalResponse message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimatedArrivalResponse.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimatedArrivalResponse} message EstimatedArrivalResponse message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimatedArrivalResponse.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalResponse message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalResponse} EstimatedArrivalResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalResponse.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.EstimatedArrivalResponse();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                if (!(message.routes && message.routes.length))
+                                    message.routes = [];
+                                message.routes.push($root.app.trainlcd.grpc.EstimatedArrivalRoute.decode(reader, reader.uint32(), undefined, long + 1));
+                                break;
+                            }
+                        case 2: {
+                                message.nextPageToken = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes an EstimatedArrivalResponse message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalResponse} EstimatedArrivalResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimatedArrivalResponse.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies an EstimatedArrivalResponse message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                EstimatedArrivalResponse.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.routes != null && message.hasOwnProperty("routes")) {
+                        if (!Array.isArray(message.routes))
+                            return "routes: array expected";
+                        for (let i = 0; i < message.routes.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.EstimatedArrivalRoute.verify(message.routes[i], long + 1);
+                            if (error)
+                                return "routes." + error;
+                        }
+                    }
+                    if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        if (!$util.isString(message.nextPageToken))
+                            return "nextPageToken: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates an EstimatedArrivalResponse message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.EstimatedArrivalResponse} EstimatedArrivalResponse
+                 */
+                EstimatedArrivalResponse.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.EstimatedArrivalResponse)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.EstimatedArrivalResponse();
+                    if (object.routes) {
+                        if (!Array.isArray(object.routes))
+                            throw TypeError(".app.trainlcd.grpc.EstimatedArrivalResponse.routes: array expected");
+                        message.routes = [];
+                        for (let i = 0; i < object.routes.length; ++i) {
+                            if (typeof object.routes[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.EstimatedArrivalResponse.routes: object expected");
+                            message.routes[i] = $root.app.trainlcd.grpc.EstimatedArrivalRoute.fromObject(object.routes[i], long + 1);
+                        }
+                    }
+                    if (object.nextPageToken != null)
+                        message.nextPageToken = String(object.nextPageToken);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from an EstimatedArrivalResponse message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.EstimatedArrivalResponse} message EstimatedArrivalResponse
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                EstimatedArrivalResponse.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.arrays || options.defaults)
+                        object.routes = [];
+                    if (options.defaults)
+                        object.nextPageToken = "";
+                    if (message.routes && message.routes.length) {
+                        object.routes = [];
+                        for (let j = 0; j < message.routes.length; ++j)
+                            object.routes[j] = $root.app.trainlcd.grpc.EstimatedArrivalRoute.toObject(message.routes[j], options);
+                    }
+                    if (message.nextPageToken != null && message.hasOwnProperty("nextPageToken"))
+                        object.nextPageToken = message.nextPageToken;
+                    return object;
+                };
+
+                /**
+                 * Converts this EstimatedArrivalResponse to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                EstimatedArrivalResponse.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for EstimatedArrivalResponse
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalResponse
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                EstimatedArrivalResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.EstimatedArrivalResponse";
+                };
+
+                return EstimatedArrivalResponse;
+            })();
+
+            grpc.GetTrainRouteRequest = (function() {
+
+                /**
+                 * Properties of a GetTrainRouteRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IGetTrainRouteRequest
+                 * @property {number|null} [fromStationGroupId] GetTrainRouteRequest fromStationGroupId
+                 * @property {number|null} [toStationGroupId] GetTrainRouteRequest toStationGroupId
+                 * @property {number|null} [lineGroupId] GetTrainRouteRequest lineGroupId
+                 */
+
+                /**
+                 * Constructs a new GetTrainRouteRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents a GetTrainRouteRequest.
+                 * @implements IGetTrainRouteRequest
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest=} [properties] Properties to set
+                 */
+                function GetTrainRouteRequest(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * GetTrainRouteRequest fromStationGroupId.
+                 * @member {number} fromStationGroupId
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @instance
+                 */
+                GetTrainRouteRequest.prototype.fromStationGroupId = 0;
+
+                /**
+                 * GetTrainRouteRequest toStationGroupId.
+                 * @member {number} toStationGroupId
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @instance
+                 */
+                GetTrainRouteRequest.prototype.toStationGroupId = 0;
+
+                /**
+                 * GetTrainRouteRequest lineGroupId.
+                 * @member {number|null|undefined} lineGroupId
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @instance
+                 */
+                GetTrainRouteRequest.prototype.lineGroupId = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * GetTrainRouteRequest _lineGroupId.
+                 * @member {"lineGroupId"|undefined} _lineGroupId
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @instance
+                 */
+                Object.defineProperty(GetTrainRouteRequest.prototype, "_lineGroupId", {
+                    get: $util.oneOfGetter($oneOfFields = ["lineGroupId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Creates a new GetTrainRouteRequest instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.GetTrainRouteRequest} GetTrainRouteRequest instance
+                 */
+                GetTrainRouteRequest.create = function create(properties) {
+                    return new GetTrainRouteRequest(properties);
+                };
+
+                /**
+                 * Encodes the specified GetTrainRouteRequest message. Does not implicitly {@link app.trainlcd.grpc.GetTrainRouteRequest.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest} message GetTrainRouteRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                GetTrainRouteRequest.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.fromStationGroupId != null && Object.hasOwnProperty.call(message, "fromStationGroupId"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.fromStationGroupId);
+                    if (message.toStationGroupId != null && Object.hasOwnProperty.call(message, "toStationGroupId"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.toStationGroupId);
+                    if (message.lineGroupId != null && Object.hasOwnProperty.call(message, "lineGroupId"))
+                        writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.lineGroupId);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified GetTrainRouteRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.GetTrainRouteRequest.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IGetTrainRouteRequest} message GetTrainRouteRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                GetTrainRouteRequest.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a GetTrainRouteRequest message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.GetTrainRouteRequest} GetTrainRouteRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                GetTrainRouteRequest.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.GetTrainRouteRequest();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.fromStationGroupId = reader.uint32();
+                                break;
+                            }
+                        case 2: {
+                                message.toStationGroupId = reader.uint32();
+                                break;
+                            }
+                        case 3: {
+                                message.lineGroupId = reader.uint32();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a GetTrainRouteRequest message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.GetTrainRouteRequest} GetTrainRouteRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                GetTrainRouteRequest.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a GetTrainRouteRequest message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                GetTrainRouteRequest.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    let properties = {};
+                    if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
+                        if (!$util.isInteger(message.fromStationGroupId))
+                            return "fromStationGroupId: integer expected";
+                    if (message.toStationGroupId != null && message.hasOwnProperty("toStationGroupId"))
+                        if (!$util.isInteger(message.toStationGroupId))
+                            return "toStationGroupId: integer expected";
+                    if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId")) {
+                        properties._lineGroupId = 1;
+                        if (!$util.isInteger(message.lineGroupId))
+                            return "lineGroupId: integer expected";
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a GetTrainRouteRequest message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.GetTrainRouteRequest} GetTrainRouteRequest
+                 */
+                GetTrainRouteRequest.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.GetTrainRouteRequest)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.GetTrainRouteRequest();
+                    if (object.fromStationGroupId != null)
+                        message.fromStationGroupId = object.fromStationGroupId >>> 0;
+                    if (object.toStationGroupId != null)
+                        message.toStationGroupId = object.toStationGroupId >>> 0;
+                    if (object.lineGroupId != null)
+                        message.lineGroupId = object.lineGroupId >>> 0;
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a GetTrainRouteRequest message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.GetTrainRouteRequest} message GetTrainRouteRequest
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                GetTrainRouteRequest.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.defaults) {
+                        object.fromStationGroupId = 0;
+                        object.toStationGroupId = 0;
+                    }
+                    if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
+                        object.fromStationGroupId = message.fromStationGroupId;
+                    if (message.toStationGroupId != null && message.hasOwnProperty("toStationGroupId"))
+                        object.toStationGroupId = message.toStationGroupId;
+                    if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId")) {
+                        object.lineGroupId = message.lineGroupId;
+                        if (options.oneofs)
+                            object._lineGroupId = "lineGroupId";
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this GetTrainRouteRequest to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                GetTrainRouteRequest.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for GetTrainRouteRequest
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.GetTrainRouteRequest
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                GetTrainRouteRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.GetTrainRouteRequest";
+                };
+
+                return GetTrainRouteRequest;
+            })();
+
+            grpc.TrainRouteSegment = (function() {
+
+                /**
+                 * Properties of a TrainRouteSegment.
+                 * @memberof app.trainlcd.grpc
+                 * @interface ITrainRouteSegment
+                 * @property {app.trainlcd.grpc.IStation|null} [station] TrainRouteSegment station
+                 * @property {boolean|null} [stops] TrainRouteSegment stops
+                 * @property {number|null} [distanceFromPrevious] TrainRouteSegment distanceFromPrevious
+                 * @property {number|null} [maxSpeed] TrainRouteSegment maxSpeed
+                 * @property {number|null} [maxAcceleration] TrainRouteSegment maxAcceleration
+                 * @property {number|null} [maxDeceleration] TrainRouteSegment maxDeceleration
+                 */
+
+                /**
+                 * Constructs a new TrainRouteSegment.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents a TrainRouteSegment.
+                 * @implements ITrainRouteSegment
+                 * @constructor
+                 * @param {app.trainlcd.grpc.ITrainRouteSegment=} [properties] Properties to set
+                 */
+                function TrainRouteSegment(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * TrainRouteSegment station.
+                 * @member {app.trainlcd.grpc.IStation|null|undefined} station
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.station = null;
+
+                /**
+                 * TrainRouteSegment stops.
+                 * @member {boolean} stops
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.stops = false;
+
+                /**
+                 * TrainRouteSegment distanceFromPrevious.
+                 * @member {number} distanceFromPrevious
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.distanceFromPrevious = 0;
+
+                /**
+                 * TrainRouteSegment maxSpeed.
+                 * @member {number} maxSpeed
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.maxSpeed = 0;
+
+                /**
+                 * TrainRouteSegment maxAcceleration.
+                 * @member {number} maxAcceleration
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.maxAcceleration = 0;
+
+                /**
+                 * TrainRouteSegment maxDeceleration.
+                 * @member {number} maxDeceleration
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 */
+                TrainRouteSegment.prototype.maxDeceleration = 0;
+
+                /**
+                 * Creates a new TrainRouteSegment instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteSegment=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.TrainRouteSegment} TrainRouteSegment instance
+                 */
+                TrainRouteSegment.create = function create(properties) {
+                    return new TrainRouteSegment(properties);
+                };
+
+                /**
+                 * Encodes the specified TrainRouteSegment message. Does not implicitly {@link app.trainlcd.grpc.TrainRouteSegment.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteSegment} message TrainRouteSegment message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TrainRouteSegment.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.station != null && Object.hasOwnProperty.call(message, "station"))
+                        $root.app.trainlcd.grpc.Station.encode(message.station, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    if (message.stops != null && Object.hasOwnProperty.call(message, "stops"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).bool(message.stops);
+                    if (message.distanceFromPrevious != null && Object.hasOwnProperty.call(message, "distanceFromPrevious"))
+                        writer.uint32(/* id 3, wireType 1 =*/25).double(message.distanceFromPrevious);
+                    if (message.maxSpeed != null && Object.hasOwnProperty.call(message, "maxSpeed"))
+                        writer.uint32(/* id 4, wireType 1 =*/33).double(message.maxSpeed);
+                    if (message.maxAcceleration != null && Object.hasOwnProperty.call(message, "maxAcceleration"))
+                        writer.uint32(/* id 5, wireType 1 =*/41).double(message.maxAcceleration);
+                    if (message.maxDeceleration != null && Object.hasOwnProperty.call(message, "maxDeceleration"))
+                        writer.uint32(/* id 6, wireType 1 =*/49).double(message.maxDeceleration);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified TrainRouteSegment message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TrainRouteSegment.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteSegment} message TrainRouteSegment message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TrainRouteSegment.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a TrainRouteSegment message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.TrainRouteSegment} TrainRouteSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TrainRouteSegment.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.TrainRouteSegment();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.station = $root.app.trainlcd.grpc.Station.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 2: {
+                                message.stops = reader.bool();
+                                break;
+                            }
+                        case 3: {
+                                message.distanceFromPrevious = reader.double();
+                                break;
+                            }
+                        case 4: {
+                                message.maxSpeed = reader.double();
+                                break;
+                            }
+                        case 5: {
+                                message.maxAcceleration = reader.double();
+                                break;
+                            }
+                        case 6: {
+                                message.maxDeceleration = reader.double();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a TrainRouteSegment message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.TrainRouteSegment} TrainRouteSegment
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TrainRouteSegment.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a TrainRouteSegment message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                TrainRouteSegment.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.station != null && message.hasOwnProperty("station")) {
+                        let error = $root.app.trainlcd.grpc.Station.verify(message.station, long + 1);
+                        if (error)
+                            return "station." + error;
+                    }
+                    if (message.stops != null && message.hasOwnProperty("stops"))
+                        if (typeof message.stops !== "boolean")
+                            return "stops: boolean expected";
+                    if (message.distanceFromPrevious != null && message.hasOwnProperty("distanceFromPrevious"))
+                        if (typeof message.distanceFromPrevious !== "number")
+                            return "distanceFromPrevious: number expected";
+                    if (message.maxSpeed != null && message.hasOwnProperty("maxSpeed"))
+                        if (typeof message.maxSpeed !== "number")
+                            return "maxSpeed: number expected";
+                    if (message.maxAcceleration != null && message.hasOwnProperty("maxAcceleration"))
+                        if (typeof message.maxAcceleration !== "number")
+                            return "maxAcceleration: number expected";
+                    if (message.maxDeceleration != null && message.hasOwnProperty("maxDeceleration"))
+                        if (typeof message.maxDeceleration !== "number")
+                            return "maxDeceleration: number expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a TrainRouteSegment message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.TrainRouteSegment} TrainRouteSegment
+                 */
+                TrainRouteSegment.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.TrainRouteSegment)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.TrainRouteSegment();
+                    if (object.station != null) {
+                        if (typeof object.station !== "object")
+                            throw TypeError(".app.trainlcd.grpc.TrainRouteSegment.station: object expected");
+                        message.station = $root.app.trainlcd.grpc.Station.fromObject(object.station, long + 1);
+                    }
+                    if (object.stops != null)
+                        message.stops = Boolean(object.stops);
+                    if (object.distanceFromPrevious != null)
+                        message.distanceFromPrevious = Number(object.distanceFromPrevious);
+                    if (object.maxSpeed != null)
+                        message.maxSpeed = Number(object.maxSpeed);
+                    if (object.maxAcceleration != null)
+                        message.maxAcceleration = Number(object.maxAcceleration);
+                    if (object.maxDeceleration != null)
+                        message.maxDeceleration = Number(object.maxDeceleration);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a TrainRouteSegment message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {app.trainlcd.grpc.TrainRouteSegment} message TrainRouteSegment
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                TrainRouteSegment.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.defaults) {
+                        object.station = null;
+                        object.stops = false;
+                        object.distanceFromPrevious = 0;
+                        object.maxSpeed = 0;
+                        object.maxAcceleration = 0;
+                        object.maxDeceleration = 0;
+                    }
+                    if (message.station != null && message.hasOwnProperty("station"))
+                        object.station = $root.app.trainlcd.grpc.Station.toObject(message.station, options);
+                    if (message.stops != null && message.hasOwnProperty("stops"))
+                        object.stops = message.stops;
+                    if (message.distanceFromPrevious != null && message.hasOwnProperty("distanceFromPrevious"))
+                        object.distanceFromPrevious = options.json && !isFinite(message.distanceFromPrevious) ? String(message.distanceFromPrevious) : message.distanceFromPrevious;
+                    if (message.maxSpeed != null && message.hasOwnProperty("maxSpeed"))
+                        object.maxSpeed = options.json && !isFinite(message.maxSpeed) ? String(message.maxSpeed) : message.maxSpeed;
+                    if (message.maxAcceleration != null && message.hasOwnProperty("maxAcceleration"))
+                        object.maxAcceleration = options.json && !isFinite(message.maxAcceleration) ? String(message.maxAcceleration) : message.maxAcceleration;
+                    if (message.maxDeceleration != null && message.hasOwnProperty("maxDeceleration"))
+                        object.maxDeceleration = options.json && !isFinite(message.maxDeceleration) ? String(message.maxDeceleration) : message.maxDeceleration;
+                    return object;
+                };
+
+                /**
+                 * Converts this TrainRouteSegment to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                TrainRouteSegment.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for TrainRouteSegment
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.TrainRouteSegment
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                TrainRouteSegment.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.TrainRouteSegment";
+                };
+
+                return TrainRouteSegment;
+            })();
+
+            grpc.TrainRouteResponse = (function() {
+
+                /**
+                 * Properties of a TrainRouteResponse.
+                 * @memberof app.trainlcd.grpc
+                 * @interface ITrainRouteResponse
+                 * @property {Array.<app.trainlcd.grpc.ITrainRouteSegment>|null} [segments] TrainRouteResponse segments
+                 */
+
+                /**
+                 * Constructs a new TrainRouteResponse.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents a TrainRouteResponse.
+                 * @implements ITrainRouteResponse
+                 * @constructor
+                 * @param {app.trainlcd.grpc.ITrainRouteResponse=} [properties] Properties to set
+                 */
+                function TrainRouteResponse(properties) {
+                    this.segments = [];
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * TrainRouteResponse segments.
+                 * @member {Array.<app.trainlcd.grpc.ITrainRouteSegment>} segments
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @instance
+                 */
+                TrainRouteResponse.prototype.segments = $util.emptyArray;
+
+                /**
+                 * Creates a new TrainRouteResponse instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteResponse=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.TrainRouteResponse} TrainRouteResponse instance
+                 */
+                TrainRouteResponse.create = function create(properties) {
+                    return new TrainRouteResponse(properties);
+                };
+
+                /**
+                 * Encodes the specified TrainRouteResponse message. Does not implicitly {@link app.trainlcd.grpc.TrainRouteResponse.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteResponse} message TrainRouteResponse message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TrainRouteResponse.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.segments != null && message.segments.length)
+                        for (let i = 0; i < message.segments.length; ++i)
+                            $root.app.trainlcd.grpc.TrainRouteSegment.encode(message.segments[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified TrainRouteResponse message, length delimited. Does not implicitly {@link app.trainlcd.grpc.TrainRouteResponse.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.ITrainRouteResponse} message TrainRouteResponse message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                TrainRouteResponse.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a TrainRouteResponse message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.TrainRouteResponse} TrainRouteResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TrainRouteResponse.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.TrainRouteResponse();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                if (!(message.segments && message.segments.length))
+                                    message.segments = [];
+                                message.segments.push($root.app.trainlcd.grpc.TrainRouteSegment.decode(reader, reader.uint32(), undefined, long + 1));
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a TrainRouteResponse message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.TrainRouteResponse} TrainRouteResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                TrainRouteResponse.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a TrainRouteResponse message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                TrainRouteResponse.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.segments != null && message.hasOwnProperty("segments")) {
+                        if (!Array.isArray(message.segments))
+                            return "segments: array expected";
+                        for (let i = 0; i < message.segments.length; ++i) {
+                            let error = $root.app.trainlcd.grpc.TrainRouteSegment.verify(message.segments[i], long + 1);
+                            if (error)
+                                return "segments." + error;
+                        }
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a TrainRouteResponse message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.TrainRouteResponse} TrainRouteResponse
+                 */
+                TrainRouteResponse.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.TrainRouteResponse)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.TrainRouteResponse();
+                    if (object.segments) {
+                        if (!Array.isArray(object.segments))
+                            throw TypeError(".app.trainlcd.grpc.TrainRouteResponse.segments: array expected");
+                        message.segments = [];
+                        for (let i = 0; i < object.segments.length; ++i) {
+                            if (typeof object.segments[i] !== "object")
+                                throw TypeError(".app.trainlcd.grpc.TrainRouteResponse.segments: object expected");
+                            message.segments[i] = $root.app.trainlcd.grpc.TrainRouteSegment.fromObject(object.segments[i], long + 1);
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a TrainRouteResponse message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {app.trainlcd.grpc.TrainRouteResponse} message TrainRouteResponse
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                TrainRouteResponse.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.arrays || options.defaults)
+                        object.segments = [];
+                    if (message.segments && message.segments.length) {
+                        object.segments = [];
+                        for (let j = 0; j < message.segments.length; ++j)
+                            object.segments[j] = $root.app.trainlcd.grpc.TrainRouteSegment.toObject(message.segments[j], options);
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this TrainRouteResponse to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                TrainRouteResponse.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for TrainRouteResponse
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.TrainRouteResponse
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                TrainRouteResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.TrainRouteResponse";
+                };
+
+                return TrainRouteResponse;
             })();
 
             return grpc;
