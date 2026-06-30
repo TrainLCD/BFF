@@ -359,27 +359,22 @@ function createResolvers(client: GrpcClient) {
 			};
 		},
 		estimateArrivalTimes: async ({
-			fromStationGroupId,
-			toStationGroupId,
-			viaLineId,
-			pageSize,
-			pageToken,
+			fromStationId,
+			toStationId,
+			viaLineIds,
 		}: {
-			fromStationGroupId: number;
-			toStationGroupId: number;
-			viaLineId?: number;
-			pageSize?: number;
-			pageToken?: string;
+			fromStationId: number;
+			toStationId: number;
+			viaLineIds?: number[];
 		}) => {
 			const payload = await client.call(
 				'EstimateArrivalTimes',
-				grpcTypes.GetRouteRequest,
+				grpcTypes.EstimateArrivalTimesRequest,
 				grpcTypes.EstimatedArrivalResponse,
-				cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize, pageToken })
+				cleanPayload({ fromStationId, toStationId, viaLineIds })
 			);
 			return {
 				routes: payload.routes ?? [],
-				nextPageToken: payload.nextPageToken ?? null,
 			};
 		},
 		trainRoute: async ({

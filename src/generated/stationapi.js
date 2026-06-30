@@ -641,13 +641,13 @@ export const app = $root.app = (() => {
                  * @function estimateArrivalTimes
                  * @memberof app.trainlcd.grpc.StationAPI
                  * @instance
-                 * @param {app.trainlcd.grpc.IGetRouteRequest} request GetRouteRequest message or plain object
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest} request EstimateArrivalTimesRequest message or plain object
                  * @param {app.trainlcd.grpc.StationAPI.EstimateArrivalTimesCallback} callback Node-style callback called with the error, if any, and EstimatedArrivalResponse
                  * @returns {undefined}
                  * @variation 1
                  */
                 Object.defineProperty(StationAPI.prototype.estimateArrivalTimes = function estimateArrivalTimes(request, callback) {
-                    return this.rpcCall(estimateArrivalTimes, $root.app.trainlcd.grpc.GetRouteRequest, $root.app.trainlcd.grpc.EstimatedArrivalResponse, request, callback);
+                    return this.rpcCall(estimateArrivalTimes, $root.app.trainlcd.grpc.EstimateArrivalTimesRequest, $root.app.trainlcd.grpc.EstimatedArrivalResponse, request, callback);
                 }, "name", { value: "EstimateArrivalTimes" });
 
                 /**
@@ -655,7 +655,7 @@ export const app = $root.app = (() => {
                  * @function estimateArrivalTimes
                  * @memberof app.trainlcd.grpc.StationAPI
                  * @instance
-                 * @param {app.trainlcd.grpc.IGetRouteRequest} request GetRouteRequest message or plain object
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest} request EstimateArrivalTimesRequest message or plain object
                  * @returns {Promise<app.trainlcd.grpc.EstimatedArrivalResponse>} Promise
                  * @variation 2
                  */
@@ -3301,6 +3301,295 @@ export const app = $root.app = (() => {
                 };
 
                 return GetRouteRequest;
+            })();
+
+            grpc.EstimateArrivalTimesRequest = (function() {
+
+                /**
+                 * Properties of an EstimateArrivalTimesRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @interface IEstimateArrivalTimesRequest
+                 * @property {number|null} [fromStationId] EstimateArrivalTimesRequest fromStationId
+                 * @property {number|null} [toStationId] EstimateArrivalTimesRequest toStationId
+                 * @property {Array.<number>|null} [viaLineIds] EstimateArrivalTimesRequest viaLineIds
+                 */
+
+                /**
+                 * Constructs a new EstimateArrivalTimesRequest.
+                 * @memberof app.trainlcd.grpc
+                 * @classdesc Represents an EstimateArrivalTimesRequest.
+                 * @implements IEstimateArrivalTimesRequest
+                 * @constructor
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest=} [properties] Properties to set
+                 */
+                function EstimateArrivalTimesRequest(properties) {
+                    this.viaLineIds = [];
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * EstimateArrivalTimesRequest fromStationId.
+                 * @member {number} fromStationId
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 */
+                EstimateArrivalTimesRequest.prototype.fromStationId = 0;
+
+                /**
+                 * EstimateArrivalTimesRequest toStationId.
+                 * @member {number} toStationId
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 */
+                EstimateArrivalTimesRequest.prototype.toStationId = 0;
+
+                /**
+                 * EstimateArrivalTimesRequest viaLineIds.
+                 * @member {Array.<number>} viaLineIds
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 */
+                EstimateArrivalTimesRequest.prototype.viaLineIds = $util.emptyArray;
+
+                /**
+                 * Creates a new EstimateArrivalTimesRequest instance using the specified properties.
+                 * @function create
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest=} [properties] Properties to set
+                 * @returns {app.trainlcd.grpc.EstimateArrivalTimesRequest} EstimateArrivalTimesRequest instance
+                 */
+                EstimateArrivalTimesRequest.create = function create(properties) {
+                    return new EstimateArrivalTimesRequest(properties);
+                };
+
+                /**
+                 * Encodes the specified EstimateArrivalTimesRequest message. Does not implicitly {@link app.trainlcd.grpc.EstimateArrivalTimesRequest.verify|verify} messages.
+                 * @function encode
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest} message EstimateArrivalTimesRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimateArrivalTimesRequest.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.fromStationId != null && Object.hasOwnProperty.call(message, "fromStationId"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.fromStationId);
+                    if (message.toStationId != null && Object.hasOwnProperty.call(message, "toStationId"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.toStationId);
+                    if (message.viaLineIds != null && message.viaLineIds.length) {
+                        writer.uint32(/* id 3, wireType 2 =*/26).fork();
+                        for (let i = 0; i < message.viaLineIds.length; ++i)
+                            writer.uint32(message.viaLineIds[i]);
+                        writer.ldelim();
+                    }
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified EstimateArrivalTimesRequest message, length delimited. Does not implicitly {@link app.trainlcd.grpc.EstimateArrivalTimesRequest.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.IEstimateArrivalTimesRequest} message EstimateArrivalTimesRequest message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                EstimateArrivalTimesRequest.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes an EstimateArrivalTimesRequest message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {app.trainlcd.grpc.EstimateArrivalTimesRequest} EstimateArrivalTimesRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimateArrivalTimesRequest.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.app.trainlcd.grpc.EstimateArrivalTimesRequest();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.fromStationId = reader.uint32();
+                                break;
+                            }
+                        case 2: {
+                                message.toStationId = reader.uint32();
+                                break;
+                            }
+                        case 3: {
+                                if (!(message.viaLineIds && message.viaLineIds.length))
+                                    message.viaLineIds = [];
+                                if ((tag & 7) === 2) {
+                                    let end2 = reader.uint32() + reader.pos;
+                                    while (reader.pos < end2)
+                                        message.viaLineIds.push(reader.uint32());
+                                } else
+                                    message.viaLineIds.push(reader.uint32());
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes an EstimateArrivalTimesRequest message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {app.trainlcd.grpc.EstimateArrivalTimesRequest} EstimateArrivalTimesRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                EstimateArrivalTimesRequest.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies an EstimateArrivalTimesRequest message.
+                 * @function verify
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                EstimateArrivalTimesRequest.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.fromStationId != null && message.hasOwnProperty("fromStationId"))
+                        if (!$util.isInteger(message.fromStationId))
+                            return "fromStationId: integer expected";
+                    if (message.toStationId != null && message.hasOwnProperty("toStationId"))
+                        if (!$util.isInteger(message.toStationId))
+                            return "toStationId: integer expected";
+                    if (message.viaLineIds != null && message.hasOwnProperty("viaLineIds")) {
+                        if (!Array.isArray(message.viaLineIds))
+                            return "viaLineIds: array expected";
+                        for (let i = 0; i < message.viaLineIds.length; ++i)
+                            if (!$util.isInteger(message.viaLineIds[i]))
+                                return "viaLineIds: integer[] expected";
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates an EstimateArrivalTimesRequest message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {app.trainlcd.grpc.EstimateArrivalTimesRequest} EstimateArrivalTimesRequest
+                 */
+                EstimateArrivalTimesRequest.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.app.trainlcd.grpc.EstimateArrivalTimesRequest)
+                        return object;
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    let message = new $root.app.trainlcd.grpc.EstimateArrivalTimesRequest();
+                    if (object.fromStationId != null)
+                        message.fromStationId = object.fromStationId >>> 0;
+                    if (object.toStationId != null)
+                        message.toStationId = object.toStationId >>> 0;
+                    if (object.viaLineIds) {
+                        if (!Array.isArray(object.viaLineIds))
+                            throw TypeError(".app.trainlcd.grpc.EstimateArrivalTimesRequest.viaLineIds: array expected");
+                        message.viaLineIds = [];
+                        for (let i = 0; i < object.viaLineIds.length; ++i)
+                            message.viaLineIds[i] = object.viaLineIds[i] >>> 0;
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from an EstimateArrivalTimesRequest message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {app.trainlcd.grpc.EstimateArrivalTimesRequest} message EstimateArrivalTimesRequest
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                EstimateArrivalTimesRequest.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    let object = {};
+                    if (options.arrays || options.defaults)
+                        object.viaLineIds = [];
+                    if (options.defaults) {
+                        object.fromStationId = 0;
+                        object.toStationId = 0;
+                    }
+                    if (message.fromStationId != null && message.hasOwnProperty("fromStationId"))
+                        object.fromStationId = message.fromStationId;
+                    if (message.toStationId != null && message.hasOwnProperty("toStationId"))
+                        object.toStationId = message.toStationId;
+                    if (message.viaLineIds && message.viaLineIds.length) {
+                        object.viaLineIds = [];
+                        for (let j = 0; j < message.viaLineIds.length; ++j)
+                            object.viaLineIds[j] = message.viaLineIds[j];
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this EstimateArrivalTimesRequest to JSON.
+                 * @function toJSON
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                EstimateArrivalTimesRequest.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for EstimateArrivalTimesRequest
+                 * @function getTypeUrl
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                EstimateArrivalTimesRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/app.trainlcd.grpc.EstimateArrivalTimesRequest";
+                };
+
+                return EstimateArrivalTimesRequest;
             })();
 
             grpc.GetStationsByLineGroupIdRequest = (function() {
