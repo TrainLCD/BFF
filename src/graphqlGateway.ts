@@ -362,16 +362,18 @@ function createResolvers(client: GrpcClient) {
 			fromStationId,
 			toStationId,
 			viaLineIds,
+			directionId,
 		}: {
 			fromStationId: number;
 			toStationId: number;
 			viaLineIds?: number[];
+			directionId?: number;
 		}) => {
 			const payload = await client.call(
 				'EstimateArrivalTimes',
 				grpcTypes.EstimateArrivalTimesRequest,
 				grpcTypes.EstimatedArrivalResponse,
-				cleanPayload({ fromStationId, toStationId, viaLineIds })
+				cleanPayload({ fromStationId, toStationId, viaLineIds, directionId })
 			);
 			return {
 				routes: payload.routes ?? [],

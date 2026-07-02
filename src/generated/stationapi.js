@@ -3312,6 +3312,7 @@ export const app = $root.app = (() => {
                  * @property {number|null} [fromStationId] EstimateArrivalTimesRequest fromStationId
                  * @property {number|null} [toStationId] EstimateArrivalTimesRequest toStationId
                  * @property {Array.<number>|null} [viaLineIds] EstimateArrivalTimesRequest viaLineIds
+                 * @property {number|null} [directionId] EstimateArrivalTimesRequest directionId
                  */
 
                 /**
@@ -3355,6 +3356,28 @@ export const app = $root.app = (() => {
                 EstimateArrivalTimesRequest.prototype.viaLineIds = $util.emptyArray;
 
                 /**
+                 * EstimateArrivalTimesRequest directionId.
+                 * @member {number|null|undefined} directionId
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 */
+                EstimateArrivalTimesRequest.prototype.directionId = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * EstimateArrivalTimesRequest _directionId.
+                 * @member {"directionId"|undefined} _directionId
+                 * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
+                 * @instance
+                 */
+                Object.defineProperty(EstimateArrivalTimesRequest.prototype, "_directionId", {
+                    get: $util.oneOfGetter($oneOfFields = ["directionId"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
                  * Creates a new EstimateArrivalTimesRequest instance using the specified properties.
                  * @function create
                  * @memberof app.trainlcd.grpc.EstimateArrivalTimesRequest
@@ -3388,6 +3411,8 @@ export const app = $root.app = (() => {
                             writer.uint32(message.viaLineIds[i]);
                         writer.ldelim();
                     }
+                    if (message.directionId != null && Object.hasOwnProperty.call(message, "directionId"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.directionId);
                     return writer;
                 };
 
@@ -3447,6 +3472,10 @@ export const app = $root.app = (() => {
                                     message.viaLineIds.push(reader.uint32());
                                 break;
                             }
+                        case 4: {
+                                message.directionId = reader.uint32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7, long);
                             break;
@@ -3486,6 +3515,7 @@ export const app = $root.app = (() => {
                         long = 0;
                     if (long > $util.recursionLimit)
                         return "maximum nesting depth exceeded";
+                    let properties = {};
                     if (message.fromStationId != null && message.hasOwnProperty("fromStationId"))
                         if (!$util.isInteger(message.fromStationId))
                             return "fromStationId: integer expected";
@@ -3498,6 +3528,11 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < message.viaLineIds.length; ++i)
                             if (!$util.isInteger(message.viaLineIds[i]))
                                 return "viaLineIds: integer[] expected";
+                    }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        properties._directionId = 1;
+                        if (!$util.isInteger(message.directionId))
+                            return "directionId: integer expected";
                     }
                     return null;
                 };
@@ -3529,6 +3564,8 @@ export const app = $root.app = (() => {
                         for (let i = 0; i < object.viaLineIds.length; ++i)
                             message.viaLineIds[i] = object.viaLineIds[i] >>> 0;
                     }
+                    if (object.directionId != null)
+                        message.directionId = object.directionId >>> 0;
                     return message;
                 };
 
@@ -3559,6 +3596,11 @@ export const app = $root.app = (() => {
                         object.viaLineIds = [];
                         for (let j = 0; j < message.viaLineIds.length; ++j)
                             object.viaLineIds[j] = message.viaLineIds[j];
+                    }
+                    if (message.directionId != null && message.hasOwnProperty("directionId")) {
+                        object.directionId = message.directionId;
+                        if (options.oneofs)
+                            object._directionId = "directionId";
                     }
                     return object;
                 };
@@ -14451,6 +14493,7 @@ export const app = $root.app = (() => {
                  * @property {number|null} [stationGroupId] EstimatedArrivalStop stationGroupId
                  * @property {number|null} [cumulativeMinutes] EstimatedArrivalStop cumulativeMinutes
                  * @property {boolean|null} [stopsHere] EstimatedArrivalStop stopsHere
+                 * @property {number|null} [departureCumulativeMinutes] EstimatedArrivalStop departureCumulativeMinutes
                  */
 
                 /**
@@ -14501,6 +14544,14 @@ export const app = $root.app = (() => {
                 EstimatedArrivalStop.prototype.stopsHere = false;
 
                 /**
+                 * EstimatedArrivalStop departureCumulativeMinutes.
+                 * @member {number} departureCumulativeMinutes
+                 * @memberof app.trainlcd.grpc.EstimatedArrivalStop
+                 * @instance
+                 */
+                EstimatedArrivalStop.prototype.departureCumulativeMinutes = 0;
+
+                /**
                  * Creates a new EstimatedArrivalStop instance using the specified properties.
                  * @function create
                  * @memberof app.trainlcd.grpc.EstimatedArrivalStop
@@ -14532,6 +14583,8 @@ export const app = $root.app = (() => {
                         writer.uint32(/* id 3, wireType 1 =*/25).double(message.cumulativeMinutes);
                     if (message.stopsHere != null && Object.hasOwnProperty.call(message, "stopsHere"))
                         writer.uint32(/* id 4, wireType 0 =*/32).bool(message.stopsHere);
+                    if (message.departureCumulativeMinutes != null && Object.hasOwnProperty.call(message, "departureCumulativeMinutes"))
+                        writer.uint32(/* id 5, wireType 1 =*/41).double(message.departureCumulativeMinutes);
                     return writer;
                 };
 
@@ -14588,6 +14641,10 @@ export const app = $root.app = (() => {
                                 message.stopsHere = reader.bool();
                                 break;
                             }
+                        case 5: {
+                                message.departureCumulativeMinutes = reader.double();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7, long);
                             break;
@@ -14639,6 +14696,9 @@ export const app = $root.app = (() => {
                     if (message.stopsHere != null && message.hasOwnProperty("stopsHere"))
                         if (typeof message.stopsHere !== "boolean")
                             return "stopsHere: boolean expected";
+                    if (message.departureCumulativeMinutes != null && message.hasOwnProperty("departureCumulativeMinutes"))
+                        if (typeof message.departureCumulativeMinutes !== "number")
+                            return "departureCumulativeMinutes: number expected";
                     return null;
                 };
 
@@ -14666,6 +14726,8 @@ export const app = $root.app = (() => {
                         message.cumulativeMinutes = Number(object.cumulativeMinutes);
                     if (object.stopsHere != null)
                         message.stopsHere = Boolean(object.stopsHere);
+                    if (object.departureCumulativeMinutes != null)
+                        message.departureCumulativeMinutes = Number(object.departureCumulativeMinutes);
                     return message;
                 };
 
@@ -14687,6 +14749,7 @@ export const app = $root.app = (() => {
                         object.stationGroupId = 0;
                         object.cumulativeMinutes = 0;
                         object.stopsHere = false;
+                        object.departureCumulativeMinutes = 0;
                     }
                     if (message.stationId != null && message.hasOwnProperty("stationId"))
                         object.stationId = message.stationId;
@@ -14696,6 +14759,8 @@ export const app = $root.app = (() => {
                         object.cumulativeMinutes = options.json && !isFinite(message.cumulativeMinutes) ? String(message.cumulativeMinutes) : message.cumulativeMinutes;
                     if (message.stopsHere != null && message.hasOwnProperty("stopsHere"))
                         object.stopsHere = message.stopsHere;
+                    if (message.departureCumulativeMinutes != null && message.hasOwnProperty("departureCumulativeMinutes"))
+                        object.departureCumulativeMinutes = options.json && !isFinite(message.departureCumulativeMinutes) ? String(message.departureCumulativeMinutes) : message.departureCumulativeMinutes;
                     return object;
                 };
 
