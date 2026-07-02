@@ -1360,6 +1360,9 @@ export namespace app {
 
                 /** EstimateArrivalTimesRequest viaLineIds */
                 viaLineIds?: (number[]|null);
+
+                /** EstimateArrivalTimesRequest directionId */
+                directionId?: (number|null);
             }
 
             /** Represents an EstimateArrivalTimesRequest. */
@@ -1379,6 +1382,12 @@ export namespace app {
 
                 /** EstimateArrivalTimesRequest viaLineIds. */
                 public viaLineIds: number[];
+
+                /** EstimateArrivalTimesRequest directionId. */
+                public directionId?: (number|null);
+
+                /** EstimateArrivalTimesRequest _directionId. */
+                public _directionId?: "directionId";
 
                 /**
                  * Creates a new EstimateArrivalTimesRequest instance using the specified properties.
@@ -5225,6 +5234,9 @@ export namespace app {
 
                 /** EstimatedArrivalStop stopsHere */
                 stopsHere?: (boolean|null);
+
+                /** EstimatedArrivalStop departureCumulativeMinutes */
+                departureCumulativeMinutes?: (number|null);
             }
 
             /** Represents an EstimatedArrivalStop. */
@@ -5247,6 +5259,9 @@ export namespace app {
 
                 /** EstimatedArrivalStop stopsHere. */
                 public stopsHere: boolean;
+
+                /** EstimatedArrivalStop departureCumulativeMinutes. */
+                public departureCumulativeMinutes: number;
 
                 /**
                  * Creates a new EstimatedArrivalStop instance using the specified properties.

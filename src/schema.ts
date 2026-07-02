@@ -95,7 +95,7 @@ type Query {
 	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!
 	connectedRoutes(fromStationGroupId: Int!, toStationGroupId: Int!): [Route!]!
-	estimateArrivalTimes(fromStationId: Int!, toStationId: Int!, viaLineIds: [Int!]): EstimatedArrivalPage!
+	estimateArrivalTimes(fromStationId: Int!, toStationId: Int!, viaLineIds: [Int!], directionId: Int): EstimatedArrivalPage!
 	trainRoute(fromStationGroupId: Int!, toStationGroupId: Int!, lineGroupId: Int): TrainRouteResponse!
 }
 
@@ -288,6 +288,7 @@ type EstimatedArrivalStop {
 	stationGroupId: Int
 	cumulativeMinutes: Float
 	stopsHere: Boolean
+	departureCumulativeMinutes: Float
 }
 
 type EstimatedArrivalRoute {
