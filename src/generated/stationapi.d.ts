@@ -5550,11 +5550,11 @@ export namespace app {
             /** Properties of a GetTrainRouteRequest. */
             interface IGetTrainRouteRequest {
 
-                /** GetTrainRouteRequest fromStationGroupId */
-                fromStationGroupId?: (number|null);
+                /** GetTrainRouteRequest fromStationId */
+                fromStationId?: (number|null);
 
-                /** GetTrainRouteRequest toStationGroupId */
-                toStationGroupId?: (number|null);
+                /** GetTrainRouteRequest toStationId */
+                toStationId?: (number|null);
 
                 /** GetTrainRouteRequest lineGroupId */
                 lineGroupId?: (number|null);
@@ -5569,11 +5569,11 @@ export namespace app {
                  */
                 constructor(properties?: app.trainlcd.grpc.IGetTrainRouteRequest);
 
-                /** GetTrainRouteRequest fromStationGroupId. */
-                public fromStationGroupId: number;
+                /** GetTrainRouteRequest fromStationId. */
+                public fromStationId: number;
 
-                /** GetTrainRouteRequest toStationGroupId. */
-                public toStationGroupId: number;
+                /** GetTrainRouteRequest toStationId. */
+                public toStationId: number;
 
                 /** GetTrainRouteRequest lineGroupId. */
                 public lineGroupId?: (number|null);
