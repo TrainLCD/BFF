@@ -380,19 +380,19 @@ function createResolvers(client: GrpcClient) {
 			};
 		},
 		trainRoute: async ({
-			fromStationGroupId,
-			toStationGroupId,
+			fromStationId,
+			toStationId,
 			lineGroupId,
 		}: {
-			fromStationGroupId: number;
-			toStationGroupId: number;
+			fromStationId: number;
+			toStationId: number;
 			lineGroupId?: number;
 		}) => {
 			const payload = await client.call(
 				'GetTrainRoute',
 				grpcTypes.GetTrainRouteRequest,
 				grpcTypes.TrainRouteResponse,
-				cleanPayload({ fromStationGroupId, toStationGroupId, lineGroupId })
+				cleanPayload({ fromStationId, toStationId, lineGroupId })
 			);
 			return {
 				segments: payload.segments ?? [],

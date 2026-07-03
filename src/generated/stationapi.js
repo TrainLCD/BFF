@@ -15323,8 +15323,8 @@ export const app = $root.app = (() => {
                  * Properties of a GetTrainRouteRequest.
                  * @memberof app.trainlcd.grpc
                  * @interface IGetTrainRouteRequest
-                 * @property {number|null} [fromStationGroupId] GetTrainRouteRequest fromStationGroupId
-                 * @property {number|null} [toStationGroupId] GetTrainRouteRequest toStationGroupId
+                 * @property {number|null} [fromStationId] GetTrainRouteRequest fromStationId
+                 * @property {number|null} [toStationId] GetTrainRouteRequest toStationId
                  * @property {number|null} [lineGroupId] GetTrainRouteRequest lineGroupId
                  */
 
@@ -15344,20 +15344,20 @@ export const app = $root.app = (() => {
                 }
 
                 /**
-                 * GetTrainRouteRequest fromStationGroupId.
-                 * @member {number} fromStationGroupId
+                 * GetTrainRouteRequest fromStationId.
+                 * @member {number} fromStationId
                  * @memberof app.trainlcd.grpc.GetTrainRouteRequest
                  * @instance
                  */
-                GetTrainRouteRequest.prototype.fromStationGroupId = 0;
+                GetTrainRouteRequest.prototype.fromStationId = 0;
 
                 /**
-                 * GetTrainRouteRequest toStationGroupId.
-                 * @member {number} toStationGroupId
+                 * GetTrainRouteRequest toStationId.
+                 * @member {number} toStationId
                  * @memberof app.trainlcd.grpc.GetTrainRouteRequest
                  * @instance
                  */
-                GetTrainRouteRequest.prototype.toStationGroupId = 0;
+                GetTrainRouteRequest.prototype.toStationId = 0;
 
                 /**
                  * GetTrainRouteRequest lineGroupId.
@@ -15405,10 +15405,10 @@ export const app = $root.app = (() => {
                 GetTrainRouteRequest.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
-                    if (message.fromStationGroupId != null && Object.hasOwnProperty.call(message, "fromStationGroupId"))
-                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.fromStationGroupId);
-                    if (message.toStationGroupId != null && Object.hasOwnProperty.call(message, "toStationGroupId"))
-                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.toStationGroupId);
+                    if (message.fromStationId != null && Object.hasOwnProperty.call(message, "fromStationId"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.fromStationId);
+                    if (message.toStationId != null && Object.hasOwnProperty.call(message, "toStationId"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.toStationId);
                     if (message.lineGroupId != null && Object.hasOwnProperty.call(message, "lineGroupId"))
                         writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.lineGroupId);
                     return writer;
@@ -15452,11 +15452,11 @@ export const app = $root.app = (() => {
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.fromStationGroupId = reader.uint32();
+                                message.fromStationId = reader.uint32();
                                 break;
                             }
                         case 2: {
-                                message.toStationGroupId = reader.uint32();
+                                message.toStationId = reader.uint32();
                                 break;
                             }
                         case 3: {
@@ -15503,12 +15503,12 @@ export const app = $root.app = (() => {
                     if (long > $util.recursionLimit)
                         return "maximum nesting depth exceeded";
                     let properties = {};
-                    if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
-                        if (!$util.isInteger(message.fromStationGroupId))
-                            return "fromStationGroupId: integer expected";
-                    if (message.toStationGroupId != null && message.hasOwnProperty("toStationGroupId"))
-                        if (!$util.isInteger(message.toStationGroupId))
-                            return "toStationGroupId: integer expected";
+                    if (message.fromStationId != null && message.hasOwnProperty("fromStationId"))
+                        if (!$util.isInteger(message.fromStationId))
+                            return "fromStationId: integer expected";
+                    if (message.toStationId != null && message.hasOwnProperty("toStationId"))
+                        if (!$util.isInteger(message.toStationId))
+                            return "toStationId: integer expected";
                     if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId")) {
                         properties._lineGroupId = 1;
                         if (!$util.isInteger(message.lineGroupId))
@@ -15533,10 +15533,10 @@ export const app = $root.app = (() => {
                     if (long > $util.recursionLimit)
                         throw Error("maximum nesting depth exceeded");
                     let message = new $root.app.trainlcd.grpc.GetTrainRouteRequest();
-                    if (object.fromStationGroupId != null)
-                        message.fromStationGroupId = object.fromStationGroupId >>> 0;
-                    if (object.toStationGroupId != null)
-                        message.toStationGroupId = object.toStationGroupId >>> 0;
+                    if (object.fromStationId != null)
+                        message.fromStationId = object.fromStationId >>> 0;
+                    if (object.toStationId != null)
+                        message.toStationId = object.toStationId >>> 0;
                     if (object.lineGroupId != null)
                         message.lineGroupId = object.lineGroupId >>> 0;
                     return message;
@@ -15556,13 +15556,13 @@ export const app = $root.app = (() => {
                         options = {};
                     let object = {};
                     if (options.defaults) {
-                        object.fromStationGroupId = 0;
-                        object.toStationGroupId = 0;
+                        object.fromStationId = 0;
+                        object.toStationId = 0;
                     }
-                    if (message.fromStationGroupId != null && message.hasOwnProperty("fromStationGroupId"))
-                        object.fromStationGroupId = message.fromStationGroupId;
-                    if (message.toStationGroupId != null && message.hasOwnProperty("toStationGroupId"))
-                        object.toStationGroupId = message.toStationGroupId;
+                    if (message.fromStationId != null && message.hasOwnProperty("fromStationId"))
+                        object.fromStationId = message.fromStationId;
+                    if (message.toStationId != null && message.hasOwnProperty("toStationId"))
+                        object.toStationId = message.toStationId;
                     if (message.lineGroupId != null && message.hasOwnProperty("lineGroupId")) {
                         object.lineGroupId = message.lineGroupId;
                         if (options.oneofs)

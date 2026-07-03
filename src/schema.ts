@@ -96,7 +96,7 @@ type Query {
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!
 	connectedRoutes(fromStationGroupId: Int!, toStationGroupId: Int!): [Route!]!
 	estimateArrivalTimes(fromStationId: Int!, toStationId: Int!, viaLineIds: [Int!], directionId: Int): EstimatedArrivalPage!
-	trainRoute(fromStationGroupId: Int!, toStationGroupId: Int!, lineGroupId: Int): TrainRouteResponse!
+	trainRoute(fromStationId: Int!, toStationId: Int!, lineGroupId: Int): TrainRouteResponse!
 }
 
 type RoutePage {
