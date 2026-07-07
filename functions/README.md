@@ -109,40 +109,6 @@ Unit tests cover pure functions (SSML formatting, voice-name resolution, triage
 JSON normalization, review parsing) with Jest. Runtime integration for HTTP /
 queue / Cron is verified with `wrangler dev` / `wrangler dev --test-scheduled`.
 
-## App config (`config:remote` / `config:maintenance`)
-
-`GET /config/remote` and `GET /config/maintenance` serve app settings from
-`CONFIG_KV` (the Firestore `appConfig` + Firebase Remote Config replacement).
-Both endpoints are unauthenticated and fall back to safe defaults when the key
-is missing or unreadable.
-
-- `config:remote` — a JSON **object**:
-
-  ```json
-  {"max_permit_accuracy": 1500, "force_not_arrived_on_low_accuracy": true}
-  ```
-
-  Defaults (used per-field when the key is absent or a field is
-  missing/invalid): `max_permit_accuracy: 1500`,
-  `force_not_arrived_on_low_accuracy: true`. Values migrated from Remote
-  Config as strings (`"1500"`, `"true"`) and singly double-encoded JSON are
-  tolerated, but storing a plain JSON object is preferred.
-
-- `config:maintenance` — `{"underMaintenance": false}`.
-
-Upload:
-
-```bash
-# dev (wrangler v4 defaults to the local emulator; --remote targets the real KV)
-wrangler kv key put --binding CONFIG_KV "config:remote" '{"max_permit_accuracy":1500,"force_not_arrived_on_low_accuracy":true}' --remote
-# prod
-wrangler kv key put --binding CONFIG_KV "config:remote" '{"max_permit_accuracy":1500,"force_not_arrived_on_low_accuracy":true}' --env production --remote
-```
-
-If `/config/remote` returns the defaults when you expect KV values, run
-`wrangler tail` — the handler logs a warning when `config:remote` is unset or
-cannot be parsed as an object.
-
 ## few-shot data
 
 Feedback triage reads `config:fewshot` (`FEW_SHOT_KV_KEY`) from `CONFIG_KV`.
