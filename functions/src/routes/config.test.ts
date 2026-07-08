@@ -1,20 +1,14 @@
 import { mergeRemoteConfig } from './config';
 
 describe('mergeRemoteConfig', () => {
-  const DEFAULTS = {
-    max_permit_accuracy: 1500,
-    force_not_arrived_on_low_accuracy: true,
-    eta_assist_enabled: false,
-  };
-
-  it('returns defaults when KV is missing/unparseable', () => {
-    expect(mergeRemoteConfig(null)).toEqual(DEFAULTS);
-    expect(mergeRemoteConfig(undefined)).toEqual(DEFAULTS);
-    expect(mergeRemoteConfig('broken')).toEqual(DEFAULTS);
-    expect(mergeRemoteConfig(['a'])).toEqual(DEFAULTS);
+  it('returns an empty object when KV is missing/unparseable', () => {
+    expect(mergeRemoteConfig(null)).toEqual({});
+    expect(mergeRemoteConfig(undefined)).toEqual({});
+    expect(mergeRemoteConfig('broken')).toEqual({});
+    expect(mergeRemoteConfig(['a'])).toEqual({});
   });
 
-  it('passes through the stored value, including keys the handler does not know', () => {
+  it('passes the stored value through as-is', () => {
     expect(
       mergeRemoteConfig({
         max_permit_accuracy: 2000,
@@ -28,8 +22,8 @@ describe('mergeRemoteConfig', () => {
     });
   });
 
-  it('fills only the missing keys with defaults', () => {
-    // eta_assist_enabled 未設定 → 既定 false で補完、他は KV 値のまま
+  it('returns only the keys present in KV (no defaults injected)', () => {
+    // eta_assist_enabled は KV に無ければレスポンスにも含まれない
     expect(
       mergeRemoteConfig({
         max_permit_accuracy: 2000,
@@ -38,7 +32,6 @@ describe('mergeRemoteConfig', () => {
     ).toEqual({
       max_permit_accuracy: 2000,
       force_not_arrived_on_low_accuracy: false,
-      eta_assist_enabled: false,
     });
   });
 
@@ -48,15 +41,15 @@ describe('mergeRemoteConfig', () => {
     );
   });
 
-  it('drops non-primitive values (object/array/null) and keeps defaults', () => {
-    const merged = mergeRemoteConfig({
-      max_permit_accuracy: { nested: 1 },
-      force_not_arrived_on_low_accuracy: [true],
-      eta_assist_enabled: null,
-      extra: { a: 1 },
-    });
-    expect(merged).toEqual(DEFAULTS);
-    expect(merged.extra).toBeUndefined();
+  it('drops non-primitive values (object/array/null)', () => {
+    expect(
+      mergeRemoteConfig({
+        max_permit_accuracy: { nested: 1 },
+        force_not_arrived_on_low_accuracy: [true],
+        eta_assist_enabled: null,
+        ok: 3000,
+      })
+    ).toEqual({ ok: 3000 });
   });
 
   it('passes through primitive string/number/boolean values as-is', () => {
@@ -69,7 +62,6 @@ describe('mergeRemoteConfig', () => {
     ).toEqual({
       max_permit_accuracy: '2000',
       force_not_arrived_on_low_accuracy: false,
-      eta_assist_enabled: false,
       flag: true,
     });
   });
