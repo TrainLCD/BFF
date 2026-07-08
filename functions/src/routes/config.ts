@@ -28,7 +28,12 @@ const REMOTE_DEFAULTS: RemoteConfig = {
   eta_assist_enabled: false,
 };
 
-const isPrimitive = (value: unknown): value is string | number | boolean =>
+type Primitive = string | number | boolean;
+
+// 既知フィールドは RemoteConfig の型を保持しつつ、将来キーはプリミティブのみ許容。
+type RemoteConfigResponse = RemoteConfig & Record<string, Primitive>;
+
+const isPrimitive = (value: unknown): value is Primitive =>
   typeof value === 'string' ||
   typeof value === 'number' ||
   typeof value === 'boolean';
@@ -40,10 +45,8 @@ const isPrimitive = (value: unknown): value is string | number | boolean =>
  * object・array・null は捨てて既定値を維持する（壊れた値を端末に配らない）。
  * stored がオブジェクトでない（null / 壊れた JSON / 配列など）場合は既定値のみ。
  */
-export const mergeRemoteConfig = (
-  stored: unknown
-): RemoteConfig & Record<string, unknown> => {
-  const merged: RemoteConfig & Record<string, unknown> = { ...REMOTE_DEFAULTS };
+export const mergeRemoteConfig = (stored: unknown): RemoteConfigResponse => {
+  const merged: RemoteConfigResponse = { ...REMOTE_DEFAULTS };
   if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
     for (const [key, value] of Object.entries(stored)) {
       if (isPrimitive(value)) {
