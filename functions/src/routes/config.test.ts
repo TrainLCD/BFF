@@ -47,4 +47,30 @@ describe('mergeRemoteConfig', () => {
       'x'
     );
   });
+
+  it('drops non-primitive values (object/array/null) and keeps defaults', () => {
+    const merged = mergeRemoteConfig({
+      max_permit_accuracy: { nested: 1 },
+      force_not_arrived_on_low_accuracy: [true],
+      eta_assist_enabled: null,
+      extra: { a: 1 },
+    });
+    expect(merged).toEqual(DEFAULTS);
+    expect(merged.extra).toBeUndefined();
+  });
+
+  it('passes through primitive string/number/boolean values as-is', () => {
+    expect(
+      mergeRemoteConfig({
+        max_permit_accuracy: '2000',
+        force_not_arrived_on_low_accuracy: false,
+        flag: true,
+      })
+    ).toEqual({
+      max_permit_accuracy: '2000',
+      force_not_arrived_on_low_accuracy: false,
+      eta_assist_enabled: false,
+      flag: true,
+    });
+  });
 });

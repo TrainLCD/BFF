@@ -28,17 +28,30 @@ const REMOTE_DEFAULTS: RemoteConfig = {
   eta_assist_enabled: false,
 };
 
+const isPrimitive = (value: unknown): value is string | number | boolean =>
+  typeof value === 'string' ||
+  typeof value === 'number' ||
+  typeof value === 'boolean';
+
 /**
  * KV の config:remote をそのまま返しつつ、欠けているキーだけ既定値で補う。
- * KV にある任意のキー（将来追加するフラグ含む）はパススルーする。
+ * KV にある任意のキー（将来追加するフラグ含む）はパススルーするが、
+ * 値はプリミティブ（string / number / boolean）のみ許可し、ネストした
+ * object・array・null は捨てて既定値を維持する（壊れた値を端末に配らない）。
  * stored がオブジェクトでない（null / 壊れた JSON / 配列など）場合は既定値のみ。
  */
-export const mergeRemoteConfig = (stored: unknown): Record<string, unknown> => {
-  const overrides =
-    stored && typeof stored === 'object' && !Array.isArray(stored)
-      ? (stored as Record<string, unknown>)
-      : {};
-  return { ...REMOTE_DEFAULTS, ...overrides };
+export const mergeRemoteConfig = (
+  stored: unknown
+): RemoteConfig & Record<string, unknown> => {
+  const merged: RemoteConfig & Record<string, unknown> = { ...REMOTE_DEFAULTS };
+  if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+    for (const [key, value] of Object.entries(stored)) {
+      if (isPrimitive(value)) {
+        merged[key] = value;
+      }
+    }
+  }
+  return merged;
 };
 
 export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
