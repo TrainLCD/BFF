@@ -73,8 +73,9 @@ export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
 };
 
 export const handleRemoteConfig = async (env: Env): Promise<Response> => {
-  // KV 値が壊れた JSON だと get が例外を投げるため、フォールバックで握る
-  const stored = await env.CONFIG_KV.get<Record<string, unknown>>(
+  // KV の JSON は任意の形の外部入力なので unknown で受け（壊れた JSON は
+  // get が例外を投げるため .catch で握る）、mergeRemoteConfig 側で検証する。
+  const stored = await env.CONFIG_KV.get<unknown>(
     'config:remote',
     'json'
   ).catch(() => null);
