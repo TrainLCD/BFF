@@ -17,12 +17,28 @@ interface MaintenanceConfig {
 interface RemoteConfig {
   max_permit_accuracy: number;
   force_not_arrived_on_low_accuracy: boolean;
+  eta_assist_enabled: boolean;
 }
 
 // Remote Config のフォールバック既定（アプリ側 constants/location.ts と一致させる）
+// KV に無いキーだけこの既定値で補い、KV にあるキーはそのまま返す。
 const REMOTE_DEFAULTS: RemoteConfig = {
   max_permit_accuracy: 1500,
   force_not_arrived_on_low_accuracy: true,
+  eta_assist_enabled: false,
+};
+
+/**
+ * KV の config:remote をそのまま返しつつ、欠けているキーだけ既定値で補う。
+ * KV にある任意のキー（将来追加するフラグ含む）はパススルーする。
+ * stored がオブジェクトでない（null / 壊れた JSON / 配列など）場合は既定値のみ。
+ */
+export const mergeRemoteConfig = (stored: unknown): Record<string, unknown> => {
+  const overrides =
+    stored && typeof stored === 'object' && !Array.isArray(stored)
+      ? (stored as Record<string, unknown>)
+      : {};
+  return { ...REMOTE_DEFAULTS, ...overrides };
 };
 
 export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
@@ -41,21 +57,12 @@ export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
 };
 
 export const handleRemoteConfig = async (env: Env): Promise<Response> => {
-  const stored = await env.CONFIG_KV.get<Partial<RemoteConfig>>(
+  // KV 値が壊れた JSON だと get が例外を投げるため、フォールバックで握る
+  const stored = await env.CONFIG_KV.get<Record<string, unknown>>(
     'config:remote',
     'json'
   ).catch(() => null);
-  const maxAccuracy = Number(stored?.max_permit_accuracy);
-  const body: RemoteConfig = {
-    max_permit_accuracy:
-      Number.isFinite(maxAccuracy) && maxAccuracy > 0
-        ? maxAccuracy
-        : REMOTE_DEFAULTS.max_permit_accuracy,
-    force_not_arrived_on_low_accuracy:
-      typeof stored?.force_not_arrived_on_low_accuracy === 'boolean'
-        ? stored.force_not_arrived_on_low_accuracy
-        : REMOTE_DEFAULTS.force_not_arrived_on_low_accuracy,
-  };
+  const body = mergeRemoteConfig(stored);
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: JSON_HEADERS,
