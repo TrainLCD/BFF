@@ -41,7 +41,7 @@ describe('mergeRemoteConfig', () => {
     );
   });
 
-  it('drops non-primitive values (object/array/null)', () => {
+  it('drops invalid values for known keys', () => {
     expect(
       mergeRemoteConfig({
         max_permit_accuracy: { nested: 1 },
@@ -52,17 +52,31 @@ describe('mergeRemoteConfig', () => {
     ).toEqual({ ok: 3000 });
   });
 
-  it('passes through primitive string/number/boolean values as-is', () => {
+  it('drops invalid primitive values and out-of-range numbers for known keys', () => {
+    expect(
+      mergeRemoteConfig({
+        max_permit_accuracy: -1,
+        force_not_arrived_on_low_accuracy: 0,
+        eta_assist_enabled: 'true',
+      })
+    ).toEqual({});
+    expect(
+      mergeRemoteConfig({ max_permit_accuracy: Number.POSITIVE_INFINITY })
+    ).toEqual({});
+  });
+
+  it('passes through primitive values for unknown keys', () => {
     expect(
       mergeRemoteConfig({
         max_permit_accuracy: '2000',
-        force_not_arrived_on_low_accuracy: false,
+        label: 'enabled',
         flag: true,
+        threshold: 42,
       })
     ).toEqual({
-      max_permit_accuracy: '2000',
-      force_not_arrived_on_low_accuracy: false,
+      label: 'enabled',
       flag: true,
+      threshold: 42,
     });
   });
 });

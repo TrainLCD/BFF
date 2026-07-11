@@ -16,26 +16,51 @@ interface MaintenanceConfig {
 
 type Primitive = string | number | boolean;
 
-// KV の値をパススルーするだけ。既定値は BFF では持たず、キーが無ければ
-// クライアント側（constants/location.ts）の既定に委ねる（二重管理を避ける）。
-type RemoteConfigResponse = Record<string, Primitive>;
+interface RemoteConfig {
+  max_permit_accuracy: number;
+  force_not_arrived_on_low_accuracy: boolean;
+  eta_assist_enabled: boolean;
+}
+
+// 既知キーは型を保持し、欠損時はクライアント側の既定値に委ねる。
+// 未知の将来キーはプリミティブ値に限ってパススルーする。
+type RemoteConfigResponse = Partial<RemoteConfig> & Record<string, Primitive>;
 
 const isPrimitive = (value: unknown): value is Primitive =>
   typeof value === 'string' ||
   typeof value === 'number' ||
   typeof value === 'boolean';
 
+const isValidRemoteConfigEntry = (
+  key: string,
+  value: unknown
+): value is Primitive => {
+  if (!isPrimitive(value)) {
+    return false;
+  }
+
+  switch (key) {
+    case 'max_permit_accuracy':
+      return typeof value === 'number' && Number.isFinite(value) && value > 0;
+    case 'force_not_arrived_on_low_accuracy':
+    case 'eta_assist_enabled':
+      return typeof value === 'boolean';
+    default:
+      return true;
+  }
+};
+
 /**
- * KV の config:remote をそのまま返す。既知・将来キーを問わずパススルーするが、
- * 値はプリミティブ（string / number / boolean）のみ許可し、ネストした
- * object・array・null は捨てる（壊れた値を端末に配らない）。
+ * KV の config:remote を返す。既知キーは型と範囲を検証し、未知の将来キーは
+ * プリミティブ（string / number / boolean）のみパススルーする。
+ * 不正値は捨て、クライアント側の既定値にフォールバックさせる。
  * stored がオブジェクトでない（null / 壊れた JSON / 配列など）場合は空 {} を返す。
  */
 export const mergeRemoteConfig = (stored: unknown): RemoteConfigResponse => {
   const merged: RemoteConfigResponse = {};
   if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
     for (const [key, value] of Object.entries(stored)) {
-      if (isPrimitive(value)) {
+      if (isValidRemoteConfigEntry(key, value)) {
         merged[key] = value;
       }
     }
