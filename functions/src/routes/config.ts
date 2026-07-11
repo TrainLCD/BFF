@@ -14,15 +14,58 @@ interface MaintenanceConfig {
   underMaintenance: boolean;
 }
 
+type Primitive = string | number | boolean;
+
 interface RemoteConfig {
   max_permit_accuracy: number;
   force_not_arrived_on_low_accuracy: boolean;
+  eta_assist_enabled: boolean;
 }
 
-// Remote Config のフォールバック既定（アプリ側 constants/location.ts と一致させる）
-const REMOTE_DEFAULTS: RemoteConfig = {
-  max_permit_accuracy: 1500,
-  force_not_arrived_on_low_accuracy: true,
+// 既知キーは型を保持し、欠損時はクライアント側の既定値に委ねる。
+// 未知の将来キーはプリミティブ値に限ってパススルーする。
+type RemoteConfigResponse = Partial<RemoteConfig> & Record<string, Primitive>;
+
+const isPrimitive = (value: unknown): value is Primitive =>
+  typeof value === 'string' ||
+  typeof value === 'number' ||
+  typeof value === 'boolean';
+
+const isValidRemoteConfigEntry = (
+  key: string,
+  value: unknown
+): value is Primitive => {
+  if (!isPrimitive(value)) {
+    return false;
+  }
+
+  switch (key) {
+    case 'max_permit_accuracy':
+      return typeof value === 'number' && Number.isFinite(value) && value > 0;
+    case 'force_not_arrived_on_low_accuracy':
+    case 'eta_assist_enabled':
+      return typeof value === 'boolean';
+    default:
+      return true;
+  }
+};
+
+/**
+ * KV の config:remote を返す。既知キーは型と範囲を検証し、未知の将来キーは
+ * プリミティブ（string / number / boolean）のみパススルーする。
+ * 不正値は捨て、クライアント側の既定値にフォールバックさせる。
+ * stored がオブジェクトでない（null / 壊れた JSON / 配列など）場合は空 {} を返す。
+ */
+export const mergeRemoteConfig = (stored: unknown): RemoteConfigResponse => {
+  const merged: RemoteConfigResponse = {};
+  if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+    for (const [key, value] of Object.entries(stored)) {
+      if (isValidRemoteConfigEntry(key, value)) {
+        merged[key] = value;
+      }
+    }
+  }
+  return merged;
 };
 
 export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
@@ -41,21 +84,13 @@ export const handleMaintenanceConfig = async (env: Env): Promise<Response> => {
 };
 
 export const handleRemoteConfig = async (env: Env): Promise<Response> => {
-  const stored = await env.CONFIG_KV.get<Partial<RemoteConfig>>(
+  // KV の JSON は任意の形の外部入力なので unknown で受け（壊れた JSON は
+  // get が例外を投げるため .catch で握る）、mergeRemoteConfig 側で検証する。
+  const stored = await env.CONFIG_KV.get<unknown>(
     'config:remote',
     'json'
   ).catch(() => null);
-  const maxAccuracy = Number(stored?.max_permit_accuracy);
-  const body: RemoteConfig = {
-    max_permit_accuracy:
-      Number.isFinite(maxAccuracy) && maxAccuracy > 0
-        ? maxAccuracy
-        : REMOTE_DEFAULTS.max_permit_accuracy,
-    force_not_arrived_on_low_accuracy:
-      typeof stored?.force_not_arrived_on_low_accuracy === 'boolean'
-        ? stored.force_not_arrived_on_low_accuracy
-        : REMOTE_DEFAULTS.force_not_arrived_on_low_accuracy,
-  };
+  const body = mergeRemoteConfig(stored);
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: JSON_HEADERS,
