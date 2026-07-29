@@ -53,13 +53,13 @@
     "FEW_SHOT_PER_EX_MAX": "800",
     // --- AI エージェント（/agent/chat）---
     // モデルは "anthropic:<model>" | "openai:<model>"。比較検証で差し替える
-    "AGENT_MODEL": "anthropic:claude-opus-5",
+    "AGENT_MODEL": "anthropic:claude-haiku-4-5",
     "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
     "AGENT_FAQ_KV_KEY": "config:agent-faq",
     "AGENT_DAILY_TURN_LIMIT": "30",
     // Cloudflare AI Gateway 経由にする場合は
     // "https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway>" を設定（空なら各社 API 直行）
-    "AI_GATEWAY_BASE_URL": "",
+    "AI_GATEWAY_BASE_URL": "https://gateway.ai.cloudflare.com/v1/38d776d9385fbdbad95832d383b63e7b/trainlcd-agent-dev",
     // dev のみ: LangSmith トレーシング（会話本文を含むため本番では必ず "false" のまま）
     "LANGSMITH_TRACING": "false"
   },
@@ -107,11 +107,11 @@
         "FEW_SHOT_LIMIT": "12",
         "FEW_SHOT_PER_EX_MAX": "800",
         // --- AI エージェント（/agent/chat）---
-        "AGENT_MODEL": "anthropic:claude-opus-5",
+        "AGENT_MODEL": "anthropic:claude-haiku-4-5",
         "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
         "AGENT_FAQ_KV_KEY": "config:agent-faq",
         "AGENT_DAILY_TURN_LIMIT": "30",
-        "AI_GATEWAY_BASE_URL": "",
+        "AI_GATEWAY_BASE_URL": "https://gateway.ai.cloudflare.com/v1/38d776d9385fbdbad95832d383b63e7b/trainlcd-agent",
         // 本番では LangSmith トレーシングを必ず無効にする（会話本文が送信されるため）
         "LANGSMITH_TRACING": "false"
       }
