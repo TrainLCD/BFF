@@ -119,15 +119,23 @@ export async function classifyTopic(
   }
   try {
     const result = (await raceWithAbort(
-      env.AI.run(env.AGENT_GATE_MODEL, {
-        messages: [
-          { role: 'system', content: GATE_SYSTEM_PROMPT },
-          { role: 'user', content: buildGateUserPrompt(messages) },
-        ],
-        max_tokens: 64,
-        temperature: 0,
-        response_format: { type: 'json_schema', json_schema: GATE_JSON_SCHEMA },
-      }) as Promise<{ response?: unknown }>,
+      env.AI.run(
+        env.AGENT_GATE_MODEL,
+        {
+          messages: [
+            { role: 'system', content: GATE_SYSTEM_PROMPT },
+            { role: 'user', content: buildGateUserPrompt(messages) },
+          ],
+          max_tokens: 64,
+          temperature: 0,
+          response_format: {
+            type: 'json_schema',
+            json_schema: GATE_JSON_SCHEMA,
+          },
+        },
+        // タイムアウト時に Workers AI 側の推論も中断させる
+        { signal }
+      ) as Promise<{ response?: unknown }>,
       signal
     )) as { response?: unknown };
     return parseGateResponse(result?.response) ?? 'destination';
