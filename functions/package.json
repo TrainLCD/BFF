@@ -18,8 +18,13 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.23",
+    "@ai-sdk/openai": "^4.0.23",
+    "ai": "^7.0.41",
     "dayjs": "^1.11.9",
-    "jsonc-parser": "^3.3.1"
+    "jsonc-parser": "^3.3.1",
+    "langsmith": "^0.8.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",

@@ -20,6 +20,8 @@ interface RemoteConfig {
   max_permit_accuracy: number;
   force_not_arrived_on_low_accuracy: boolean;
   eta_assist_enabled: boolean;
+  /** AI エージェント（/agent/chat）のキルスイッチ。既定 false */
+  ai_agent_enabled: boolean;
 }
 
 // 既知キーは型を保持し、欠損時はクライアント側の既定値に委ねる。
@@ -44,6 +46,7 @@ const isValidRemoteConfigEntry = (
       return typeof value === 'number' && Number.isFinite(value) && value > 0;
     case 'force_not_arrived_on_low_accuracy':
     case 'eta_assist_enabled':
+    case 'ai_agent_enabled':
       return typeof value === 'boolean';
     default:
       return true;
