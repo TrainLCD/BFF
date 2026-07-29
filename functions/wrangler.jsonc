@@ -61,7 +61,7 @@
     // "https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway>" を設定（空なら各社 API 直行）
     "AI_GATEWAY_BASE_URL": "https://gateway.ai.cloudflare.com/v1/38d776d9385fbdbad95832d383b63e7b/trainlcd-agent-dev",
     // dev のみ: LangSmith トレーシング（会話本文を含むため本番では必ず "false" のまま）
-    "LANGSMITH_TRACING": "false"
+    "LANGSMITH_TRACING": "true"
   },
 
   // secrets（`wrangler secret put <NAME>` で投入。コミットしない）:
