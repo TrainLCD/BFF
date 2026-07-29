@@ -26,6 +26,7 @@ import {
 } from './schema';
 import {
   createStationSearchTool,
+  fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
   searchStationsByName,
 } from './tools';
@@ -196,13 +197,27 @@ export const handleAgentChat = async (
       return callableSuccess(refused);
     }
 
-    const faq = await loadAgentFaq(env);
+    // 現在駅の解決は FAQ ロードと並行。失敗しても ID フォールバックで続行する
+    const [faq, currentStation] = await Promise.all([
+      loadAgentFaq(env),
+      chatReq.currentStationGroupId === undefined
+        ? Promise.resolve(null)
+        : fetchStationByGroupId(
+            env,
+            chatReq.currentStationGroupId,
+            controller.signal
+          ).catch((e) => {
+            console.error('agent: failed to resolve current station', e);
+            return null;
+          }),
+    ]);
     const result = await runAgentTurn({
       generateText: runtime.generateText,
       model: resolveAgentModel(env),
       systemPrompt: buildSystemPrompt(faq),
       contextNote: buildContextMessage(
         chatReq.locale,
+        currentStation,
         chatReq.currentStationGroupId
       ),
       messages: chatReq.messages,
