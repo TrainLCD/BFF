@@ -39,8 +39,8 @@ import { parseChatRequest, sanitizeSuggestions } from './validate';
 
 /** リクエスト全体の期限（クライアントの 30 秒より短くし、サーバが先に確定応答を返す） */
 const TOTAL_TIMEOUT_MS = 25_000;
-/** LLM API 1 呼び出しの期限 */
-const LLM_CALL_TIMEOUT_MS = 15_000;
+/** LLM API 1 呼び出しの期限（全体 25 秒の範囲内。AI Gateway 経由のレイテンシを考慮） */
+const LLM_CALL_TIMEOUT_MS = 20_000;
 /** tool use ループのイテレーション上限（＋1 ステップで最終応答を生成させる） */
 const MAX_TOOL_ITERATIONS = 3;
 /** 出力トークン上限 */

@@ -144,6 +144,6 @@ describe('runAgentTurn', () => {
     });
     expect(options.maxRetries).toBe(0);
     expect(options.maxOutputTokens).toBe(1024);
-    expect(options.timeout).toEqual({ stepMs: 15_000 });
+    expect(options.timeout).toEqual({ stepMs: 20_000 });
   });
 });
