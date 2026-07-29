@@ -113,6 +113,20 @@ describe('searchStationsByName', () => {
       searchStationsByName({} as unknown as Env, '海', undefined)
     ).rejects.toThrow('SAPI_BFF');
   });
+
+  it('abort 済みの親シグナルは fetch へ即座に伝播する', async () => {
+    const fetchMock = jest.fn().mockResolvedValue(gqlResponse([]));
+    const controller = new AbortController();
+    controller.abort();
+    await searchStationsByName(
+      makeEnv(fetchMock),
+      '海',
+      undefined,
+      controller.signal
+    ).catch(() => {});
+    const [, init] = fetchMock.mock.calls[0];
+    expect((init.signal as AbortSignal).aborted).toBe(true);
+  });
 });
 
 describe('createStationSearchTool', () => {

@@ -78,4 +78,23 @@ describe('classifyTopic', () => {
       'destination'
     );
   });
+
+  it('abort 済みシグナルではフェイルオープンせず即座に送出する', async () => {
+    const run = jest.fn();
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      classifyTopic(makeEnv(run), messages, controller.signal)
+    ).rejects.toThrow('aborted');
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('分類中に abort されたら destination に倒さず送出する', async () => {
+    // 解決しない Promise で Workers AI のハングを再現する
+    const run = jest.fn().mockReturnValue(new Promise(() => {}));
+    const controller = new AbortController();
+    const promise = classifyTopic(makeEnv(run), messages, controller.signal);
+    controller.abort();
+    await expect(promise).rejects.toThrow('aborted');
+  });
 });

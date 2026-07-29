@@ -88,6 +88,10 @@ const searchOnce = async (
   parentSignal: AbortSignal | undefined
 ): Promise<StationSuggestion[]> => {
   const controller = new AbortController();
+  // abort 済みシグナルは 'abort' イベントを再発火しないため、先に状態を同期する
+  if (parentSignal?.aborted) {
+    controller.abort();
+  }
   const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
   // リクエスト全体の期限超過（親シグナル）もツール呼び出しへ伝播させる
   const onParentAbort = () => controller.abort();

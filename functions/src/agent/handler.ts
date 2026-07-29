@@ -29,7 +29,11 @@ import {
   MAX_TOOL_CALLS_PER_TURN,
   searchStationsByName,
 } from './tools';
-import { type GenerateTextFn, resolveAgentLLMRuntime } from './tracing';
+import {
+  type AgentLLMRuntime,
+  type GenerateTextFn,
+  resolveAgentLLMRuntime,
+} from './tracing';
 import { parseChatRequest, sanitizeSuggestions } from './validate';
 
 /** リクエスト全体の期限（クライアントの 30 秒より短くし、サーバが先に確定応答を返す） */
@@ -164,30 +168,34 @@ export const handleAgentChat = async (
   env: Env,
   ctx: ExecutionContext
 ): Promise<Response> => {
-  const installId = await verifySessionToken(
-    env,
-    req.headers.get('Authorization')
-  );
-  const chatReq = parseChatRequest(await parseCallableData(req));
-
-  await ensureAgentEnabled(env);
-  await enforceDailyLimit(env, installId);
-
-  // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
-  const topic = await classifyTopic(env, chatReq.messages);
-  if (topic === 'off_topic') {
-    const refused: AgentChatResult = {
-      reply: REFUSAL_REPLY[chatReq.locale],
-      suggestions: [],
-      refused: true,
-    };
-    return callableSuccess(refused);
-  }
-
+  // リクエスト全体の期限はハンドラ先頭から計測する
+  // （JWT 検証・KV 読み書き・トピックゲートの Workers AI 呼び出しも予算に含める）
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
-  const runtime = resolveAgentLLMRuntime(env);
+  let runtime: AgentLLMRuntime | undefined;
   try {
+    runtime = resolveAgentLLMRuntime(env);
+
+    const installId = await verifySessionToken(
+      env,
+      req.headers.get('Authorization')
+    );
+    const chatReq = parseChatRequest(await parseCallableData(req));
+
+    await ensureAgentEnabled(env);
+    await enforceDailyLimit(env, installId);
+
+    // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
+    const topic = await classifyTopic(env, chatReq.messages, controller.signal);
+    if (topic === 'off_topic') {
+      const refused: AgentChatResult = {
+        reply: REFUSAL_REPLY[chatReq.locale],
+        suggestions: [],
+        refused: true,
+      };
+      return callableSuccess(refused);
+    }
+
     const faq = await loadAgentFaq(env);
     const result = await runAgentTurn({
       generateText: runtime.generateText,
@@ -218,6 +226,8 @@ export const handleAgentChat = async (
   } finally {
     clearTimeout(timer);
     // dev 環境のみ: LangSmith トレース送信をレスポンス返却後に完了させる
-    ctx.waitUntil(runtime.flush());
+    if (runtime) {
+      ctx.waitUntil(runtime.flush());
+    }
   }
 };
