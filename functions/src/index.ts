@@ -2,6 +2,7 @@
  * TrainLCD Cloudflare Worker のエントリポイント。
  * 1 つの Worker に HTTP(fetch) / キュー(queue) / Cron(scheduled) の 3 ハンドラを集約する。
  */
+import { handleAgentChat } from './agent/handler';
 import { processFeedbackMessage } from './consumers/feedbackTriage';
 import { withCallable } from './lib/callable';
 import { handleAuthToken } from './routes/auth';
@@ -44,6 +45,9 @@ const worker: ExportedHandler<Env, FeedbackQueueMessage> = {
       }
       if (method === 'POST' && pathname === '/feedback/upload-image') {
         return await withCallable(() => handleUploadImage(req, env));
+      }
+      if (method === 'POST' && pathname === '/agent/chat') {
+        return await withCallable(() => handleAgentChat(req, env, ctx));
       }
       if (method === 'GET' && pathname === '/config/maintenance') {
         return await handleMaintenanceConfig(env);

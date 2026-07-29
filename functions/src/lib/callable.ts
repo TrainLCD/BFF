@@ -12,7 +12,10 @@ export type CallableCode =
   | 'unauthenticated'
   | 'permission-denied'
   | 'not-found'
-  | 'internal';
+  | 'resource-exhausted'
+  | 'internal'
+  | 'unavailable'
+  | 'deadline-exceeded';
 
 const CODE_TO_HTTP: Record<CallableCode, number> = {
   ok: 200,
@@ -21,7 +24,10 @@ const CODE_TO_HTTP: Record<CallableCode, number> = {
   unauthenticated: 401,
   'permission-denied': 403,
   'not-found': 404,
+  'resource-exhausted': 429,
   internal: 500,
+  unavailable: 503,
+  'deadline-exceeded': 504,
 };
 
 export class CallableError extends Error {
