@@ -15,6 +15,10 @@ const SECRET_NAMES = [
   'DISCORD_CS_WEBHOOK_URL',
   'DISCORD_CRASH_WEBHOOK_URL',
   'DISCORD_REVIEW_WEBHOOK_URL',
+  // AI エージェント（/agent/chat）
+  'ANTHROPIC_API_KEY',
+  'OPENAI_API_KEY',
+  'LANGSMITH_API_KEY',
 ];
 
 const [, , secretsFile, outFile] = process.argv;
