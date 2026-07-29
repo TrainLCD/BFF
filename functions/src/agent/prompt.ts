@@ -6,6 +6,7 @@
  * locale・現在駅などの可変要素は messages 側（キャッシュ境界の後）に置く。
  */
 import type { Env } from '../types';
+import type { StationSuggestion } from './schema';
 
 const FAQ_TTL_MS = 10 * 60 * 1000;
 let faqCache: { text: string | null; loadedAt: number } | null = null;
@@ -65,12 +66,25 @@ FAQ に無い使い方の質問には、推測で答えず「わからない」�
 /** 可変コンテキスト（キャッシュ境界の後に置く 2 つ目の system メッセージ） */
 export const buildContextMessage = (
   locale: 'ja' | 'en',
+  currentStation?: StationSuggestion | null,
   currentStationGroupId?: number
 ): string => {
   const lines = [
     `locale: ${locale}（${locale === 'ja' ? '日本語で応答する' : 'Respond in English'}）`,
   ];
-  if (currentStationGroupId !== undefined) {
+  if (currentStation) {
+    const roman = currentStation.nameRoman
+      ? `（${currentStation.nameRoman}）`
+      : '';
+    const lineNames = currentStation.lineNames.length
+      ? `、乗入路線: ${currentStation.lineNames.join('・')}`
+      : '';
+    lines.push(
+      `ユーザの現在駅: ${currentStation.name}駅${roman}${lineNames}`,
+      '「ここ」「現在地」「近く」など場所を指す相対表現は、この現在駅を基準として解釈する（検索時は現在地に近い候補が優先される）'
+    );
+  } else if (currentStationGroupId !== undefined) {
+    // 駅情報の解決に失敗したときのフォールバック（ID だけでも近接優先検索には効く）
     lines.push(
       `ユーザの現在駅グループID: ${currentStationGroupId}（検索時は現在地に近い候補が優先される）`
     );

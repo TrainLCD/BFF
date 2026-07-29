@@ -2,6 +2,7 @@ import type { Env } from '../types';
 import type { StationSuggestion } from './schema';
 import {
   createStationSearchTool,
+  fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
   searchStationsByName,
   toStationSuggestion,
@@ -126,6 +127,62 @@ describe('searchStationsByName', () => {
     ).catch(() => {});
     const [, init] = fetchMock.mock.calls[0];
     expect((init.signal as AbortSignal).aborted).toBe(true);
+  });
+});
+
+describe('fetchStationByGroupId', () => {
+  const makeEnv = (fetchImpl: jest.Mock): Env =>
+    ({ SAPI_BFF: { fetch: fetchImpl } }) as unknown as Env;
+
+  const groupResponse = (stations: unknown[]) =>
+    new Response(JSON.stringify({ data: { stationGroupStations: stations } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+
+  it('グループ内の駅を 1 件へ集約し路線名を統合する', async () => {
+    const fetchMock = jest.fn().mockResolvedValue(
+      groupResponse([
+        { ...gqlStation(1, '西船橋'), lines: [{ nameShort: 'JR総武線' }] },
+        {
+          ...gqlStation(2, '西船橋'),
+          lines: [{ nameShort: '東京メトロ東西線' }],
+        },
+        { ...gqlStation(3, '西船橋'), lines: [{ nameShort: 'JR総武線' }] },
+      ])
+    );
+    const station = await fetchStationByGroupId(makeEnv(fetchMock), 1130205);
+    expect(station?.name).toBe('西船橋');
+    expect(station?.lineNames).toEqual(['JR総武線', '東京メトロ東西線']);
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init.body).variables).toEqual({ groupId: 1130205 });
+  });
+
+  it('該当駅が無ければ null を返す', async () => {
+    const fetchMock = jest.fn().mockResolvedValue(groupResponse([]));
+    await expect(
+      fetchStationByGroupId(makeEnv(fetchMock), 999)
+    ).resolves.toBeNull();
+  });
+
+  it('失敗時に 1 回だけ再試行する', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(new Response('oops', { status: 500 }))
+      .mockResolvedValueOnce(groupResponse([gqlStation(1, '鎌倉')]));
+    const station = await fetchStationByGroupId(makeEnv(fetchMock), 1130205);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(station?.name).toBe('鎌倉');
+  });
+
+  it('2 回失敗したらエラーを送出する', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(new Response('oops', { status: 500 }));
+    await expect(
+      fetchStationByGroupId(makeEnv(fetchMock), 1130205)
+    ).rejects.toThrow('status 500');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 

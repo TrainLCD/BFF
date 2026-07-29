@@ -31,6 +31,21 @@ const STATIONS_BY_NAME_QUERY = `
   }
 `;
 
+/** 現在駅の解決用。グループ内の全駅（路線別レコード）を返す */
+const STATION_GROUP_STATIONS_QUERY = `
+  query AgentStationGroupStations($groupId: Int!) {
+    stationGroupStations(groupId: $groupId) {
+      id
+      groupId
+      name
+      nameRoman
+      lines {
+        nameShort
+      }
+    }
+  }
+`;
+
 interface GqlLine {
   nameShort?: string | null;
 }
@@ -81,10 +96,11 @@ const postGraphQL = async (
   throw new Error('SAPI_BFF binding or SAPI_BFF_GRAPHQL_URL is required');
 };
 
-const searchOnce = async (
+const queryStationsOnce = async (
   env: Env,
-  name: string,
-  fromStationGroupId: number | undefined,
+  query: string,
+  variables: Record<string, unknown>,
+  field: 'stationsByName' | 'stationGroupStations',
   parentSignal: AbortSignal | undefined
 ): Promise<StationSuggestion[]> => {
   const controller = new AbortController();
@@ -99,29 +115,22 @@ const searchOnce = async (
   try {
     const res = await postGraphQL(
       env,
-      JSON.stringify({
-        query: STATIONS_BY_NAME_QUERY,
-        variables: {
-          name,
-          limit: STATION_SEARCH_LIMIT,
-          fromStationGroupId: fromStationGroupId ?? null,
-        },
-      }),
+      JSON.stringify({ query, variables }),
       controller.signal
     );
     if (!res.ok) {
-      throw new Error(`stationsByName failed with status ${res.status}`);
+      throw new Error(`${field} failed with status ${res.status}`);
     }
     const json = (await res.json()) as {
-      data?: { stationsByName?: GqlStation[] | null } | null;
+      data?: Partial<Record<typeof field, GqlStation[] | null>> | null;
       errors?: { message?: string }[];
     };
     if (json.errors?.length) {
       throw new Error(
-        `stationsByName GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+        `${field} GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
       );
     }
-    return (json.data?.stationsByName ?? [])
+    return (json.data?.[field] ?? [])
       .map(toStationSuggestion)
       .filter((s): s is StationSuggestion => s !== null);
   } finally {
@@ -129,6 +138,24 @@ const searchOnce = async (
     parentSignal?.removeEventListener('abort', onParentAbort);
   }
 };
+
+const searchOnce = (
+  env: Env,
+  name: string,
+  fromStationGroupId: number | undefined,
+  parentSignal: AbortSignal | undefined
+): Promise<StationSuggestion[]> =>
+  queryStationsOnce(
+    env,
+    STATIONS_BY_NAME_QUERY,
+    {
+      name,
+      limit: STATION_SEARCH_LIMIT,
+      fromStationGroupId: fromStationGroupId ?? null,
+    },
+    'stationsByName',
+    parentSignal
+  );
 
 /**
  * 駅名で実在駅を検索する。読み取り専用で冪等のため 1 回だけ再試行を許す
@@ -144,6 +171,41 @@ export const searchStationsByName = async (
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       return await searchOnce(env, name, fromStationGroupId, parentSignal);
+    } catch (e) {
+      lastError = e;
+      // リクエスト全体の期限切れなら再試行しない
+      if (parentSignal?.aborted) throw e;
+    }
+  }
+  throw lastError;
+};
+
+/**
+ * 現在駅グループ ID から駅情報を 1 件に集約して返す（コンテキスト注入用）。
+ * 同一グループは同名駅の路線別レコードのため、路線名を統合する。
+ * 見つからなければ null。読み取り専用で冪等のため 1 回だけ再試行を許す。
+ */
+export const fetchStationByGroupId = async (
+  env: Env,
+  groupId: number,
+  parentSignal?: AbortSignal
+): Promise<StationSuggestion | null> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const stations = await queryStationsOnce(
+        env,
+        STATION_GROUP_STATIONS_QUERY,
+        { groupId },
+        'stationGroupStations',
+        parentSignal
+      );
+      const first = stations[0];
+      if (!first) return null;
+      return {
+        ...first,
+        lineNames: [...new Set(stations.flatMap((s) => s.lineNames))],
+      };
     } catch (e) {
       lastError = e;
       // リクエスト全体の期限切れなら再試行しない
