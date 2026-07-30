@@ -39,12 +39,26 @@ describe('resolveDailyLimit', () => {
     expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0 })).toBe(60);
     expect(resolveDailyLimit(env, { agent_daily_turn_limit: -5 })).toBe(60);
     expect(resolveDailyLimit(env, { agent_daily_turn_limit: 'abc' })).toBe(60);
+    // 切り捨てで 0 になる小数を有効扱いすると全リクエスト拒否になるため不正値
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0.5 })).toBe(60);
+    expect(
+      resolveDailyLimit(env, {
+        agent_daily_turn_limit: Number.POSITIVE_INFINITY,
+      })
+    ).toBe(60);
   });
 
-  it('env var も欠損していれば既定の 60 を使う', () => {
+  it('env var も不正・欠損なら既定の 60 を使う', () => {
     expect(resolveDailyLimit({ AGENT_DAILY_TURN_LIMIT: '' } as AnyFn, {})).toBe(
       60
     );
+    // Infinity は無制限化、負数は全拒否になるため既定値へフォールバック
+    expect(
+      resolveDailyLimit({ AGENT_DAILY_TURN_LIMIT: 'Infinity' } as AnyFn, {})
+    ).toBe(60);
+    expect(
+      resolveDailyLimit({ AGENT_DAILY_TURN_LIMIT: '-10' } as AnyFn, {})
+    ).toBe(60);
   });
 });
 

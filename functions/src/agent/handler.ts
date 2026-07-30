@@ -80,6 +80,16 @@ const ensureAgentEnabled = async (
 };
 
 /**
+ * 上限候補値を「有限かつ正の整数」へ正規化する。小数は切り捨て、
+ * 結果が正の安全な整数にならない値（0 < x < 1・Infinity・負数・非数）は
+ * 不正として undefined を返す（0 化して全拒否・無制限化する事故を防ぐ）。
+ */
+const parseDailyLimit = (value: unknown): number | undefined => {
+  const limit = Math.floor(Number(value));
+  return Number.isSafeInteger(limit) && limit > 0 ? limit : undefined;
+};
+
+/**
  * 日次上限を解決する。config:remote の agent_daily_turn_limit を最優先にする
  * ことで、デプロイなしで KV から即時調整できる（キルスイッチと同じ運用感）。
  * 未設定・不正値は env var へフォールバックする。
@@ -88,11 +98,11 @@ export const resolveDailyLimit = (
   env: Env,
   remoteConfig: Record<string, unknown>
 ): number => {
-  const remote = Number(remoteConfig.agent_daily_turn_limit);
-  if (Number.isFinite(remote) && remote > 0) {
-    return Math.floor(remote);
-  }
-  return Number(env.AGENT_DAILY_TURN_LIMIT) || 60;
+  return (
+    parseDailyLimit(remoteConfig.agent_daily_turn_limit) ??
+    parseDailyLimit(env.AGENT_DAILY_TURN_LIMIT) ??
+    60
+  );
 };
 
 /**
