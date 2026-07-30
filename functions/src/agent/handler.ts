@@ -142,6 +142,10 @@ export const runAgentTurn = async (
     prepareStep: ({ stepNumber }) =>
       stepNumber >= MAX_TOOL_ITERATIONS ? { activeTools: [] } : undefined,
     output: Output.object({ schema: agentOutputSchema }),
+    // Sonnet 4.6 以降は thinking 未指定だと adaptive thinking が有効になり、
+    // 思考トークンがレイテンシと maxOutputTokens を消費するため明示的に無効化する
+    // （Haiku 4.5 では元々思考なしのため無害。OpenAI プロバイダはこのキーを無視する）
+    providerOptions: { anthropic: { thinking: { type: 'disabled' } } },
     timeout: { stepMs: LLM_CALL_TIMEOUT_MS },
     abortSignal: params.signal,
     // LLM 呼び出しはコスト重複を避けるため自動再試行しない（設計値）
@@ -186,19 +190,9 @@ export const handleAgentChat = async (
     await ensureAgentEnabled(env);
     await enforceDailyLimit(env, installId);
 
-    // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
-    const topic = await classifyTopic(env, chatReq.messages, controller.signal);
-    if (topic === 'off_topic') {
-      const refused: AgentChatResult = {
-        reply: REFUSAL_REPLY[chatReq.locale],
-        suggestions: [],
-        refused: true,
-      };
-      return callableSuccess(refused);
-    }
-
-    // 現在駅の解決は FAQ ロードと並行。失敗しても ID フォールバックで続行する
-    const [faq, currentStation] = await Promise.all([
+    // FAQ ロードと現在駅の解決はトピックゲートと並行して先行させる
+    // （どちらも内部で catch 済みのため、謝絶時に未 await で捨てても安全）
+    const contextPromise = Promise.all([
       loadAgentFaq(env),
       chatReq.currentStationGroupId === undefined
         ? Promise.resolve(null)
@@ -211,6 +205,19 @@ export const handleAgentChat = async (
             return null;
           }),
     ]);
+
+    // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
+    const topic = await classifyTopic(env, chatReq.messages, controller.signal);
+    if (topic === 'off_topic') {
+      const refused: AgentChatResult = {
+        reply: REFUSAL_REPLY[chatReq.locale],
+        suggestions: [],
+        refused: true,
+      };
+      return callableSuccess(refused);
+    }
+
+    const [faq, currentStation] = await contextPromise;
     const result = await runAgentTurn({
       generateText: runtime.generateText,
       model: resolveAgentModel(env),
