@@ -28,6 +28,7 @@ import {
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
+  type StationSearchScope,
   searchStationsByName,
 } from './tools';
 import {
@@ -94,6 +95,20 @@ const enforceDailyLimit = async (
   });
 };
 
+/**
+ * 検索スコープを決める。currentStationGroupId があれば上流は到達可能な駅だけを
+ * 返すが、その現在駅の名称・路線まで解決できたかは別問題なので区別する。
+ */
+export const resolveSearchScope = (
+  currentStationGroupId: number | undefined,
+  currentStation: StationSuggestion | null
+): StationSearchScope => {
+  if (currentStationGroupId === undefined) return 'nationwide';
+  return currentStation
+    ? 'reachable-from-known-station'
+    : 'reachable-from-unknown-station';
+};
+
 export interface AgentTurnParams {
   generateText: GenerateTextFn;
   model: LanguageModel;
@@ -102,8 +117,8 @@ export interface AgentTurnParams {
   messages: readonly ChatMessage[];
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
-  /** 検索結果が現在駅からの到達可能性で絞られるか（0 件時の案内に使う） */
-  scopedToCurrentStation?: boolean;
+  /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
+  searchScope?: StationSearchScope;
   signal?: AbortSignal;
 }
 
@@ -137,7 +152,7 @@ export const runAgentTurn = async (
         search: params.searchStations,
         verified,
         budget,
-        scopedToCurrentStation: params.scopedToCurrentStation,
+        scope: params.searchScope,
       }),
     },
     stopWhen: stepCountIs(MAX_TOOL_ITERATIONS + 1),
@@ -234,7 +249,13 @@ export const handleAgentChat = async (
       ),
       messages: chatReq.messages,
       locale: chatReq.locale,
-      scopedToCurrentStation: chatReq.currentStationGroupId !== undefined,
+      // 検索フィルタの有無（currentStationGroupId）と、現在駅の名称・路線が
+      // 解決できたかは別物。解決に失敗したときに沿線での引き直しを指示しても
+      // モデルは路線名を知らないため、スコープを分けて案内を変える
+      searchScope: resolveSearchScope(
+        chatReq.currentStationGroupId,
+        currentStation
+      ),
       searchStations: (name) =>
         searchStationsByName(
           env,

@@ -55,10 +55,29 @@ describe('buildStationNameVariants', () => {
     expect(buildStationNameVariants('鎌倉高校前')).toEqual(['鎌倉高校前']);
   });
 
-  it('「駅」「Station」などの接尾辞を落とす', () => {
-    expect(buildStationNameVariants('鎌倉駅')).toEqual(['鎌倉']);
-    expect(buildStationNameVariants('Enoshima Station')).toEqual(['Enoshima']);
-    expect(buildStationNameVariants('Kamakura Sta.')).toEqual(['Kamakura']);
+  it('「駅」「Station」などの接尾辞は落とすが、入力そのままを先に試す', () => {
+    // 「広島駅（Hiroshima Station）」「富山駅（Toyama Sta.）」のように
+    // 接尾辞に見える文字列が駅名そのものの実在駅があるため、順序が重要
+    expect(buildStationNameVariants('鎌倉駅')).toEqual(['鎌倉駅', '鎌倉']);
+    expect(buildStationNameVariants('Hiroshima Station')).toEqual([
+      'Hiroshima Station',
+      'Hiroshima',
+    ]);
+    expect(buildStationNameVariants('Toyama Sta.')).toEqual([
+      'Toyama Sta.',
+      'Toyama',
+    ]);
+    expect(buildStationNameVariants('Fukui-Eki')).toEqual([
+      'Fukui-Eki',
+      'Fukui',
+    ]);
+  });
+
+  it('区切りの無い語尾は接尾辞として削らない（実在駅名を壊さない）', () => {
+    // "Seki" → "S"、"Ichinoseki" → "Ichinos" のような破壊を防ぐ
+    expect(buildStationNameVariants('Seki')).toEqual(['Seki']);
+    expect(buildStationNameVariants('Ichinoseki')).toEqual(['Ichinoseki']);
+    expect(buildStationNameVariants('Kosta')).toEqual(['Kosta']);
   });
 
   it('分かち書きローマ字はハイフン連結と最長トークンへフォールバックする', () => {
@@ -353,28 +372,48 @@ describe('createStationSearchTool', () => {
       search: jest.fn().mockResolvedValue([]),
       verified: new Map(),
       budget: { remaining: 1 },
-      scopedToCurrentStation: true,
+      scope: 'reachable-from-known-station',
     });
     const result = await execute(tool, '江ノ島');
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('without a transfer');
     expect(result.notice).toContain('does NOT mean it does not exist');
+    // 乗入路線はコンテキストで渡っているので沿線での引き直しを促せる
+    expect(result.notice).toContain("current station's own lines");
   });
 
-  it('現在駅ありのときツール説明に到達可能性の制約を明記する', () => {
-    const scoped = createStationSearchTool({
-      search: jest.fn(),
+  it('現在駅が未解決なら沿線での引き直しではなくユーザへの確認を促す', async () => {
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
       verified: new Map(),
       budget: { remaining: 1 },
-      scopedToCurrentStation: true,
+      scope: 'reachable-from-unknown-station',
     });
-    const unscoped = createStationSearchTool({
-      search: jest.fn(),
-      verified: new Map(),
-      budget: { remaining: 1 },
-    });
-    expect(scoped.description).toContain('乗り換えなしで行ける駅に限定される');
-    expect(unscoped.description).not.toContain('乗り換えなし');
+    const result = await execute(tool, '江ノ島');
+    expect(result.notice).toContain('without a transfer');
+    // 路線名を知らないモデルに沿線検索を指示しない
+    expect(result.notice).not.toContain("current station's own lines");
+    expect(result.notice).toContain('ask the user which area or line');
+  });
+
+  it('スコープに応じてツール説明の到達可能性の記述を出し分ける', () => {
+    const describe_ = (
+      scope?: Parameters<typeof createStationSearchTool>[0]['scope']
+    ) =>
+      createStationSearchTool({
+        search: jest.fn(),
+        verified: new Map(),
+        budget: { remaining: 1 },
+        scope,
+      }).description ?? '';
+
+    expect(describe_('reachable-from-known-station')).toContain(
+      '現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと'
+    );
+    expect(describe_('reachable-from-unknown-station')).toContain(
+      'ユーザにどのエリア・路線にいるかを尋ねること'
+    );
+    expect(describe_()).not.toContain('乗り換えなし');
   });
 
   it('検索失敗はエラーにせずツール結果として返す', async () => {

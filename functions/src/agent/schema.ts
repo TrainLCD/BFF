@@ -60,6 +60,7 @@ export const stationSearchInputSchema = z.object({
       '検索する駅名（部分一致）。日本語表記（漢字・かな）が最も確実。ローマ字の場合は公式表記（語の区切りはハイフン）を使い、空白や "Station" / 「駅」は含めない'
     ),
 });
+export type StationSearchInput = z.infer<typeof stationSearchInputSchema>;
 
 /** クライアントへ返すレスポンス（callable の result） */
 export interface AgentChatResult {

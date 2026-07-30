@@ -5,9 +5,13 @@
  * 検索結果は verified マップへ蓄積し、最終応答のサーバ側検証
  * （validate.ts の sanitizeSuggestions）の突合元になる。
  */
-import { tool } from 'ai';
+import { type Tool, tool } from 'ai';
 import type { Env } from '../types';
-import { type StationSuggestion, stationSearchInputSchema } from './schema';
+import {
+  type StationSearchInput,
+  type StationSuggestion,
+  stationSearchInputSchema,
+} from './schema';
 
 /** stationsByName へ渡す件数（設計値。全量を返すとツール結果でトークンを浪費する） */
 const STATION_SEARCH_LIMIT = 10;
@@ -21,8 +25,12 @@ export const MAX_TOOL_CALLS_PER_TURN = 5;
  */
 const MAX_SEARCH_ATTEMPTS = 3;
 
-/** 上流の駅名に含まれない接尾辞（「〜駅」「... Station」など）を落とすためのパターン */
-const STATION_SUFFIX_PATTERN = /(?:\s*(?:station|sta\.?|eki)|\s*駅)$/i;
+/**
+ * 上流の駅名に含まれない接尾辞（「〜駅」「... Station」など）を落とすためのパターン。
+ * ラテン文字の接尾辞は必ず区切り（空白・ハイフン）を要求する。区切り無しを許すと
+ * 「関（Seki）」「一ノ関（Ichinoseki）」のような実在駅名の末尾を削ってしまう。
+ */
+const STATION_SUFFIX_PATTERN = /(?:[\s-]+(?:station|sta\.?|eki)|\s*駅)$/i;
 
 /** ツール結果はトークン節約のため応答スキーマと同一の軽量フィールドに絞る */
 const STATIONS_BY_NAME_QUERY = `
@@ -171,6 +179,10 @@ const searchOnce = (
  * 空白を含むクエリや「Station」付きのクエリは 0 件になる。
  * 英語会話ではモデルが "Kinugawa Onsen" / "Enoshima Station" のような
  * 分かち書きローマ字を投げがちなため、サーバ側でも救済する。
+ *
+ * 入力そのままを必ず最初に試す。「広島駅（Hiroshima Station）」
+ * 「富山駅（Toyama Sta.）」「福井駅（Fukui-Eki）」のように、接尾辞に見える
+ * 文字列が駅名そのものである実在駅があるため、正規化を先に当ててはならない。
  */
 export const buildStationNameVariants = (raw: string): string[] => {
   const variants: string[] = [];
@@ -182,17 +194,20 @@ export const buildStationNameVariants = (raw: string): string[] => {
   const base = raw.trim().replace(/\s+/g, ' ');
   if (!base) return variants;
 
-  // 「鎌倉駅」「Kamakura Station」などの接尾辞は上流の駅名に含まれない
+  // 1. 入力そのまま（正規化で実在駅名を壊さないための最優先候補）
+  push(base);
+
+  // 2. 「鎌倉駅」「Kamakura Station」など、多くの駅名には含まれない接尾辞を落とす
   const stripped = base.replace(STATION_SUFFIX_PATTERN, '').trim() || base;
   push(stripped);
 
+  // 3. 日本語は区切り無し、ローマ字は語の区切りがハイフン（例: Kinugawa-onsen）
   if (stripped.includes(' ')) {
-    // 日本語は区切り無し、ローマ字は語の区切りがハイフン（例: Kinugawa-onsen）
     const isAscii = !/[^ -~]/.test(stripped);
     push(stripped.replaceAll(' ', isAscii ? '-' : ''));
   }
 
-  // 最後の手段: 複合語は最長トークンで広く引く（例: Katase Enoshima → Enoshima）
+  // 4. 最後の手段: 複合語は最長トークンで広く引く（例: Katase Enoshima → Enoshima）
   const tokens = stripped.split(/[\s\-・=]+/).filter((t) => t.length > 1);
   if (tokens.length > 1) {
     push(
@@ -282,18 +297,48 @@ export const fetchStationByGroupId = async (
   throw lastError;
 };
 
-/** 0 件だったときにモデルへ返す次の一手（表記ゆれ / 到達可能性で内容を変える） */
-const NO_MATCH_NOTICE = {
-  /** 現在駅が無いとき: 表記ゆれだけを疑わせる */
-  unscoped:
+/**
+ * 駅検索のスコープ。上流の stationsByName は fromStationGroupId を渡すと
+ * 「その駅から乗り換えなしで行ける駅」だけを返す（仕様）ため、
+ * 0 件の意味とモデルへ促す次の一手がスコープごとに変わる。
+ */
+export type StationSearchScope =
+  /** 現在駅なし: 全国から検索する */
+  | 'nationwide'
+  /** 現在駅あり・駅名と乗入路線も判明している */
+  | 'reachable-from-known-station'
+  /** 現在駅の ID だけ判明（駅情報の解決に失敗。路線名はモデルに渡っていない） */
+  | 'reachable-from-unknown-station';
+
+/** 0 件だったときにモデルへ返す次の一手（スコープごとに内容を変える） */
+const NO_MATCH_NOTICE: Record<StationSearchScope, string> = {
+  // 表記ゆれだけを疑わせる
+  nationwide:
     'No match. Retry with the Japanese name (kanji or kana), or a shorter distinctive part of the name (e.g. an area name) with no spaces and no "Station" suffix.',
-  /**
-   * 現在駅があるとき: 結果は現在駅から乗り換えなしで行ける駅に限定されるため、
-   * 0 件は「存在しない」ではなく「直通で行けない」の可能性が高いと伝える
-   */
-  scoped:
+  // 0 件は「存在しない」ではなく「直通で行けない」の可能性が高い。
+  // 現在駅の乗入路線はコンテキストに含まれているため、沿線での引き直しを促せる
+  'reachable-from-known-station':
     'No match. Results are limited to stations reachable from the user\'s current station without a transfer, so a well-known station may simply be out of reach — this does NOT mean it does not exist. Retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), or with a different station on the current station\'s own lines or their through-services. Do not give up after one empty result.',
-} as const;
+  // 路線名がモデルに渡っていないため、沿線での引き直しは指示できない。
+  // 表記ゆれの確認と、ユーザへの確認を促す
+  'reachable-from-unknown-station':
+    'No match. Results are limited to stations reachable from the user\'s current station without a transfer, so a well-known station may simply be out of reach — this does NOT mean it does not exist. The current station could not be resolved, so its lines are unknown: retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), and if it is still empty, ask the user which area or line they are on instead of guessing.',
+};
+
+/** 現在駅のスコープでのみ足すツール説明（路線名を知らないケースでは案内を変える） */
+const SCOPE_DESCRIPTION: Record<StationSearchScope, string | null> = {
+  nationwide: null,
+  'reachable-from-known-station':
+    '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多いため、現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと。',
+  'reachable-from-unknown-station':
+    '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多い。現在駅の路線は不明なため、表記を変えても 0 件ならユーザにどのエリア・路線にいるかを尋ねること。',
+};
+
+/** ツール結果（駅一覧と、0 件・失敗時にモデルへ返す次の一手） */
+export interface StationSearchToolResult {
+  stations: StationSuggestion[];
+  notice?: string;
+}
 
 export interface StationSearchToolOptions {
   /** 駅名 → 実在駅リスト（sapi-bff 呼び出し。テストでは差し替え可能） */
@@ -302,8 +347,8 @@ export interface StationSearchToolOptions {
   verified: Map<number, StationSuggestion>;
   /** 残りツール呼び出し回数（ターン合計 MAX_TOOL_CALLS_PER_TURN） */
   budget: { remaining: number };
-  /** 現在駅からの到達可能性で結果が絞られるか（0 件時の案内を切り替える） */
-  scopedToCurrentStation?: boolean;
+  /** 検索スコープ（0 件時の案内とツール説明を切り替える） */
+  scope?: StationSearchScope;
 }
 
 /** search_stations_by_name ツール定義（AI SDK 形式・プロバイダ非依存） */
@@ -311,22 +356,23 @@ export const createStationSearchTool = ({
   search,
   verified,
   budget,
-  scopedToCurrentStation = false,
-}: StationSearchToolOptions) =>
+  scope = 'nationwide',
+}: StationSearchToolOptions): Tool<
+  StationSearchInput,
+  StationSearchToolResult
+> =>
   tool({
     description: [
       '駅名や読みの一部から実在する駅を検索する。ユーザに駅を提案する前に必ずこのツールで実在確認すること。',
       '照合は駅名の日本語表記（漢字・かな）と公式ローマ字表記への部分一致で行う。',
       '会話が英語でも、クエリは日本語表記が最も確実（例: "Kamakura Kokomae" ではなく「鎌倉高校前」）。',
       'クエリに空白・"Station"・「駅」を含めないこと。ローマ字で検索するときは語の区切りをハイフンにする（例: Kinugawa-onsen）。',
-      ...(scopedToCurrentStation
-        ? [
-            '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多いため、現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと。',
-          ]
-        : []),
-    ].join('\n'),
+      SCOPE_DESCRIPTION[scope],
+    ]
+      .filter((line): line is string => line !== null)
+      .join('\n'),
     inputSchema: stationSearchInputSchema,
-    execute: async ({ name }) => {
+    execute: async ({ name }): Promise<StationSearchToolResult> => {
       // 呼び出し上限超過時は検索せず、その時点の結果で応答を生成させる
       if (budget.remaining <= 0) {
         return {
@@ -346,9 +392,7 @@ export const createStationSearchTool = ({
         if (stations.length === 0) {
           return {
             stations: [],
-            notice: scopedToCurrentStation
-              ? NO_MATCH_NOTICE.scoped
-              : NO_MATCH_NOTICE.unscoped,
+            notice: NO_MATCH_NOTICE[scope],
           };
         }
         return { stations };

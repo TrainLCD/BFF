@@ -39,6 +39,14 @@ describe('buildSystemPrompt', () => {
   it('0 件で諦めず直通で行ける沿線から引き直す指示を含む', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('乗り換えなしで行ける駅');
-    expect(prompt).toContain('「候補が見つからない」で終わらせず');
+    expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
+  });
+
+  it('候補が無いときは正直に空配列を返させる（断定で埋めさせない）', () => {
+    const prompt = buildSystemPrompt(null);
+    expect(prompt).toContain(
+      '見つからなければ、候補がないことを正直に伝えて suggestions は空配列にする'
+    );
+    expect(prompt).not.toContain('必ず代替候補がある');
   });
 });
