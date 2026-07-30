@@ -282,6 +282,19 @@ export const fetchStationByGroupId = async (
   throw lastError;
 };
 
+/** 0 件だったときにモデルへ返す次の一手（表記ゆれ / 到達可能性で内容を変える） */
+const NO_MATCH_NOTICE = {
+  /** 現在駅が無いとき: 表記ゆれだけを疑わせる */
+  unscoped:
+    'No match. Retry with the Japanese name (kanji or kana), or a shorter distinctive part of the name (e.g. an area name) with no spaces and no "Station" suffix.',
+  /**
+   * 現在駅があるとき: 結果は現在駅から乗り換えなしで行ける駅に限定されるため、
+   * 0 件は「存在しない」ではなく「直通で行けない」の可能性が高いと伝える
+   */
+  scoped:
+    'No match. Results are limited to stations reachable from the user\'s current station without a transfer, so a well-known station may simply be out of reach — this does NOT mean it does not exist. Retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), or with a different station on the current station\'s own lines or their through-services. Do not give up after one empty result.',
+} as const;
+
 export interface StationSearchToolOptions {
   /** 駅名 → 実在駅リスト（sapi-bff 呼び出し。テストでは差し替え可能） */
   search: (name: string) => Promise<StationSuggestion[]>;
@@ -289,6 +302,8 @@ export interface StationSearchToolOptions {
   verified: Map<number, StationSuggestion>;
   /** 残りツール呼び出し回数（ターン合計 MAX_TOOL_CALLS_PER_TURN） */
   budget: { remaining: number };
+  /** 現在駅からの到達可能性で結果が絞られるか（0 件時の案内を切り替える） */
+  scopedToCurrentStation?: boolean;
 }
 
 /** search_stations_by_name ツール定義（AI SDK 形式・プロバイダ非依存） */
@@ -296,6 +311,7 @@ export const createStationSearchTool = ({
   search,
   verified,
   budget,
+  scopedToCurrentStation = false,
 }: StationSearchToolOptions) =>
   tool({
     description: [
@@ -303,6 +319,11 @@ export const createStationSearchTool = ({
       '照合は駅名の日本語表記（漢字・かな）と公式ローマ字表記への部分一致で行う。',
       '会話が英語でも、クエリは日本語表記が最も確実（例: "Kamakura Kokomae" ではなく「鎌倉高校前」）。',
       'クエリに空白・"Station"・「駅」を含めないこと。ローマ字で検索するときは語の区切りをハイフンにする（例: Kinugawa-onsen）。',
+      ...(scopedToCurrentStation
+        ? [
+            '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多いため、現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと。',
+          ]
+        : []),
     ].join('\n'),
     inputSchema: stationSearchInputSchema,
     execute: async ({ name }) => {
@@ -320,13 +341,14 @@ export const createStationSearchTool = ({
         for (const s of stations) {
           verified.set(s.stationId, s);
         }
-        // 0 件のときは次の一手を具体的に示す（英語会話で分かち書きローマ字を
-        // 投げて空振りし、そのまま諦めてしまうのを防ぐ）
+        // 0 件のときは次の一手を具体的に示す（表記ゆれや到達不能で空振りし、
+        // そのまま「候補が見つからない」と諦めてしまうのを防ぐ）
         if (stations.length === 0) {
           return {
             stations: [],
-            notice:
-              'No match. Retry with the Japanese name (kanji or kana), or a shorter distinctive part of the name (e.g. an area name) with no spaces and no "Station" suffix.',
+            notice: scopedToCurrentStation
+              ? NO_MATCH_NOTICE.scoped
+              : NO_MATCH_NOTICE.unscoped,
           };
         }
         return { stations };

@@ -344,6 +344,37 @@ describe('createStationSearchTool', () => {
     const result = await execute(tool, 'Kamakura Kokomae');
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('Japanese name');
+    // 現在駅が無いときは到達可能性の話をしない（誤ったヒントを与えない）
+    expect(result.notice).not.toContain('reachable');
+  });
+
+  it('現在駅ありの 0 件は「直通で行けないだけ」と伝える', async () => {
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
+      verified: new Map(),
+      budget: { remaining: 1 },
+      scopedToCurrentStation: true,
+    });
+    const result = await execute(tool, '江ノ島');
+    expect(result.stations).toEqual([]);
+    expect(result.notice).toContain('without a transfer');
+    expect(result.notice).toContain('does NOT mean it does not exist');
+  });
+
+  it('現在駅ありのときツール説明に到達可能性の制約を明記する', () => {
+    const scoped = createStationSearchTool({
+      search: jest.fn(),
+      verified: new Map(),
+      budget: { remaining: 1 },
+      scopedToCurrentStation: true,
+    });
+    const unscoped = createStationSearchTool({
+      search: jest.fn(),
+      verified: new Map(),
+      budget: { remaining: 1 },
+    });
+    expect(scoped.description).toContain('乗り換えなしで行ける駅に限定される');
+    expect(unscoped.description).not.toContain('乗り換えなし');
   });
 
   it('検索失敗はエラーにせずツール結果として返す', async () => {

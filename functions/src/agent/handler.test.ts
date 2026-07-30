@@ -80,6 +80,25 @@ describe('runAgentTurn', () => {
     expect(result.reply).toBe('見つかりませんでした。');
   });
 
+  it('現在駅ありの 0 件は「直通で行けないだけ」とモデルへ伝える', async () => {
+    let notice: string | undefined;
+    const generateText: AnyFn = jest.fn(async (options: AnyFn) => {
+      const toolResult = await options.tools.search_stations_by_name.execute(
+        { name: '江ノ島' },
+        {}
+      );
+      notice = toolResult.notice;
+      return { text: '', output: { reply: 'ok', suggestions: [] } };
+    });
+    await runAgentTurn({
+      ...baseParams,
+      generateText,
+      scopedToCurrentStation: true,
+      searchStations: jest.fn().mockResolvedValue([]),
+    });
+    expect(notice).toContain('without a transfer');
+  });
+
   it('構造化出力の取り出しに失敗したらテキストへフォールバックする', async () => {
     const result: AnyFn = { text: 'テキスト応答です。' };
     Object.defineProperty(result, 'output', {

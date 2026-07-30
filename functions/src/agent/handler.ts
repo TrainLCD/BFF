@@ -102,6 +102,8 @@ export interface AgentTurnParams {
   messages: readonly ChatMessage[];
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
+  /** 検索結果が現在駅からの到達可能性で絞られるか（0 件時の案内に使う） */
+  scopedToCurrentStation?: boolean;
   signal?: AbortSignal;
 }
 
@@ -135,6 +137,7 @@ export const runAgentTurn = async (
         search: params.searchStations,
         verified,
         budget,
+        scopedToCurrentStation: params.scopedToCurrentStation,
       }),
     },
     stopWhen: stepCountIs(MAX_TOOL_ITERATIONS + 1),
@@ -231,6 +234,7 @@ export const handleAgentChat = async (
       ),
       messages: chatReq.messages,
       locale: chatReq.locale,
+      scopedToCurrentStation: chatReq.currentStationGroupId !== undefined,
       searchStations: (name) =>
         searchStationsByName(
           env,
