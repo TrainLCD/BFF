@@ -64,8 +64,11 @@ const FALLBACK_REPLY: Record<'ja' | 'en', string> = {
 /**
  * キルスイッチ: /config/remote と同じ KV（config:remote）の ai_agent_enabled を
  * サーバ側でも強制する。改造クライアントがフラグ配信を無視しても API 側で止まる。
+ * 読んだ設定はレート制限の上限解決にも使うため返す（KV 読み取りを 1 回で済ませる）。
  */
-const ensureAgentEnabled = async (env: Env): Promise<void> => {
+const ensureAgentEnabled = async (
+  env: Env
+): Promise<Record<string, unknown>> => {
   const stored = await env.CONFIG_KV.get<Record<string, unknown>>(
     'config:remote',
     'json'
@@ -73,14 +76,44 @@ const ensureAgentEnabled = async (env: Env): Promise<void> => {
   if (stored?.ai_agent_enabled !== true) {
     throw new CallableError('unavailable', 'AI agent is currently disabled');
   }
+  return stored;
 };
 
-/** installId 単位の日次レート制限（KV カウンタ。結果整合だが PoC には十分）。 */
+/**
+ * 上限候補値を「有限かつ正の整数」へ正規化する。小数は切り捨て、
+ * 結果が正の安全な整数にならない値（0 < x < 1・Infinity・負数・非数）は
+ * 不正として undefined を返す（0 化して全拒否・無制限化する事故を防ぐ）。
+ */
+const parseDailyLimit = (value: unknown): number | undefined => {
+  const limit = Math.floor(Number(value));
+  return Number.isSafeInteger(limit) && limit > 0 ? limit : undefined;
+};
+
+/**
+ * 日次上限を解決する。config:remote の agent_daily_turn_limit を最優先にする
+ * ことで、デプロイなしで KV から即時調整できる（キルスイッチと同じ運用感）。
+ * 未設定・不正値は env var へフォールバックする。
+ */
+export const resolveDailyLimit = (
+  env: Env,
+  remoteConfig: Record<string, unknown>
+): number => {
+  return (
+    parseDailyLimit(remoteConfig.agent_daily_turn_limit) ??
+    parseDailyLimit(env.AGENT_DAILY_TURN_LIMIT) ??
+    60
+  );
+};
+
+/**
+ * installId 単位の日次レート制限（KV カウンタ。結果整合だが PoC には十分）。
+ * 消費したカウンタのキーを返す（失敗ターンの払い戻しに使う）。
+ */
 const enforceDailyLimit = async (
   env: Env,
-  installId: string
-): Promise<void> => {
-  const limit = Number(env.AGENT_DAILY_TURN_LIMIT) || 30;
+  installId: string,
+  limit: number
+): Promise<string> => {
   const day = new Date().toISOString().slice(0, 10).replaceAll('-', '');
   const key = `agent-rl:${installId}:${day}`;
   const current = Number(await env.STATE_KV.get(key)) || 0;
@@ -93,6 +126,26 @@ const enforceDailyLimit = async (
   await env.STATE_KV.put(key, String(current + 1), {
     expirationTtl: RATE_LIMIT_TTL_SECONDS,
   });
+  return key;
+};
+
+/**
+ * 失敗ターン（謝絶・エラー・タイムアウト）のカウンタ払い戻し。応答を返せて
+ * いないターンで持ち回数が溶けるのを防ぐ。謝絶時に呼ぶトピックゲートは
+ * Workers AI の軽量モデルのみでコストが小さいため、払い戻しても乱用リスクは
+ * 限定的。結果整合の KV なので払い戻し自体の失敗は握って本流に影響させない。
+ */
+const refundDailyTurn = async (env: Env, key: string): Promise<void> => {
+  try {
+    const current = Number(await env.STATE_KV.get(key)) || 0;
+    if (current > 0) {
+      await env.STATE_KV.put(key, String(current - 1), {
+        expirationTtl: RATE_LIMIT_TTL_SECONDS,
+      });
+    }
+  } catch (e) {
+    console.error('agent: failed to refund daily turn', e);
+  }
 };
 
 /**
@@ -196,6 +249,8 @@ export const handleAgentChat = async (
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
   let runtime: AgentLLMRuntime | undefined;
+  // レート制限カウンタを消費済みなら、そのキー（失敗時の払い戻し先）
+  let rateLimitKey: string | undefined;
   try {
     runtime = resolveAgentLLMRuntime(env);
 
@@ -205,8 +260,12 @@ export const handleAgentChat = async (
     );
     const chatReq = parseChatRequest(await parseCallableData(req));
 
-    await ensureAgentEnabled(env);
-    await enforceDailyLimit(env, installId);
+    const remoteConfig = await ensureAgentEnabled(env);
+    rateLimitKey = await enforceDailyLimit(
+      env,
+      installId,
+      resolveDailyLimit(env, remoteConfig)
+    );
 
     // FAQ ロードと現在駅の解決はトピックゲートと並行して先行させる
     // （どちらも内部で catch 済みのため、謝絶時に未 await で捨てても安全）
@@ -229,6 +288,8 @@ export const handleAgentChat = async (
     if (topic === 'off_topic') {
       // 先行発行済みの現在駅解決 I/O を打ち切る（両 Promise とも catch 済みのため安全）
       controller.abort();
+      // 本体 LLM を呼んでいないターンなので持ち回数を払い戻す（応答返却は待たせない）
+      ctx.waitUntil(refundDailyTurn(env, rateLimitKey));
       const refused: AgentChatResult = {
         reply: REFUSAL_REPLY[chatReq.locale],
         suggestions: [],
@@ -267,6 +328,11 @@ export const handleAgentChat = async (
     });
     return callableSuccess(result);
   } catch (e) {
+    // 応答を返せなかったターン（エラー・タイムアウト）は消費済みの持ち回数を払い戻す。
+    // rateLimitKey が未設定なら消費前の失敗（認証・バリデーション・上限到達）なので対象外
+    if (rateLimitKey !== undefined) {
+      ctx.waitUntil(refundDailyTurn(env, rateLimitKey));
+    }
     // 期限超過はキャンセルを下流へ伝播済み。クライアントには 504 で確定応答を返す
     if (controller.signal.aborted) {
       throw new CallableError('deadline-exceeded', 'Agent request timed out');

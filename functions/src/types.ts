@@ -31,7 +31,7 @@ export interface Env {
   AGENT_GATE_MODEL: string;
   /** 使い方 FAQ を置く CONFIG_KV のキー */
   AGENT_FAQ_KV_KEY: string;
-  /** 1 ユーザ（installId）あたりの日次ターン上限 */
+  /** 1 ユーザ（installId）あたりの日次ターン上限（config:remote の agent_daily_turn_limit が優先） */
   AGENT_DAILY_TURN_LIMIT: string;
   /** Cloudflare AI Gateway のベース URL（空なら各社 API 直行） */
   AI_GATEWAY_BASE_URL?: string;

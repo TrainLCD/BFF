@@ -56,7 +56,8 @@
     "AGENT_MODEL": "anthropic:claude-sonnet-5",
     "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
     "AGENT_FAQ_KV_KEY": "config:agent-faq",
-    "AGENT_DAILY_TURN_LIMIT": "30",
+    // config:remote の agent_daily_turn_limit があればそちらが優先（デプロイなしで調整可）
+    "AGENT_DAILY_TURN_LIMIT": "60",
     // Cloudflare AI Gateway 経由にする場合は
     // "https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway>" を設定（空なら各社 API 直行）
     "AI_GATEWAY_BASE_URL": "https://gateway.ai.cloudflare.com/v1/38d776d9385fbdbad95832d383b63e7b/trainlcd-agent-dev",
@@ -110,7 +111,8 @@
         "AGENT_MODEL": "anthropic:claude-haiku-4-5",
         "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
         "AGENT_FAQ_KV_KEY": "config:agent-faq",
-        "AGENT_DAILY_TURN_LIMIT": "30",
+        // config:remote の agent_daily_turn_limit があればそちらが優先（デプロイなしで調整可）
+        "AGENT_DAILY_TURN_LIMIT": "60",
         "AI_GATEWAY_BASE_URL": "https://gateway.ai.cloudflare.com/v1/38d776d9385fbdbad95832d383b63e7b/trainlcd-agent",
         // 本番では LangSmith トレーシングを必ず無効にする（会話本文が送信されるため）
         "LANGSMITH_TRACING": "false"
