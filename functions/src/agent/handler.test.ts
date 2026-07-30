@@ -2,7 +2,7 @@
  * runAgentTurn のテスト — LLM クライアント（generateText）をモックし、
  * ツール結果突合・件数切り詰め・空結果時の挙動を検証する（設計のテスト戦略）。
  */
-import { resolveSearchScope, runAgentTurn } from './handler';
+import { resolveDailyLimit, resolveSearchScope, runAgentTurn } from './handler';
 import type { StationSuggestion } from './schema';
 
 const station = (id: number, name = `駅${id}`): StationSuggestion => ({
@@ -23,6 +23,30 @@ const baseParams = {
   messages: [{ role: 'user' as const, content: '海が見える駅に行きたい' }],
   locale: 'ja' as const,
 };
+
+describe('resolveDailyLimit', () => {
+  const env = { AGENT_DAILY_TURN_LIMIT: '60' } as AnyFn;
+
+  it('config:remote の agent_daily_turn_limit を最優先する', () => {
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 100 })).toBe(100);
+    // 数値化できる文字列も許容し、小数は切り捨てる
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: '80' })).toBe(80);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 45.9 })).toBe(45);
+  });
+
+  it('未設定・不正値は env var へフォールバックする', () => {
+    expect(resolveDailyLimit(env, {})).toBe(60);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0 })).toBe(60);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: -5 })).toBe(60);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 'abc' })).toBe(60);
+  });
+
+  it('env var も欠損していれば既定の 60 を使う', () => {
+    expect(resolveDailyLimit({ AGENT_DAILY_TURN_LIMIT: '' } as AnyFn, {})).toBe(
+      60
+    );
+  });
+});
 
 describe('runAgentTurn', () => {
   it('ツールで実在確認済みの駅だけを返し、幻覚駅を破棄する', async () => {
