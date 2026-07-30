@@ -209,6 +209,8 @@ export const handleAgentChat = async (
     // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
     const topic = await classifyTopic(env, chatReq.messages, controller.signal);
     if (topic === 'off_topic') {
+      // 先行発行済みの現在駅解決 I/O を打ち切る（両 Promise とも catch 済みのため安全）
+      controller.abort();
       const refused: AgentChatResult = {
         reply: REFUSAL_REPLY[chatReq.locale],
         suggestions: [],
