@@ -2,7 +2,7 @@
  * runAgentTurn のテスト — LLM クライアント（generateText）をモックし、
  * ツール結果突合・件数切り詰め・空結果時の挙動を検証する（設計のテスト戦略）。
  */
-import { runAgentTurn } from './handler';
+import { resolveSearchScope, runAgentTurn } from './handler';
 import type { StationSuggestion } from './schema';
 
 const station = (id: number, name = `駅${id}`): StationSuggestion => ({
@@ -78,6 +78,35 @@ describe('runAgentTurn', () => {
     });
     expect(result.suggestions).toEqual([]);
     expect(result.reply).toBe('見つかりませんでした。');
+  });
+
+  it('現在駅ありの 0 件は「直通で行けないだけ」とモデルへ伝える', async () => {
+    let notice: string | undefined;
+    const generateText: AnyFn = jest.fn(async (options: AnyFn) => {
+      const toolResult = await options.tools.search_stations_by_name.execute(
+        { name: '江ノ島' },
+        {}
+      );
+      notice = toolResult.notice;
+      return { text: '', output: { reply: 'ok', suggestions: [] } };
+    });
+    await runAgentTurn({
+      ...baseParams,
+      generateText,
+      searchScope: 'reachable-from-known-station',
+      searchStations: jest.fn().mockResolvedValue([]),
+    });
+    expect(notice).toContain('without a transfer');
+  });
+
+  it('現在駅の解決状況でスコープを分ける', () => {
+    expect(resolveSearchScope(undefined, null)).toBe('nationwide');
+    expect(resolveSearchScope(1130101, null)).toBe(
+      'reachable-from-unknown-station'
+    );
+    expect(resolveSearchScope(1130101, station(1, '東京'))).toBe(
+      'reachable-from-known-station'
+    );
   });
 
   it('構造化出力の取り出しに失敗したらテキストへフォールバックする', async () => {
