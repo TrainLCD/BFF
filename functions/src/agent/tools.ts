@@ -15,6 +15,14 @@ const STATION_SEARCH_LIMIT = 10;
 const TOOL_TIMEOUT_MS = 5_000;
 /** 1 ターン合計のツール呼び出し上限 */
 export const MAX_TOOL_CALLS_PER_TURN = 5;
+/**
+ * ツール 1 回あたりの sapi-bff 呼び出し上限（表記ゆれ候補 + 一過性エラーの再試行の合計）。
+ * 1 試行 5 秒のため、全体 25 秒の予算内に収まる値にする。
+ */
+const MAX_SEARCH_ATTEMPTS = 3;
+
+/** 上流の駅名に含まれない接尾辞（「〜駅」「... Station」など）を落とすためのパターン */
+const STATION_SUFFIX_PATTERN = /(?:\s*(?:station|sta\.?|eki)|\s*駅)$/i;
 
 /** ツール結果はトークン節約のため応答スキーマと同一の軽量フィールドに絞る */
 const STATIONS_BY_NAME_QUERY = `
@@ -158,8 +166,48 @@ const searchOnce = (
   );
 
 /**
- * 駅名で実在駅を検索する。読み取り専用で冪等のため 1 回だけ再試行を許す
- * （LLM 呼び出しと違いコスト重複の心配がない）。
+ * 検索クエリの表記ゆれを吸収する候補を、試す順に生成する。
+ * 上流の stationsByName は駅名（漢字・かな）と公式ローマ字表記への部分一致で、
+ * 空白を含むクエリや「Station」付きのクエリは 0 件になる。
+ * 英語会話ではモデルが "Kinugawa Onsen" / "Enoshima Station" のような
+ * 分かち書きローマ字を投げがちなため、サーバ側でも救済する。
+ */
+export const buildStationNameVariants = (raw: string): string[] => {
+  const variants: string[] = [];
+  const push = (candidate: string): void => {
+    const trimmed = candidate.trim();
+    if (trimmed && !variants.includes(trimmed)) variants.push(trimmed);
+  };
+
+  const base = raw.trim().replace(/\s+/g, ' ');
+  if (!base) return variants;
+
+  // 「鎌倉駅」「Kamakura Station」などの接尾辞は上流の駅名に含まれない
+  const stripped = base.replace(STATION_SUFFIX_PATTERN, '').trim() || base;
+  push(stripped);
+
+  if (stripped.includes(' ')) {
+    // 日本語は区切り無し、ローマ字は語の区切りがハイフン（例: Kinugawa-onsen）
+    const isAscii = !/[^ -~]/.test(stripped);
+    push(stripped.replaceAll(' ', isAscii ? '-' : ''));
+  }
+
+  // 最後の手段: 複合語は最長トークンで広く引く（例: Katase Enoshima → Enoshima）
+  const tokens = stripped.split(/[\s\-・=]+/).filter((t) => t.length > 1);
+  if (tokens.length > 1) {
+    push(
+      tokens.reduce((longest, t) => (t.length > longest.length ? t : longest))
+    );
+  }
+
+  return variants;
+};
+
+/**
+ * 駅名で実在駅を検索する。表記ゆれ候補を順に試し、最初に 1 件以上ヒットした
+ * 結果を返す。読み取り専用で冪等のため一過性エラーは同一クエリで 1 回だけ
+ * 再試行を許す（LLM 呼び出しと違いコスト重複の心配がない）。
+ * 全候補が 0 件なら空配列、1 度も応答を得られなければ最後のエラーを送出する。
  */
 export const searchStationsByName = async (
   env: Env,
@@ -168,16 +216,35 @@ export const searchStationsByName = async (
   parentSignal?: AbortSignal
 ): Promise<StationSuggestion[]> => {
   let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      return await searchOnce(env, name, fromStationGroupId, parentSignal);
-    } catch (e) {
-      lastError = e;
-      // リクエスト全体の期限切れなら再試行しない
-      if (parentSignal?.aborted) throw e;
+  let responded = false;
+  let attempts = 0;
+
+  for (const variant of buildStationNameVariants(name)) {
+    // 同一クエリの一過性エラーは 1 回だけ再試行する
+    for (let retry = 0; retry < 2 && attempts < MAX_SEARCH_ATTEMPTS; retry++) {
+      attempts++;
+      try {
+        const stations = await searchOnce(
+          env,
+          variant,
+          fromStationGroupId,
+          parentSignal
+        );
+        responded = true;
+        if (stations.length > 0) return stations;
+        // 0 件は正常応答。再試行せず次の表記ゆれ候補へ進む
+        break;
+      } catch (e) {
+        lastError = e;
+        // リクエスト全体の期限切れなら再試行しない
+        if (parentSignal?.aborted) throw e;
+      }
     }
+    if (attempts >= MAX_SEARCH_ATTEMPTS) break;
   }
-  throw lastError;
+
+  if (!responded && lastError) throw lastError;
+  return [];
 };
 
 /**
@@ -231,8 +298,12 @@ export const createStationSearchTool = ({
   budget,
 }: StationSearchToolOptions) =>
   tool({
-    description:
+    description: [
       '駅名や読みの一部から実在する駅を検索する。ユーザに駅を提案する前に必ずこのツールで実在確認すること。',
+      '照合は駅名の日本語表記（漢字・かな）と公式ローマ字表記への部分一致で行う。',
+      '会話が英語でも、クエリは日本語表記が最も確実（例: "Kamakura Kokomae" ではなく「鎌倉高校前」）。',
+      'クエリに空白・"Station"・「駅」を含めないこと。ローマ字で検索するときは語の区切りをハイフンにする（例: Kinugawa-onsen）。',
+    ].join('\n'),
     inputSchema: stationSearchInputSchema,
     execute: async ({ name }) => {
       // 呼び出し上限超過時は検索せず、その時点の結果で応答を生成させる
@@ -248,6 +319,15 @@ export const createStationSearchTool = ({
         const stations = await search(name);
         for (const s of stations) {
           verified.set(s.stationId, s);
+        }
+        // 0 件のときは次の一手を具体的に示す（英語会話で分かち書きローマ字を
+        // 投げて空振りし、そのまま諦めてしまうのを防ぐ）
+        if (stations.length === 0) {
+          return {
+            stations: [],
+            notice:
+              'No match. Retry with the Japanese name (kanji or kana), or a shorter distinctive part of the name (e.g. an area name) with no spaces and no "Station" suffix.',
+          };
         }
         return { stations };
       } catch (e) {

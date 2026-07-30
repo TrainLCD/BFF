@@ -1,6 +1,7 @@
 import type { Env } from '../types';
 import type { StationSuggestion } from './schema';
 import {
+  buildStationNameVariants,
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
@@ -49,9 +50,58 @@ describe('toStationSuggestion', () => {
   });
 });
 
+describe('buildStationNameVariants', () => {
+  it('区切りの無い日本語駅名は候補 1 件のまま（余計な検索を増やさない）', () => {
+    expect(buildStationNameVariants('鎌倉高校前')).toEqual(['鎌倉高校前']);
+  });
+
+  it('「駅」「Station」などの接尾辞を落とす', () => {
+    expect(buildStationNameVariants('鎌倉駅')).toEqual(['鎌倉']);
+    expect(buildStationNameVariants('Enoshima Station')).toEqual(['Enoshima']);
+    expect(buildStationNameVariants('Kamakura Sta.')).toEqual(['Kamakura']);
+  });
+
+  it('分かち書きローマ字はハイフン連結と最長トークンへフォールバックする', () => {
+    expect(buildStationNameVariants('Kinugawa Onsen')).toEqual([
+      'Kinugawa Onsen',
+      'Kinugawa-Onsen',
+      'Kinugawa',
+    ]);
+    expect(buildStationNameVariants('Katase Enoshima')).toEqual([
+      'Katase Enoshima',
+      'Katase-Enoshima',
+      'Enoshima',
+    ]);
+  });
+
+  it('空白入りの日本語は空白除去へフォールバックする', () => {
+    expect(buildStationNameVariants('鎌倉 高校前')).toEqual([
+      '鎌倉 高校前',
+      '鎌倉高校前',
+      '高校前',
+    ]);
+  });
+
+  it('ハイフン区切りのローマ字は最長トークンを予備候補にする', () => {
+    expect(buildStationNameVariants('Kamakura-koko-mae')).toEqual([
+      'Kamakura-koko-mae',
+      'Kamakura',
+    ]);
+  });
+
+  it('空文字は候補なし', () => {
+    expect(buildStationNameVariants('   ')).toEqual([]);
+  });
+});
+
 describe('searchStationsByName', () => {
   const makeEnv = (fetchImpl: jest.Mock): Env =>
     ({ SAPI_BFF: { fetch: fetchImpl } }) as unknown as Env;
+
+  const queriedNames = (fetchMock: jest.Mock): string[] =>
+    fetchMock.mock.calls.map(
+      ([, init]) => JSON.parse(init.body).variables.name
+    );
 
   it('Service Binding 経由で検索し結果をマップする', async () => {
     const fetchMock = jest.fn().mockResolvedValue(gqlResponse([gqlStation(1)]));
@@ -113,6 +163,65 @@ describe('searchStationsByName', () => {
     await expect(
       searchStationsByName({} as unknown as Env, '海', undefined)
     ).rejects.toThrow('SAPI_BFF');
+  });
+
+  it('0 件なら表記ゆれ候補で引き直す（分かち書きローマ字の救済）', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([]))
+      .mockResolvedValueOnce(gqlResponse([gqlStation(3, '鬼怒川温泉')]));
+    const result = await searchStationsByName(
+      makeEnv(fetchMock),
+      'Kinugawa Onsen',
+      undefined
+    );
+    expect(queriedNames(fetchMock)).toEqual([
+      'Kinugawa Onsen',
+      'Kinugawa-Onsen',
+    ]);
+    expect(result[0].name).toBe('鬼怒川温泉');
+  });
+
+  it('全候補が 0 件なら空配列を返す（呼び出しは上限まで）', async () => {
+    // 候補ごとにボディが読まれるため、呼び出しごとに新しい Response を返す
+    const fetchMock = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(gqlResponse([])));
+    const result = await searchStationsByName(
+      makeEnv(fetchMock),
+      'Katase Enoshima',
+      undefined
+    );
+    expect(result).toEqual([]);
+    expect(queriedNames(fetchMock)).toEqual([
+      'Katase Enoshima',
+      'Katase-Enoshima',
+      'Enoshima',
+    ]);
+  });
+
+  it('候補を試しても合計呼び出し回数は上限を超えない', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(new Response('oops', { status: 500 }));
+    await expect(
+      searchStationsByName(makeEnv(fetchMock), 'Kinugawa Onsen', undefined)
+    ).rejects.toThrow('status 500');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('先行候補がエラーでも後続候補がヒットすれば結果を返す', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(new Response('oops', { status: 500 }))
+      .mockResolvedValueOnce(new Response('oops', { status: 500 }))
+      .mockResolvedValueOnce(gqlResponse([gqlStation(4, '鬼怒川温泉')]));
+    const result = await searchStationsByName(
+      makeEnv(fetchMock),
+      'Kinugawa Onsen',
+      undefined
+    );
+    expect(result[0].name).toBe('鬼怒川温泉');
   });
 
   it('abort 済みの親シグナルは fetch へ即座に伝播する', async () => {
@@ -224,6 +333,17 @@ describe('createStationSearchTool', () => {
     expect(search).not.toHaveBeenCalled();
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('limit');
+  });
+
+  it('0 件のときは引き直し方を notice で示す', async () => {
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
+      verified: new Map(),
+      budget: { remaining: 1 },
+    });
+    const result = await execute(tool, 'Kamakura Kokomae');
+    expect(result.stations).toEqual([]);
+    expect(result.notice).toContain('Japanese name');
   });
 
   it('検索失敗はエラーにせずツール結果として返す', async () => {

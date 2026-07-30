@@ -54,7 +54,11 @@ export type AgentOutput = z.infer<typeof agentOutputSchema>;
 
 /** search_stations_by_name ツールの入力 */
 export const stationSearchInputSchema = z.object({
-  name: z.string().describe('検索する駅名（部分一致可）'),
+  name: z
+    .string()
+    .describe(
+      '検索する駅名（部分一致）。日本語表記（漢字・かな）が最も確実。ローマ字の場合は公式表記（語の区切りはハイフン）を使い、空白や "Station" / 「駅」は含めない'
+    ),
 });
 
 /** クライアントへ返すレスポンス（callable の result） */
