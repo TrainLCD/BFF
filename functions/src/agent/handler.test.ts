@@ -25,7 +25,8 @@ const baseParams = {
 };
 
 describe('resolveDailyLimit', () => {
-  const env = { AGENT_DAILY_TURN_LIMIT: '60' } as AnyFn;
+  // 既定値 60 と区別するため、env のフォールバック値は 70 にする
+  const env = { AGENT_DAILY_TURN_LIMIT: '70' } as AnyFn;
 
   it('config:remote の agent_daily_turn_limit を最優先する', () => {
     expect(resolveDailyLimit(env, { agent_daily_turn_limit: 100 })).toBe(100);
@@ -35,17 +36,17 @@ describe('resolveDailyLimit', () => {
   });
 
   it('未設定・不正値は env var へフォールバックする', () => {
-    expect(resolveDailyLimit(env, {})).toBe(60);
-    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0 })).toBe(60);
-    expect(resolveDailyLimit(env, { agent_daily_turn_limit: -5 })).toBe(60);
-    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 'abc' })).toBe(60);
+    expect(resolveDailyLimit(env, {})).toBe(70);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0 })).toBe(70);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: -5 })).toBe(70);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 'abc' })).toBe(70);
     // 切り捨てで 0 になる小数を有効扱いすると全リクエスト拒否になるため不正値
-    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0.5 })).toBe(60);
+    expect(resolveDailyLimit(env, { agent_daily_turn_limit: 0.5 })).toBe(70);
     expect(
       resolveDailyLimit(env, {
         agent_daily_turn_limit: Number.POSITIVE_INFINITY,
       })
-    ).toBe(60);
+    ).toBe(70);
   });
 
   it('env var も不正・欠損なら既定の 60 を使う', () => {
