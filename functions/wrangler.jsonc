@@ -53,7 +53,7 @@
     "FEW_SHOT_PER_EX_MAX": "800",
     // --- AI エージェント（/agent/chat）---
     // モデルは "anthropic:<model>" | "openai:<model>"。比較検証で差し替える
-    "AGENT_MODEL": "anthropic:claude-sonnet-5",
+    "AGENT_MODEL": "openai:gpt-5.6-luna",
     "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
     "AGENT_FAQ_KV_KEY": "config:agent-faq",
     // config:remote の agent_daily_turn_limit があればそちらが優先（デプロイなしで調整可）
@@ -108,7 +108,7 @@
         "FEW_SHOT_LIMIT": "12",
         "FEW_SHOT_PER_EX_MAX": "800",
         // --- AI エージェント（/agent/chat）---
-        "AGENT_MODEL": "anthropic:claude-haiku-4-5",
+        "AGENT_MODEL": "openai:gpt-5.6-luna",
         "AGENT_GATE_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
         "AGENT_FAQ_KV_KEY": "config:agent-faq",
         // config:remote の agent_daily_turn_limit があればそちらが優先（デプロイなしで調整可）
