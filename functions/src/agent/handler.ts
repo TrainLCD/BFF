@@ -1,5 +1,6 @@
 /**
- * POST /agent/chat — AI エージェント本体（callable 互換）。
+ * POST /agent/chat（非ストリーミング）と POST /agent/chat/stream（SSE）—
+ * AI エージェント本体。前者は callable 互換、後者は同一リクエストで SSE を返す。
  * 処理順: JWT 検証 → 入力検証 → キルスイッチ → レート制限 → トピックゲート →
  * tool use ループ（AI SDK・最大 3 イテレーション） → 提案駅のサーバ側検証。
  * サーバはステートレスで、会話履歴は毎回クライアントから全量を受け取る。
@@ -9,6 +10,7 @@ import type { LanguageModel } from 'ai';
 import { Output, stepCountIs } from 'ai';
 import { verifySessionToken } from '../lib/auth/session';
 import {
+  type CallableCode,
   CallableError,
   callableSuccess,
   parseCallableData,
@@ -22,8 +24,14 @@ import {
   type AgentOutput,
   agentOutputSchema,
   type ChatMessage,
+  type ChatRequest,
   type StationSuggestion,
 } from './schema';
+import {
+  type AgentStreamEvent,
+  encodeAgentStreamEvent,
+  extractReplyDelta,
+} from './stream';
 import {
   createStationSearchTool,
   fetchStationByGroupId,
@@ -33,8 +41,8 @@ import {
 } from './tools';
 import {
   type AgentLLMRuntime,
-  type GenerateTextFn,
   resolveAgentLLMRuntime,
+  type StreamTextFn,
 } from './tracing';
 import { parseChatRequest, sanitizeSuggestions } from './validate';
 
@@ -163,7 +171,7 @@ export const resolveSearchScope = (
 };
 
 export interface AgentTurnParams {
-  generateText: GenerateTextFn;
+  streamText: StreamTextFn;
   model: LanguageModel;
   systemPrompt: string;
   contextNote: string;
@@ -173,12 +181,28 @@ export interface AgentTurnParams {
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
   signal?: AbortSignal;
+  /** reply 本文の増分（SSE の delta）。非ストリーミング呼び出しでは省略する */
+  onDelta?: (text: string) => void | Promise<void>;
+  /** ツール実行の開始（SSE の tool）。入力内容は会話本文相当のため渡さない */
+  onToolStart?: () => void | Promise<void>;
 }
+
+/** 構造化出力を取り出せなかったときの救済用に、最終テキストを best effort で読む */
+const readFinalText = async (text: PromiseLike<string>): Promise<string> => {
+  try {
+    return (await text) ?? '';
+  } catch {
+    // ストリーム自体が失敗している場合。呼び出し元が元のエラーを扱う
+    return '';
+  }
+};
 
 /**
  * 1 ターン分のエージェント処理（テスト可能な単位）。
  * AI SDK の tool use ループで実在確認しつつ、最終応答は構造化出力で受け取り、
  * suggestions をツール結果と突合してから返す。
+ * ストリーミング／非ストリーミングで実装を分けず、イベント通知の有無だけを
+ * コールバック（onDelta / onToolStart）で切り替える。
  */
 export const runAgentTurn = async (
   params: AgentTurnParams
@@ -186,7 +210,7 @@ export const runAgentTurn = async (
   const verified = new Map<number, StationSuggestion>();
   const budget = { remaining: MAX_TOOL_CALLS_PER_TURN };
 
-  const result = await params.generateText({
+  const result = await params.streamText({
     model: params.model,
     // システムプロンプト（不変）を先頭に置き、末尾にキャッシュ境界を張る。
     // locale・現在駅などの可変要素は必ずその後ろに置く（プロンプトキャッシュ設計）
@@ -222,20 +246,153 @@ export const runAgentTurn = async (
     // LLM 呼び出しはコスト重複を避けるため自動再試行しない（設計値）
     maxRetries: 0,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    // ツール入力（検索語）は会話本文相当のため送らず、実行中の合図だけを通知する
+    onChunk: async ({ chunk }) => {
+      if (chunk.type === 'tool-call') {
+        await params.onToolStart?.();
+      }
+    },
   });
+
+  // 構造化出力の partial JSON から reply の増分だけを送出する。
+  // 非ストリーミング呼び出しでも同じループでストリームを消費する（実装の二重化を避ける）
+  let emitted = '';
+  for await (const partial of result.partialOutputStream) {
+    const delta = extractReplyDelta(emitted, partial?.reply);
+    if (!delta) continue;
+    emitted += delta;
+    await params.onDelta?.(delta);
+  }
 
   // 構造化出力の取り出しに失敗しても、テキストがあればそれを応答として救済する
   let output: AgentOutput;
   try {
-    output = result.output;
-  } catch {
-    output = { reply: result.text ?? '', suggestions: [] };
+    output = await result.output;
+  } catch (e) {
+    const text = await readFinalText(result.text);
+    // テキストも取れないのはストリーム自体の失敗なので、救済せずエラーとして扱う
+    if (!text) throw e;
+    output = { reply: text, suggestions: [] };
   }
 
   return {
     reply: output.reply.trim() || FALLBACK_REPLY[params.locale],
     suggestions: sanitizeSuggestions(output.suggestions ?? [], verified),
     refused: false,
+  };
+};
+
+/**
+ * 消費済みレート制限カウンタのキー入れ。前段処理が途中で失敗しても
+ * 呼び出し元が払い戻せるよう、戻り値ではなく共有オブジェクトで受け渡す。
+ */
+interface RateLimitSlot {
+  key?: string;
+}
+
+/** 前段処理の結果。謝絶なら本体 LLM を呼ばずに確定応答をそのまま返す */
+type PreparedTurn =
+  | { refused: AgentChatResult }
+  | {
+      chatReq: ChatRequest;
+      faq: string | null;
+      currentStation: StationSuggestion | null;
+    };
+
+/**
+ * ストリーミング／非ストリーミング共通の前段処理。
+ * JWT 検証 → 入力検証 → キルスイッチ → レート制限 → トピックゲート →
+ * FAQ・現在駅の解決までを行い、両エンドポイントで同一の制約を強制する。
+ */
+const prepareAgentTurn = async (
+  req: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  controller: AbortController,
+  slot: RateLimitSlot
+): Promise<PreparedTurn> => {
+  const installId = await verifySessionToken(
+    env,
+    req.headers.get('Authorization')
+  );
+  const chatReq = parseChatRequest(await parseCallableData(req));
+
+  const remoteConfig = await ensureAgentEnabled(env);
+  slot.key = await enforceDailyLimit(
+    env,
+    installId,
+    resolveDailyLimit(env, remoteConfig)
+  );
+
+  // FAQ ロードと現在駅の解決はトピックゲートと並行して先行させる
+  // （どちらも内部で catch 済みのため、謝絶時に未 await で捨てても安全）
+  const contextPromise = Promise.all([
+    loadAgentFaq(env),
+    chatReq.currentStationGroupId === undefined
+      ? Promise.resolve(null)
+      : fetchStationByGroupId(
+          env,
+          chatReq.currentStationGroupId,
+          controller.signal
+        ).catch((e) => {
+          console.error('agent: failed to resolve current station', e);
+          return null;
+        }),
+  ]);
+
+  // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
+  const topic = await classifyTopic(env, chatReq.messages, controller.signal);
+  if (topic === 'off_topic') {
+    // 先行発行済みの現在駅解決 I/O を打ち切る（両 Promise とも catch 済みのため安全）
+    controller.abort();
+    // 本体 LLM を呼んでいないターンなので持ち回数を払い戻す（応答返却は待たせない）
+    ctx.waitUntil(refundDailyTurn(env, slot.key));
+    // 払い戻し済みのキーは外し、後続の失敗で二重に払い戻さないようにする
+    slot.key = undefined;
+    return {
+      refused: {
+        reply: REFUSAL_REPLY[chatReq.locale],
+        suggestions: [],
+        refused: true,
+      },
+    };
+  }
+
+  const [faq, currentStation] = await contextPromise;
+  return { chatReq, faq, currentStation };
+};
+
+/** 前段処理の結果から runAgentTurn の引数を組み立てる（両エンドポイントで共通） */
+const buildTurnParams = (
+  env: Env,
+  runtime: AgentLLMRuntime,
+  prepared: Extract<PreparedTurn, { chatReq: ChatRequest }>,
+  signal: AbortSignal,
+  callbacks: Pick<AgentTurnParams, 'onDelta' | 'onToolStart'> = {}
+): AgentTurnParams => {
+  const { chatReq, faq, currentStation } = prepared;
+  return {
+    streamText: runtime.streamText,
+    model: resolveAgentModel(env),
+    systemPrompt: buildSystemPrompt(faq),
+    contextNote: buildContextMessage(
+      chatReq.locale,
+      currentStation,
+      chatReq.currentStationGroupId
+    ),
+    messages: chatReq.messages,
+    locale: chatReq.locale,
+    // 検索フィルタの有無（currentStationGroupId）と、現在駅の名称・路線が
+    // 解決できたかは別物。解決に失敗したときに沿線での引き直しを指示しても
+    // モデルは路線名を知らないため、スコープを分けて案内を変える
+    searchScope: resolveSearchScope(
+      chatReq.currentStationGroupId,
+      currentStation
+    ),
+    searchStations: (name) =>
+      searchStationsByName(env, name, chatReq.currentStationGroupId, signal),
+    signal,
+    ...callbacks,
   };
 };
 
@@ -250,88 +407,23 @@ export const handleAgentChat = async (
   const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
   let runtime: AgentLLMRuntime | undefined;
   // レート制限カウンタを消費済みなら、そのキー（失敗時の払い戻し先）
-  let rateLimitKey: string | undefined;
+  const slot: RateLimitSlot = {};
   try {
     runtime = resolveAgentLLMRuntime(env);
-
-    const installId = await verifySessionToken(
-      env,
-      req.headers.get('Authorization')
-    );
-    const chatReq = parseChatRequest(await parseCallableData(req));
-
-    const remoteConfig = await ensureAgentEnabled(env);
-    rateLimitKey = await enforceDailyLimit(
-      env,
-      installId,
-      resolveDailyLimit(env, remoteConfig)
-    );
-
-    // FAQ ロードと現在駅の解決はトピックゲートと並行して先行させる
-    // （どちらも内部で catch 済みのため、謝絶時に未 await で捨てても安全）
-    const contextPromise = Promise.all([
-      loadAgentFaq(env),
-      chatReq.currentStationGroupId === undefined
-        ? Promise.resolve(null)
-        : fetchStationByGroupId(
-            env,
-            chatReq.currentStationGroupId,
-            controller.signal
-          ).catch((e) => {
-            console.error('agent: failed to resolve current station', e);
-            return null;
-          }),
-    ]);
-
-    // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
-    const topic = await classifyTopic(env, chatReq.messages, controller.signal);
-    if (topic === 'off_topic') {
-      // 先行発行済みの現在駅解決 I/O を打ち切る（両 Promise とも catch 済みのため安全）
-      controller.abort();
-      // 本体 LLM を呼んでいないターンなので持ち回数を払い戻す（応答返却は待たせない）
-      ctx.waitUntil(refundDailyTurn(env, rateLimitKey));
-      const refused: AgentChatResult = {
-        reply: REFUSAL_REPLY[chatReq.locale],
-        suggestions: [],
-        refused: true,
-      };
-      return callableSuccess(refused);
+    const prepared = await prepareAgentTurn(req, env, ctx, controller, slot);
+    if ('refused' in prepared) {
+      return callableSuccess(prepared.refused);
     }
 
-    const [faq, currentStation] = await contextPromise;
-    const result = await runAgentTurn({
-      generateText: runtime.generateText,
-      model: resolveAgentModel(env),
-      systemPrompt: buildSystemPrompt(faq),
-      contextNote: buildContextMessage(
-        chatReq.locale,
-        currentStation,
-        chatReq.currentStationGroupId
-      ),
-      messages: chatReq.messages,
-      locale: chatReq.locale,
-      // 検索フィルタの有無（currentStationGroupId）と、現在駅の名称・路線が
-      // 解決できたかは別物。解決に失敗したときに沿線での引き直しを指示しても
-      // モデルは路線名を知らないため、スコープを分けて案内を変える
-      searchScope: resolveSearchScope(
-        chatReq.currentStationGroupId,
-        currentStation
-      ),
-      searchStations: (name) =>
-        searchStationsByName(
-          env,
-          name,
-          chatReq.currentStationGroupId,
-          controller.signal
-        ),
-      signal: controller.signal,
-    });
+    const result = await runAgentTurn(
+      buildTurnParams(env, runtime, prepared, controller.signal)
+    );
     return callableSuccess(result);
   } catch (e) {
     // 応答を返せなかったターン（エラー・タイムアウト）は消費済みの持ち回数を払い戻す。
-    // rateLimitKey が未設定なら消費前の失敗（認証・バリデーション・上限到達）なので対象外
-    if (rateLimitKey !== undefined) {
-      ctx.waitUntil(refundDailyTurn(env, rateLimitKey));
+    // キーが未設定なら消費前の失敗（認証・バリデーション・上限到達）なので対象外
+    if (slot.key !== undefined) {
+      ctx.waitUntil(refundDailyTurn(env, slot.key));
     }
     // 期限超過はキャンセルを下流へ伝播済み。クライアントには 504 で確定応答を返す
     if (controller.signal.aborted) {
@@ -345,4 +437,93 @@ export const handleAgentChat = async (
       ctx.waitUntil(runtime.flush());
     }
   }
+};
+
+/** SSE レスポンスのヘッダ（経路上でのバッファリング・変換を抑止する） */
+const SSE_HEADERS = {
+  'content-type': 'text/event-stream; charset=UTF-8',
+  'cache-control': 'no-cache, no-transform',
+} as const;
+
+/** ストリーム開始後のエラーを callable のエラーコードへ写像する */
+const toStreamErrorCode = (e: unknown, aborted: boolean): CallableCode => {
+  // 期限超過は非ストリーミングの 504 と同じコードで通知する
+  if (aborted) return 'deadline-exceeded';
+  return e instanceof CallableError ? e.code : 'internal';
+};
+
+/**
+ * POST /agent/chat/stream — /agent/chat と同一のリクエストを受け、
+ * 応答を SSE（delta / tool / done / error）で配信する。
+ * ストリーム開始前に判定できるエラーは callable 互換の JSON エラーで返し、
+ * 開始後（200 送出後）のエラーは error イベントで通知する。
+ */
+export const handleAgentChatStream = async (
+  req: Request,
+  env: Env,
+  ctx: ExecutionContext
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
+  const slot: RateLimitSlot = {};
+  const runtime = resolveAgentLLMRuntime(env);
+
+  let prepared: PreparedTurn;
+  try {
+    prepared = await prepareAgentTurn(req, env, ctx, controller, slot);
+  } catch (e) {
+    clearTimeout(timer);
+    if (slot.key !== undefined) {
+      ctx.waitUntil(refundDailyTurn(env, slot.key));
+    }
+    ctx.waitUntil(runtime.flush());
+    if (controller.signal.aborted) {
+      throw new CallableError('deadline-exceeded', 'Agent request timed out');
+    }
+    throw e;
+  }
+
+  const encoder = new TextEncoder();
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  const send = async (event: AgentStreamEvent): Promise<void> => {
+    await writer.write(encoder.encode(encodeAgentStreamEvent(event)));
+  };
+
+  const pump = async (): Promise<void> => {
+    try {
+      // 謝絶は delta を出さずに確定応答だけを送る
+      if ('refused' in prepared) {
+        await send({ event: 'done', data: prepared.refused });
+        return;
+      }
+      const result = await runAgentTurn(
+        buildTurnParams(env, runtime, prepared, controller.signal, {
+          onDelta: (text) => send({ event: 'delta', data: { text } }),
+          onToolStart: () => send({ event: 'tool', data: {} }),
+        })
+      );
+      await send({ event: 'done', data: result });
+    } catch (e) {
+      // ストリーム開始後に失敗したターンも、非ストリーミングと同じ基準で払い戻す
+      if (slot.key !== undefined) {
+        await refundDailyTurn(env, slot.key);
+      }
+      const code = toStreamErrorCode(e, controller.signal.aborted);
+      if (code === 'internal') {
+        console.error('agent: stream turn failed', e);
+      }
+      // クライアント切断などで送出自体が失敗しても、ここでは何もできない
+      await send({ event: 'error', data: { code } }).catch(() => {});
+    } finally {
+      clearTimeout(timer);
+      // done / error のあとはストリームを閉じる（クライアントは終端で受信を終える）
+      await writer.close().catch(() => {});
+      // dev 環境のみ: LangSmith トレース送信をストリーム終了後に完了させる
+      await runtime.flush();
+    }
+  };
+
+  ctx.waitUntil(pump());
+  return new Response(readable, { status: 200, headers: SSE_HEADERS });
 };
