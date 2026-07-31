@@ -352,10 +352,10 @@ export const runAgentTurn = async (
       anthropic: { thinking: { type: 'disabled' } },
       // GPT-5 系は reasoningEffort 未指定だと既定の reasoning が各ステップの前に走り、
       // 最初の delta までのレイテンシと出力トークンを消費する。Anthropic の
-      // thinking 無効化と対になる指定として最小に固定する
-      // （@ai-sdk/openai の Responses API モデルが providerOptions.openai.reasoningEffort
-      //   を受け付ける。'minimal' は同 SDK の型定義が許容する値）
-      openai: { reasoningEffort: 'minimal' },
+      // thinking 無効化と対になる指定として 'none' に固定する
+      // （'minimal' は GPT-5.1 以降で廃止済み。SDK はローカル検証せず API へ
+      //   そのまま送るため、廃止値を指定すると 400 になる）
+      openai: { reasoningEffort: 'none' },
     },
     timeout: { stepMs: LLM_CALL_TIMEOUT_MS },
     abortSignal: params.signal,

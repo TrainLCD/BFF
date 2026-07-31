@@ -337,7 +337,7 @@ describe('runAgentTurn', () => {
     // 使っていない側のプロバイダキーは無視されるため、両方を常に指定する
     expect(streamText.mock.calls[0][0].providerOptions).toEqual({
       anthropic: { thinking: { type: 'disabled' } },
-      openai: { reasoningEffort: 'minimal' },
+      openai: { reasoningEffort: 'none' },
     });
   });
 });
