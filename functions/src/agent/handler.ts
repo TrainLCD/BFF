@@ -388,7 +388,11 @@ export const runAgentTurn = async (
     const text = await readFinalText(result.text);
     // テキストも取れないのはストリーム自体の失敗なので、救済せずエラーとして扱う
     if (!text) throw e;
-    output = { reply: text, suggestions: [] };
+    // 構造化出力モードの最終テキストは JSON 表現のことがある。生の JSON を
+    // 応答として見せないよう、JSON らしければ partial 抽出済みの reply で救済する
+    const rescued = text.trimStart().startsWith('{') ? emitted : text;
+    if (!rescued) throw e;
+    output = { reply: rescued, suggestions: [] };
   }
 
   return {

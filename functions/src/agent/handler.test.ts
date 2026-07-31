@@ -206,6 +206,33 @@ describe('runAgentTurn', () => {
     expect(turn.suggestions).toEqual([]);
   });
 
+  it('フォールバック時、JSON らしきテキストは partial 抽出済みの reply で救済する', async () => {
+    const streamText: AnyFn = jest.fn(async () =>
+      streamResult({
+        partials: [{ reply: '海の見える駅' }],
+        // 途中で切れた JSON（output の取り出しは失敗し、text はその生 JSON）
+        text: '{"reply":"海の見える駅","suggestions":[',
+      })
+    );
+    const turn = await runAgentTurn({
+      ...baseParams,
+      streamText,
+      searchStations: jest.fn(),
+    });
+    // 生の JSON をユーザに見せず、ストリーム済みの reply を確定応答にする
+    expect(turn.reply).toBe('海の見える駅');
+    expect(turn.suggestions).toEqual([]);
+  });
+
+  it('フォールバック時、JSON らしきテキストで reply も未抽出ならエラーを投げる', async () => {
+    const streamText: AnyFn = jest.fn(async () =>
+      streamResult({ text: '{"suggestions":[' })
+    );
+    await expect(
+      runAgentTurn({ ...baseParams, streamText, searchStations: jest.fn() })
+    ).rejects.toThrow('NoOutputGeneratedError');
+  });
+
   it('構造化出力もテキストも取れなければエラーを投げる', async () => {
     const streamText: AnyFn = jest.fn(async () => streamResult({}));
     await expect(
