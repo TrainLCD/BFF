@@ -55,3 +55,26 @@ export const resolveAgentModel = (env: Env): LanguageModel => {
       );
   }
 };
+
+/**
+ * reasoningEffort: 'none' を受け付ける OpenAI モデル（GPT-5.1 系以降の
+ * マイナーバージョン付き GPT-5）。gpt-5 無印（'minimal' まで）・o 系
+ * （low/medium/high のみ）・非 reasoning モデル（パラメータ自体を拒否）へ
+ * 'none' を送ると API エラー（400）になる。
+ */
+const OPENAI_REASONING_NONE_MODELS = /^gpt-5\.[1-9]/;
+
+/**
+ * OpenAI 向け reasoning 抑制の providerOptions をモデル別に解決する。
+ * AGENT_MODEL は任意の "openai:<model>" を受け付けるため、'none' 対応が
+ * 確認できているモデルに限って指定し、それ以外では省略する（非対応モデルへの
+ * 誤指定で全リクエストが失敗するより、既定 reasoning のレイテンシを許容する）。
+ */
+export const resolveOpenAIReasoningOptions = (
+  model: LanguageModel
+): { reasoningEffort: 'none' } | undefined => {
+  const modelId = typeof model === 'string' ? model : model.modelId;
+  return OPENAI_REASONING_NONE_MODELS.test(modelId)
+    ? { reasoningEffort: 'none' }
+    : undefined;
+};

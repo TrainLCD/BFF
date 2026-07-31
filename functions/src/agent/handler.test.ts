@@ -17,7 +17,10 @@ jest.mock('../lib/auth/session', () => ({
   verifySessionToken: jest.fn().mockResolvedValue('install-1'),
 }));
 jest.mock('./gate', () => ({ classifyTopic: jest.fn() }));
-jest.mock('./llm', () => ({ resolveAgentModel: () => 'mock-model' }));
+jest.mock('./llm', () => ({
+  ...jest.requireActual('./llm'),
+  resolveAgentModel: () => 'mock-model',
+}));
 jest.mock('./prompt', () => ({
   loadAgentFaq: jest.fn().mockResolvedValue(null),
   buildSystemPrompt: () => 'SYSTEM',
@@ -324,20 +327,32 @@ describe('runAgentTurn', () => {
     expect(options.timeout).toEqual({ stepMs: 20_000 });
   });
 
-  it('Anthropic の thinking と OpenAI の reasoning を両方抑制する', async () => {
+  it('Anthropic の thinking を無効化し、OpenAI の reasoning は対応モデルのみ抑制する', async () => {
     const streamText: AnyFn = jest.fn(async () =>
       streamResult({ output: { reply: 'ok', suggestions: [] } })
     );
+    // 'none' 対応モデル（GPT-5.1 系）では reasoningEffort を指定する
     await runAgentTurn({
       ...baseParams,
+      model: 'gpt-5.1' as AnyFn,
       streamText,
       searchStations: jest.fn(),
     });
-
-    // 使っていない側のプロバイダキーは無視されるため、両方を常に指定する
     expect(streamText.mock.calls[0][0].providerOptions).toEqual({
       anthropic: { thinking: { type: 'disabled' } },
       openai: { reasoningEffort: 'none' },
+    });
+
+    // 'none' 非対応モデル（gpt-5 無印・o 系など）へ送ると 400 になるため、
+    // 対応が確認できないモデルでは指定自体を省略する
+    await runAgentTurn({
+      ...baseParams,
+      model: 'gpt-5' as AnyFn,
+      streamText,
+      searchStations: jest.fn(),
+    });
+    expect(streamText.mock.calls[1][0].providerOptions).toEqual({
+      anthropic: { thinking: { type: 'disabled' } },
     });
   });
 });
@@ -521,10 +536,13 @@ describe('handleAgentChatStream', () => {
     const day = new Date().toISOString().slice(0, 10).replaceAll('-', '');
     counters.set(`agent-rl:install-1:${day}`, '10');
 
+    // 期限超過（deadline-exceeded）へ誤変換されず、上限到達のまま返ること
     await expect(
       handleAgentChatStream(createRequest(), env, ctx)
     ).rejects.toMatchObject({ code: 'resource-exhausted' });
     expect(env.STATE_KV.put).not.toHaveBeenCalled();
+    // 応答を返さないリクエストの先行 I/O（Workers AI の分類など）は打ち切られる
+    expect((classifyTopic as AnyFn).mock.calls[0][2].aborted).toBe(true);
   });
 
   it('キルスイッチ・上限チェック・トピックゲートを並列で開始する', async () => {
@@ -627,5 +645,7 @@ describe('handleAgentChatStream', () => {
     await expect(
       handleAgentChatStream(createRequest(), env, ctx)
     ).rejects.toMatchObject({ code: 'unavailable' });
+    // キルスイッチ発動時も先行 I/O は打ち切られる
+    expect((classifyTopic as AnyFn).mock.calls[0][2].aborted).toBe(true);
   });
 });
