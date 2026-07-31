@@ -1,8 +1,11 @@
 /**
  * POST /agent/chat（非ストリーミング）と POST /agent/chat/stream（SSE）—
  * AI エージェント本体。前者は callable 互換、後者は同一リクエストで SSE を返す。
- * 処理順: JWT 検証 → 入力検証 → キルスイッチ → レート制限 → トピックゲート →
- * tool use ループ（AI SDK・最大 3 イテレーション） → 提案駅のサーバ側検証。
+ * 処理順: JWT 検証 → 入力検証 →（キルスイッチ・日次上限チェック・トピックゲート・
+ * FAQ / 現在駅の解決を並列実行）→ tool use ループ（AI SDK・最大 3 イテレーション）
+ * → 提案駅のサーバ側検証。
+ * 前段は最初の delta までのレイテンシに直結するため、直列にせず同時に開始し、
+ * 本体 LLM を呼ぶ前にキルスイッチと上限だけを必ず検証する。
  * サーバはステートレスで、会話履歴は毎回クライアントから全量を受け取る。
  */
 
@@ -113,38 +116,77 @@ export const resolveDailyLimit = (
   );
 };
 
+/** 日次カウンタの読み取り結果（消費コミット時に current + 1 を書き込む） */
+interface DailyUsage {
+  key: string;
+  current: number;
+}
+
 /**
- * installId 単位の日次レート制限（KV カウンタ。結果整合だが PoC には十分）。
- * 消費したカウンタのキーを返す（失敗ターンの払い戻しに使う）。
+ * 消費をスケジュール済みのレート制限カウンタ。ターンの途中で失敗しても
+ * 呼び出し元が払い戻せるよう、戻り値ではなく共有オブジェクトで受け渡す。
  */
-const enforceDailyLimit = async (
+interface RateLimitSlot {
+  key?: string;
+  /** 消費（KV put）の完了。払い戻しはこれを待ってから行う */
+  consumed?: Promise<void>;
+}
+
+/**
+ * installId 単位の日次レート制限のチェック部分（KV get のみ）。
+ * カウント消費（put）はここでは行わない。put は中央ストア書き込みで
+ * 100〜300ms 級のため、全ターンの先頭に直列で入るとそのまま最初の delta までの
+ * レイテンシになる。消費は本体ターン開始が確定した時点で waitUntil に逃がす
+ * （commitDailyTurn 参照）。
+ */
+const readDailyUsage = async (
   env: Env,
-  installId: string,
-  limit: number
-): Promise<string> => {
+  installId: string
+): Promise<DailyUsage> => {
   const day = new Date().toISOString().slice(0, 10).replaceAll('-', '');
   const key = `agent-rl:${installId}:${day}`;
-  const current = Number(await env.STATE_KV.get(key)) || 0;
-  if (current >= limit) {
-    throw new CallableError(
-      'resource-exhausted',
-      'Daily agent turn limit reached'
-    );
-  }
-  await env.STATE_KV.put(key, String(current + 1), {
-    expirationTtl: RATE_LIMIT_TTL_SECONDS,
-  });
-  return key;
+  return { key, current: Number(await env.STATE_KV.get(key)) || 0 };
 };
 
 /**
- * 失敗ターン（謝絶・エラー・タイムアウト）のカウンタ払い戻し。応答を返せて
- * いないターンで持ち回数が溶けるのを防ぐ。謝絶時に呼ぶトピックゲートは
- * Workers AI の軽量モデルのみでコストが小さいため、払い戻しても乱用リスクは
- * 限定的。結果整合の KV なので払い戻し自体の失敗は握って本流に影響させない。
+ * 本体ターンの開始が確定した時点で持ち回数を 1 消費する。
+ * KV put をレスポンス（最初の delta）の手前に置かないよう ctx.waitUntil へ逃がす。
+ * 謝絶は消費前に確定するため「謝絶はターンを消費しない」挙動は払い戻し無しで保たれる。
+ * 併発リクエストではチェック時点の値に +1 するため上限を僅かに超え得るが、
+ * KV の結果整合を前提とした現状設計の範囲内（設計書のとおり PoC では厳密さ不要）。
  */
-const refundDailyTurn = async (env: Env, key: string): Promise<void> => {
+const commitDailyTurn = (
+  env: Env,
+  ctx: ExecutionContext,
+  slot: RateLimitSlot,
+  usage: DailyUsage
+): void => {
+  slot.key = usage.key;
+  slot.consumed = env.STATE_KV.put(usage.key, String(usage.current + 1), {
+    expirationTtl: RATE_LIMIT_TTL_SECONDS,
+  }).catch((e) => {
+    console.error('agent: failed to consume daily turn', e);
+  });
+  ctx.waitUntil(slot.consumed);
+};
+
+/**
+ * 失敗ターン（エラー・タイムアウト）のカウンタ払い戻し。応答を返せていない
+ * ターンで持ち回数が溶けるのを防ぐ。消費をスケジュール済みのターンだけが対象で、
+ * 消費前の失敗（認証・バリデーション・キルスイッチ・上限到達）と謝絶では何もしない。
+ * 同一リクエスト内では消費（waitUntil の put）の完了を待ってから読み直し、
+ * 払い戻しが消費に打ち消される順序逆転を避ける。ただし KV は結果整合のため
+ * put 直後の get が古い値を返すことはあり得る（現状設計の範囲内）。
+ * 払い戻し自体の失敗は握って本流に影響させない。
+ */
+const refundDailyTurn = async (
+  env: Env,
+  slot: RateLimitSlot
+): Promise<void> => {
+  const key = slot.key;
+  if (key === undefined) return;
   try {
+    await slot.consumed;
     const current = Number(await env.STATE_KV.get(key)) || 0;
     if (current > 0) {
       await env.STATE_KV.put(key, String(current - 1), {
@@ -154,6 +196,70 @@ const refundDailyTurn = async (env: Env, key: string): Promise<void> => {
   } catch (e) {
     console.error('agent: failed to refund daily turn', e);
   }
+};
+
+/** ターン終了時に 1 行で出すフェーズ別レイテンシ（ms）のキー */
+type TurnPhase =
+  /** JWT 検証 + 入力パース（直列・軽量） */
+  | 'authParse'
+  /** 並列前段のうちキルスイッチ + 日次上限チェック（KV get）の完了まで */
+  | 'preflight'
+  /** 並列前段のうちトピックゲート（Workers AI）の完了まで */
+  | 'gate'
+  /** 並列前段のうち FAQ + 現在駅の解決の完了まで */
+  | 'context'
+  /** 本体 LLM 開始から最初の delta まで */
+  | 'firstDelta';
+
+type TurnOutcome = 'done' | 'refused' | 'error';
+
+/**
+ * フェーズ別レイテンシの計測（新規依存なしの軽量ヘルパ）。
+ * 会話本文・駅名など内容は一切保持せず、所要時間と回数だけを記録する。
+ */
+interface TurnMetrics {
+  readonly startedAt: number;
+  /** 本体 LLM 呼び出しの開始時刻（firstDelta の計測起点） */
+  mainStartedAt?: number;
+  toolCalls: number;
+  readonly phases: Partial<Record<TurnPhase, number>>;
+}
+
+const createTurnMetrics = (): TurnMetrics => ({
+  startedAt: Date.now(),
+  toolCalls: 0,
+  phases: {},
+});
+
+/** phase の所要時間を記録する。from 省略時はハンドラ先頭からの経過 */
+const markPhase = (
+  metrics: TurnMetrics,
+  phase: TurnPhase,
+  from: number = metrics.startedAt
+): void => {
+  metrics.phases[phase] = Date.now() - from;
+};
+
+/**
+ * ターン終了時にフェーズ別レイテンシを 1 行の JSON で出す
+ * （wrangler tail / Workers Logs でそのまま読める形）。
+ * 会話本文・駅名・installId など内容・識別子は一切含めない。
+ */
+const logTurnMetrics = (
+  metrics: TurnMetrics,
+  mode: 'json' | 'sse',
+  outcome: TurnOutcome
+): void => {
+  console.log(
+    JSON.stringify({
+      msg: 'agent.turn',
+      mode,
+      outcome,
+      toolCalls: metrics.toolCalls,
+      ...metrics.phases,
+      total: Date.now() - metrics.startedAt,
+    })
+  );
 };
 
 /**
@@ -237,10 +343,20 @@ export const runAgentTurn = async (
     prepareStep: ({ stepNumber }) =>
       stepNumber >= MAX_TOOL_ITERATIONS ? { activeTools: [] } : undefined,
     output: Output.object({ schema: agentOutputSchema }),
-    // Sonnet 4.6 以降は thinking 未指定だと adaptive thinking が有効になり、
-    // 思考トークンがレイテンシと maxOutputTokens を消費するため明示的に無効化する
-    // （Haiku 4.5 では元々思考なしのため無害。OpenAI プロバイダはこのキーを無視する）
-    providerOptions: { anthropic: { thinking: { type: 'disabled' } } },
+    // 思考（reasoning）の抑制。プロバイダは自分のキーだけを読むため、
+    // 使っていない側のキーは無視される（anthropic 使用時に openai は無視、その逆も同様）
+    providerOptions: {
+      // Sonnet 4.6 以降は thinking 未指定だと adaptive thinking が有効になり、
+      // 思考トークンがレイテンシと maxOutputTokens を消費するため明示的に無効化する
+      // （Haiku 4.5 では元々思考なしのため無害）
+      anthropic: { thinking: { type: 'disabled' } },
+      // GPT-5 系は reasoningEffort 未指定だと既定の reasoning が各ステップの前に走り、
+      // 最初の delta までのレイテンシと出力トークンを消費する。Anthropic の
+      // thinking 無効化と対になる指定として最小に固定する
+      // （@ai-sdk/openai の Responses API モデルが providerOptions.openai.reasoningEffort
+      //   を受け付ける。'minimal' は同 SDK の型定義が許容する値）
+      openai: { reasoningEffort: 'minimal' },
+    },
     timeout: { stepMs: LLM_CALL_TIMEOUT_MS },
     abortSignal: params.signal,
     // LLM 呼び出しはコスト重複を避けるため自動再試行しない（設計値）
@@ -282,14 +398,6 @@ export const runAgentTurn = async (
   };
 };
 
-/**
- * 消費済みレート制限カウンタのキー入れ。前段処理が途中で失敗しても
- * 呼び出し元が払い戻せるよう、戻り値ではなく共有オブジェクトで受け渡す。
- */
-interface RateLimitSlot {
-  key?: string;
-}
-
 /** 前段処理の結果。謝絶なら本体 LLM を呼ばずに確定応答をそのまま返す */
 type PreparedTurn =
   | { refused: AgentChatResult }
@@ -297,35 +405,40 @@ type PreparedTurn =
       chatReq: ChatRequest;
       faq: string | null;
       currentStation: StationSuggestion | null;
+      /** 本体ターン開始時に消費する日次カウンタ（commitDailyTurn に渡す） */
+      usage: DailyUsage;
     };
 
 /**
  * ストリーミング／非ストリーミング共通の前段処理。
- * JWT 検証 → 入力検証 → キルスイッチ → レート制限 → トピックゲート →
- * FAQ・現在駅の解決までを行い、両エンドポイントで同一の制約を強制する。
+ * JWT 検証 → 入力検証（直列・軽量）のあと、キルスイッチ・日次上限チェック・
+ * トピックゲート・FAQ / 現在駅の解決を同時に開始する。直列だと KV 2 往復と
+ * Workers AI の分類（300ms〜1.5s）がそのまま最初の delta までのレイテンシに
+ * 積み上がるため。両エンドポイントで同一の制約を強制する。
  */
 const prepareAgentTurn = async (
   req: Request,
   env: Env,
-  ctx: ExecutionContext,
   controller: AbortController,
-  slot: RateLimitSlot
+  metrics: TurnMetrics
 ): Promise<PreparedTurn> => {
   const installId = await verifySessionToken(
     env,
     req.headers.get('Authorization')
   );
   const chatReq = parseChatRequest(await parseCallableData(req));
+  markPhase(metrics, 'authParse');
 
-  const remoteConfig = await ensureAgentEnabled(env);
-  slot.key = await enforceDailyLimit(
-    env,
-    installId,
-    resolveDailyLimit(env, remoteConfig)
-  );
+  const parallelStartedAt = Date.now();
 
-  // FAQ ロードと現在駅の解決はトピックゲートと並行して先行させる
-  // （どちらも内部で catch 済みのため、謝絶時に未 await で捨てても安全）
+  // ここから 4 つを同時に開始する。
+  // 無効化・上限到達のユーザに対してもトピック分類（Workers AI）が並行で
+  // 走ってしまうが、軽量モデル 1 回かつ低頻度のため許容する。
+  const enabledPromise = ensureAgentEnabled(env);
+  const usagePromise = readDailyUsage(env, installId);
+  const gatePromise = classifyTopic(env, chatReq.messages, controller.signal);
+  // FAQ ロードと現在駅の解決（どちらも内部で catch 済みのため、
+  // 謝絶時に未 await で捨てても安全）
   const contextPromise = Promise.all([
     loadAgentFaq(env),
     chatReq.currentStationGroupId === undefined
@@ -340,15 +453,32 @@ const prepareAgentTurn = async (
         }),
   ]);
 
-  // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）
-  const topic = await classifyTopic(env, chatReq.messages, controller.signal);
+  // 先に throw した経路で残りの Promise が未処理の rejection にならないよう、
+  // 監視用の catch を張っておく（値は下で元の Promise から await する）
+  enabledPromise.catch(() => {});
+  usagePromise.catch(() => {});
+  gatePromise.catch(() => {});
+
+  // 本体 LLM を呼ぶ前にキルスイッチと日次上限を必ず検証する
+  // （ストリーム開始前なので、どちらも callable 互換の JSON エラーになる）
+  const remoteConfig = await enabledPromise;
+  const usage = await usagePromise;
+  if (usage.current >= resolveDailyLimit(env, remoteConfig)) {
+    throw new CallableError(
+      'resource-exhausted',
+      'Daily agent turn limit reached'
+    );
+  }
+  markPhase(metrics, 'preflight', parallelStartedAt);
+
+  // 謝絶リクエストは本体 LLM を一切呼ばない（トークン浪費の防止）。
+  // ゲートは引き続きブロッキング（並列化しても謝絶判定の位置は変えない）
+  const topic = await gatePromise;
+  markPhase(metrics, 'gate', parallelStartedAt);
   if (topic === 'off_topic') {
     // 先行発行済みの現在駅解決 I/O を打ち切る（両 Promise とも catch 済みのため安全）
     controller.abort();
-    // 本体 LLM を呼んでいないターンなので持ち回数を払い戻す（応答返却は待たせない）
-    ctx.waitUntil(refundDailyTurn(env, slot.key));
-    // 払い戻し済みのキーは外し、後続の失敗で二重に払い戻さないようにする
-    slot.key = undefined;
+    // 持ち回数はまだ消費していないため払い戻しは不要（謝絶はターンを消費しない）
     return {
       refused: {
         reply: REFUSAL_REPLY[chatReq.locale],
@@ -359,7 +489,8 @@ const prepareAgentTurn = async (
   }
 
   const [faq, currentStation] = await contextPromise;
-  return { chatReq, faq, currentStation };
+  markPhase(metrics, 'context', parallelStartedAt);
+  return { chatReq, faq, currentStation, usage };
 };
 
 /** 前段処理の結果から runAgentTurn の引数を組み立てる（両エンドポイントで共通） */
@@ -368,6 +499,7 @@ const buildTurnParams = (
   runtime: AgentLLMRuntime,
   prepared: Extract<PreparedTurn, { chatReq: ChatRequest }>,
   signal: AbortSignal,
+  metrics: TurnMetrics,
   callbacks: Pick<AgentTurnParams, 'onDelta' | 'onToolStart'> = {}
 ): AgentTurnParams => {
   const { chatReq, faq, currentStation } = prepared;
@@ -392,7 +524,17 @@ const buildTurnParams = (
     searchStations: (name) =>
       searchStationsByName(env, name, chatReq.currentStationGroupId, signal),
     signal,
-    ...callbacks,
+    // 計測は内容を一切持たず、最初の delta までの所要時間とツール実行回数だけを数える
+    onDelta: async (text) => {
+      if (metrics.phases.firstDelta === undefined) {
+        markPhase(metrics, 'firstDelta', metrics.mainStartedAt);
+      }
+      await callbacks.onDelta?.(text);
+    },
+    onToolStart: async () => {
+      metrics.toolCalls += 1;
+      await callbacks.onToolStart?.();
+    },
   };
 };
 
@@ -403,28 +545,33 @@ export const handleAgentChat = async (
 ): Promise<Response> => {
   // リクエスト全体の期限はハンドラ先頭から計測する
   // （JWT 検証・KV 読み書き・トピックゲートの Workers AI 呼び出しも予算に含める）
+  const metrics = createTurnMetrics();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
   let runtime: AgentLLMRuntime | undefined;
-  // レート制限カウンタを消費済みなら、そのキー（失敗時の払い戻し先）
+  // 消費をスケジュール済みのレート制限カウンタ（失敗時の払い戻し先）
   const slot: RateLimitSlot = {};
+  let outcome: TurnOutcome = 'error';
   try {
     runtime = resolveAgentLLMRuntime(env);
-    const prepared = await prepareAgentTurn(req, env, ctx, controller, slot);
+    const prepared = await prepareAgentTurn(req, env, controller, metrics);
     if ('refused' in prepared) {
+      outcome = 'refused';
       return callableSuccess(prepared.refused);
     }
 
+    // 本体ターンの開始が確定した時点で持ち回数を消費する（KV put は待たない）
+    commitDailyTurn(env, ctx, slot, prepared.usage);
+    metrics.mainStartedAt = Date.now();
     const result = await runAgentTurn(
-      buildTurnParams(env, runtime, prepared, controller.signal)
+      buildTurnParams(env, runtime, prepared, controller.signal, metrics)
     );
+    outcome = 'done';
     return callableSuccess(result);
   } catch (e) {
     // 応答を返せなかったターン（エラー・タイムアウト）は消費済みの持ち回数を払い戻す。
-    // キーが未設定なら消費前の失敗（認証・バリデーション・上限到達）なので対象外
-    if (slot.key !== undefined) {
-      ctx.waitUntil(refundDailyTurn(env, slot.key));
-    }
+    // 消費前の失敗（認証・バリデーション・キルスイッチ・上限到達）は内部で no-op になる
+    ctx.waitUntil(refundDailyTurn(env, slot));
     // 期限超過はキャンセルを下流へ伝播済み。クライアントには 504 で確定応答を返す
     if (controller.signal.aborted) {
       throw new CallableError('deadline-exceeded', 'Agent request timed out');
@@ -432,6 +579,7 @@ export const handleAgentChat = async (
     throw e;
   } finally {
     clearTimeout(timer);
+    logTurnMetrics(metrics, 'json', outcome);
     // dev 環境のみ: LangSmith トレース送信をレスポンス返却後に完了させる
     if (runtime) {
       ctx.waitUntil(runtime.flush());
@@ -463,6 +611,7 @@ export const handleAgentChatStream = async (
   env: Env,
   ctx: ExecutionContext
 ): Promise<Response> => {
+  const metrics = createTurnMetrics();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
   const slot: RateLimitSlot = {};
@@ -470,17 +619,23 @@ export const handleAgentChatStream = async (
 
   let prepared: PreparedTurn;
   try {
-    prepared = await prepareAgentTurn(req, env, ctx, controller, slot);
+    prepared = await prepareAgentTurn(req, env, controller, metrics);
   } catch (e) {
     clearTimeout(timer);
-    if (slot.key !== undefined) {
-      ctx.waitUntil(refundDailyTurn(env, slot.key));
-    }
+    // 前段での失敗はまだ消費前なので払い戻しは no-op（キーが入るのは消費後だけ）
+    ctx.waitUntil(refundDailyTurn(env, slot));
     ctx.waitUntil(runtime.flush());
+    logTurnMetrics(metrics, 'sse', 'error');
     if (controller.signal.aborted) {
       throw new CallableError('deadline-exceeded', 'Agent request timed out');
     }
     throw e;
+  }
+
+  // 謝絶でなければ本体ターンの開始が確定するため、ここで持ち回数を消費する
+  // （KV put は waitUntil に逃がし、最初の delta を待たせない）
+  if (!('refused' in prepared)) {
+    commitDailyTurn(env, ctx, slot, prepared.usage);
   }
 
   const encoder = new TextEncoder();
@@ -491,24 +646,26 @@ export const handleAgentChatStream = async (
   };
 
   const pump = async (): Promise<void> => {
+    let outcome: TurnOutcome = 'error';
     try {
       // 謝絶は delta を出さずに確定応答だけを送る
       if ('refused' in prepared) {
+        outcome = 'refused';
         await send({ event: 'done', data: prepared.refused });
         return;
       }
+      metrics.mainStartedAt = Date.now();
       const result = await runAgentTurn(
-        buildTurnParams(env, runtime, prepared, controller.signal, {
+        buildTurnParams(env, runtime, prepared, controller.signal, metrics, {
           onDelta: (text) => send({ event: 'delta', data: { text } }),
           onToolStart: () => send({ event: 'tool', data: {} }),
         })
       );
+      outcome = 'done';
       await send({ event: 'done', data: result });
     } catch (e) {
       // ストリーム開始後に失敗したターンも、非ストリーミングと同じ基準で払い戻す
-      if (slot.key !== undefined) {
-        await refundDailyTurn(env, slot.key);
-      }
+      await refundDailyTurn(env, slot);
       const code = toStreamErrorCode(e, controller.signal.aborted);
       if (code === 'internal') {
         console.error('agent: stream turn failed', e);
@@ -517,6 +674,7 @@ export const handleAgentChatStream = async (
       await send({ event: 'error', data: { code } }).catch(() => {});
     } finally {
       clearTimeout(timer);
+      logTurnMetrics(metrics, 'sse', outcome);
       // done / error のあとはストリームを閉じる（クライアントは終端で受信を終える）
       await writer.close().catch(() => {});
       // dev 環境のみ: LangSmith トレース送信をストリーム終了後に完了させる

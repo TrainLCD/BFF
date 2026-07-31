@@ -296,6 +296,23 @@ describe('runAgentTurn', () => {
     expect(options.maxOutputTokens).toBe(1024);
     expect(options.timeout).toEqual({ stepMs: 20_000 });
   });
+
+  it('Anthropic の thinking と OpenAI の reasoning を両方抑制する', async () => {
+    const streamText: AnyFn = jest.fn(async () =>
+      streamResult({ output: { reply: 'ok', suggestions: [] } })
+    );
+    await runAgentTurn({
+      ...baseParams,
+      streamText,
+      searchStations: jest.fn(),
+    });
+
+    // 使っていない側のプロバイダキーは無視されるため、両方を常に指定する
+    expect(streamText.mock.calls[0][0].providerOptions).toEqual({
+      anthropic: { thinking: { type: 'disabled' } },
+      openai: { reasoningEffort: 'minimal' },
+    });
+  });
 });
 
 describe('handleAgentChatStream', () => {
@@ -365,6 +382,12 @@ describe('handleAgentChatStream', () => {
       });
   };
 
+  /** マイクロタスク + タイマーキューを 1 巡させる（並列開始の確認用） */
+  const flushAsync = (): Promise<void> =>
+    new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
   const useRuntime = (streamText: AnyFn): void => {
     (resolveAgentLLMRuntime as AnyFn).mockReturnValue({
       streamText,
@@ -372,11 +395,19 @@ describe('handleAgentChatStream', () => {
     });
   };
 
+  /** フェーズ別レイテンシの計測ログ（1 行 JSON）を捕まえる */
+  let logSpy: jest.SpyInstance;
+
+  const readMetricsLog = (): AnyFn =>
+    JSON.parse(String(logSpy.mock.calls.at(-1)?.[0]));
+
   beforeEach(() => {
     (classifyTopic as AnyFn).mockResolvedValue('destination');
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
+    logSpy.mockRestore();
     jest.clearAllMocks();
   });
 
@@ -417,7 +448,23 @@ describe('handleAgentChatStream', () => {
     });
   });
 
-  it('謝絶は delta なしで即 done を送り、持ち回数を払い戻す', async () => {
+  it('本体ターンを開始したら持ち回数を消費する', async () => {
+    useRuntime(
+      jest.fn(async () =>
+        streamResult({ output: { reply: 'ok', suggestions: [] } })
+      )
+    );
+    const { env, counters } = createEnv();
+    const { ctx, pending } = createCtx();
+
+    const res = await handleAgentChatStream(createRequest(), env, ctx);
+    await readEvents(res);
+    await Promise.all(pending);
+
+    expect([...counters.values()]).toEqual(['1']);
+  });
+
+  it('謝絶は delta なしで即 done を送り、持ち回数を消費しない', async () => {
     (classifyTopic as AnyFn).mockResolvedValue('off_topic');
     const streamText = jest.fn();
     useRuntime(streamText);
@@ -434,7 +481,92 @@ describe('handleAgentChatStream', () => {
     expect(events[0].data.suggestions).toEqual([]);
     // 本体 LLM は呼ばない
     expect(streamText).not.toHaveBeenCalled();
-    expect([...counters.values()]).toEqual(['0']);
+    // 消費前に確定するため、カウンタへの書き込み自体が発生しない（払い戻しも不要）
+    expect(env.STATE_KV.put).not.toHaveBeenCalled();
+    expect(counters.size).toBe(0);
+  });
+
+  it('上限到達はストリーム開始前に callable エラーで返し、消費しない', async () => {
+    useRuntime(jest.fn());
+    const { env, counters } = createEnv();
+    const { ctx } = createCtx();
+    // AGENT_DAILY_TURN_LIMIT は 10。到達済みの状態を作る
+    const day = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+    counters.set(`agent-rl:install-1:${day}`, '10');
+
+    await expect(
+      handleAgentChatStream(createRequest(), env, ctx)
+    ).rejects.toMatchObject({ code: 'resource-exhausted' });
+    expect(env.STATE_KV.put).not.toHaveBeenCalled();
+  });
+
+  it('キルスイッチ・上限チェック・トピックゲートを並列で開始する', async () => {
+    useRuntime(
+      jest.fn(async () =>
+        streamResult({ output: { reply: 'ok', suggestions: [] } })
+      )
+    );
+    const { env } = createEnv();
+    let releaseConfig = (): void => {};
+    env.CONFIG_KV.get.mockReturnValue(
+      new Promise((resolve) => {
+        releaseConfig = () => resolve({ ai_agent_enabled: true });
+      })
+    );
+    const { ctx, pending } = createCtx();
+
+    const resPromise = handleAgentChatStream(createRequest(), env, ctx);
+    // 認証・入力パースの await を消化させる（並列前段の開始まで進める）
+    await flushAsync();
+    await flushAsync();
+
+    // キルスイッチの KV 読み取りが未完了でも、上限チェックとゲートは走り出している
+    expect(env.STATE_KV.get).toHaveBeenCalled();
+    expect(classifyTopic).toHaveBeenCalled();
+
+    releaseConfig();
+    const res = await resPromise;
+    await readEvents(res);
+    await Promise.all(pending);
+  });
+
+  it('ターン終了時にフェーズ別レイテンシを 1 行の JSON で出す', async () => {
+    useRuntime(
+      jest.fn(async (options: AnyFn) => {
+        await options.onChunk({ chunk: { type: 'tool-call' } });
+        return streamResult({
+          partials: [{ reply: '海の見える駅' }],
+          output: { reply: '海の見える駅はこちらです。', suggestions: [] },
+        });
+      })
+    );
+    const { env } = createEnv();
+    const { ctx, pending } = createCtx();
+
+    const res = await handleAgentChatStream(createRequest(), env, ctx);
+    await readEvents(res);
+    await Promise.all(pending);
+
+    const line = String(logSpy.mock.calls.at(-1)?.[0]);
+    const metrics = readMetricsLog();
+    expect(metrics).toMatchObject({
+      msg: 'agent.turn',
+      mode: 'sse',
+      outcome: 'done',
+      toolCalls: 1,
+    });
+    for (const phase of [
+      'authParse',
+      'preflight',
+      'gate',
+      'context',
+      'firstDelta',
+      'total',
+    ]) {
+      expect(typeof metrics[phase]).toBe('number');
+    }
+    // 会話本文・駅名は一切含めない
+    expect(line).not.toContain('海');
   });
 
   it('ストリーム開始後のエラーは error イベントで通知し、持ち回数を払い戻す', async () => {
