@@ -20,7 +20,7 @@ import {
 } from '../lib/callable';
 import type { Env } from '../types';
 import { classifyTopic } from './gate';
-import { resolveAgentModel } from './llm';
+import { resolveAgentModel, resolveOpenAIReasoningOptions } from './llm';
 import { buildContextMessage, buildSystemPrompt, loadAgentFaq } from './prompt';
 import {
   type AgentChatResult,
@@ -315,6 +315,7 @@ export const runAgentTurn = async (
 ): Promise<AgentChatResult> => {
   const verified = new Map<number, StationSuggestion>();
   const budget = { remaining: MAX_TOOL_CALLS_PER_TURN };
+  const openaiReasoning = resolveOpenAIReasoningOptions(params.model);
 
   const result = await params.streamText({
     model: params.model,
@@ -351,11 +352,10 @@ export const runAgentTurn = async (
       // （Haiku 4.5 では元々思考なしのため無害）
       anthropic: { thinking: { type: 'disabled' } },
       // GPT-5 系は reasoningEffort 未指定だと既定の reasoning が各ステップの前に走り、
-      // 最初の delta までのレイテンシと出力トークンを消費する。Anthropic の
-      // thinking 無効化と対になる指定として 'none' に固定する
-      // （'minimal' は GPT-5.1 以降で廃止済み。SDK はローカル検証せず API へ
-      //   そのまま送るため、廃止値を指定すると 400 になる）
-      openai: { reasoningEffort: 'none' },
+      // 最初の delta までのレイテンシと出力トークンを消費するため 'none' で止める。
+      // ただし対応値はモデルごとに異なり、SDK はローカル検証せず API へそのまま
+      // 送るため、'none' 対応が確認できるモデル以外では指定自体を省略する
+      ...(openaiReasoning ? { openai: openaiReasoning } : {}),
     },
     timeout: { stepMs: LLM_CALL_TIMEOUT_MS },
     abortSignal: params.signal,
@@ -465,9 +465,16 @@ const prepareAgentTurn = async (
 
   // 本体 LLM を呼ぶ前にキルスイッチと日次上限を必ず検証する
   // （ストリーム開始前なので、どちらも callable 互換の JSON エラーになる）
-  const remoteConfig = await enabledPromise;
+  const remoteConfig = await enabledPromise.catch((e) => {
+    // キルスイッチ発動時、応答を返さないリクエストのために先行 I/O
+    // （Workers AI の分類・現在駅解決）を走らせ続けない（各 Promise は catch 済み）
+    controller.abort();
+    throw e;
+  });
   const usage = await usagePromise;
   if (usage.current >= resolveDailyLimit(env, remoteConfig)) {
+    // 上限到達も同様に先行 I/O を打ち切る（Workers AI の呼び出しは課金対象）
+    controller.abort();
     throw new CallableError(
       'resource-exhausted',
       'Daily agent turn limit reached'
@@ -551,7 +558,13 @@ export const handleAgentChat = async (
   // （JWT 検証・KV 読み書き・トピックゲートの Workers AI 呼び出しも予算に含める）
   const metrics = createTurnMetrics();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
+  // 期限超過の abort と、上限到達・謝絶時の先行 I/O 打ち切りの abort を区別する
+  // （後者を 504（deadline-exceeded）へ誤変換しないため）
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, TOTAL_TIMEOUT_MS);
   let runtime: AgentLLMRuntime | undefined;
   // 消費をスケジュール済みのレート制限カウンタ（失敗時の払い戻し先）
   const slot: RateLimitSlot = {};
@@ -577,7 +590,7 @@ export const handleAgentChat = async (
     // 消費前の失敗（認証・バリデーション・キルスイッチ・上限到達）は内部で no-op になる
     ctx.waitUntil(refundDailyTurn(env, slot));
     // 期限超過はキャンセルを下流へ伝播済み。クライアントには 504 で確定応答を返す
-    if (controller.signal.aborted) {
+    if (timedOut) {
       throw new CallableError('deadline-exceeded', 'Agent request timed out');
     }
     throw e;
@@ -598,9 +611,9 @@ const SSE_HEADERS = {
 } as const;
 
 /** ストリーム開始後のエラーを callable のエラーコードへ写像する */
-const toStreamErrorCode = (e: unknown, aborted: boolean): CallableCode => {
+const toStreamErrorCode = (e: unknown, timedOut: boolean): CallableCode => {
   // 期限超過は非ストリーミングの 504 と同じコードで通知する
-  if (aborted) return 'deadline-exceeded';
+  if (timedOut) return 'deadline-exceeded';
   return e instanceof CallableError ? e.code : 'internal';
 };
 
@@ -617,7 +630,13 @@ export const handleAgentChatStream = async (
 ): Promise<Response> => {
   const metrics = createTurnMetrics();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS);
+  // 期限超過の abort と、上限到達・謝絶時の先行 I/O 打ち切りの abort を区別する
+  // （後者を deadline-exceeded へ誤変換しないため）
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, TOTAL_TIMEOUT_MS);
   const slot: RateLimitSlot = {};
   const runtime = resolveAgentLLMRuntime(env);
 
@@ -630,7 +649,7 @@ export const handleAgentChatStream = async (
     ctx.waitUntil(refundDailyTurn(env, slot));
     ctx.waitUntil(runtime.flush());
     logTurnMetrics(metrics, 'sse', 'error');
-    if (controller.signal.aborted) {
+    if (timedOut) {
       throw new CallableError('deadline-exceeded', 'Agent request timed out');
     }
     throw e;
@@ -670,7 +689,7 @@ export const handleAgentChatStream = async (
     } catch (e) {
       // ストリーム開始後に失敗したターンも、非ストリーミングと同じ基準で払い戻す
       await refundDailyTurn(env, slot);
-      const code = toStreamErrorCode(e, controller.signal.aborted);
+      const code = toStreamErrorCode(e, timedOut);
       if (code === 'internal') {
         console.error('agent: stream turn failed', e);
       }
