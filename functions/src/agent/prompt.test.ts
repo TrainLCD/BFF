@@ -53,6 +53,8 @@ describe('buildSystemPrompt', () => {
   it('応答言語を直近のユーザ発話に合わせる指示を含む', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('reply は直近のユーザ発話と同じ言語で書く');
+    // 直近が判別不能なときは前ターンへ、それも無ければ locale へ、の 2 段階
+    expect(prompt).toContain('それより前のユーザ発話の言語に合わせる');
     expect(prompt).toContain('会話全体で判別できなければ locale の既定言語');
     expect(prompt).not.toContain(
       '応答言語は会話に添えられた locale 指示に従う'
