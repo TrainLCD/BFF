@@ -4,6 +4,7 @@
  * アプリリリース無しで更新できる（フィードバックトリアージの few-shot と同パターン）。
  * システムプロンプトは全リクエストで不変にしてプロンプトキャッシュを効かせ、
  * locale・現在駅などの可変要素は messages 側（キャッシュ境界の後）に置く。
+ * 応答言語は直近のユーザ発話の言語に合わせる（locale は判別できないときの既定）。
  */
 import type { Env } from '../types';
 import type { StationSuggestion } from './schema';
@@ -72,7 +73,10 @@ export const buildSystemPrompt = (faq: string | null): string =>
 
 # 応答形式
 - reply はそのままユーザに表示される。簡潔で自然な文にする
-- 応答言語は会話に添えられた locale 指示に従う（駅名は原表記のままでよい）
+- reply は直近のユーザ発話と同じ言語で書く。日本語で聞かれたら日本語、英語で聞かれたら英語
+  （駅名は原表記のままでよい）
+- 直近の発話だけでは言語を判別できないとき（駅名だけ・「OK」だけ・数字だけ など）は、
+  それより前のユーザ発話の言語に合わせる。会話全体で判別できなければ locale の既定言語で書く
 
 # TrainLCD の使い方 FAQ
 ${faq ?? '（FAQ は現在利用できません）'}
@@ -87,7 +91,11 @@ export const buildContextMessage = (
   currentStationGroupId?: number
 ): string => {
   const lines = [
-    `locale: ${locale}（${locale === 'ja' ? '日本語で応答する' : 'Respond in English'}）`,
+    // 応答言語は直近のユーザ発話の言語に合わせる（システムプロンプトの「# 応答形式」）。
+    // locale は端末の言語設定であり、入力から言語を判別できないときの既定でしかない
+    `locale: ${locale}（会話から入力言語を判別できないときの既定言語。${
+      locale === 'ja' ? '日本語で応答する' : 'Respond in English'
+    }）`,
   ];
   if (currentStation) {
     const roman = currentStation.nameRoman

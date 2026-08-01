@@ -25,7 +25,14 @@ describe('buildContextMessage', () => {
 
   it('現在駅情報が一切無ければ locale 行のみ', () => {
     const msg = buildContextMessage('en');
-    expect(msg).toBe('locale: en（Respond in English）');
+    expect(msg).toBe(
+      'locale: en（会話から入力言語を判別できないときの既定言語。Respond in English）'
+    );
+  });
+
+  // locale は端末の言語設定であり、応答言語そのものの指示ではない
+  it('locale 行は入力言語を判別できないときの既定であることを明示する', () => {
+    expect(buildContextMessage('ja')).toContain('既定言語');
   });
 });
 
@@ -40,6 +47,16 @@ describe('buildSystemPrompt', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('乗り換えなしで行ける駅');
     expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
+  });
+
+  // 端末が英語設定でも日本語で聞かれたら日本語で返す（locale 追従をやめた経緯）
+  it('応答言語を直近のユーザ発話に合わせる指示を含む', () => {
+    const prompt = buildSystemPrompt(null);
+    expect(prompt).toContain('reply は直近のユーザ発話と同じ言語で書く');
+    expect(prompt).toContain('会話全体で判別できなければ locale の既定言語');
+    expect(prompt).not.toContain(
+      '応答言語は会話に添えられた locale 指示に従う'
+    );
   });
 
   it('候補が無いときは正直に空配列を返させる（断定で埋めさせない）', () => {

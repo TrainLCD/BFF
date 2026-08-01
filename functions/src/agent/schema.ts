@@ -29,7 +29,9 @@ export const chatRequestSchema = z.object({
     .refine((msgs) => msgs[msgs.length - 1]?.role === 'user', {
       message: 'last message must be from user',
     }),
-  // 不正値はエラーにせず日本語へフォールバック（応答言語の指示にしか使わないため）
+  // 端末の言語設定。応答言語は直近のユーザ発話の言語に合わせるため、これは入力から
+  // 言語を判別できないときの既定と、サーバ生成の定型文（謝絶文・フォールバック文）の
+  // 言語選択にしか使わない。不正値はエラーにせず日本語へフォールバックする
   locale: z.enum(['ja', 'en']).catch('ja'),
   currentStationGroupId: z.number().int().positive().optional(),
 });
