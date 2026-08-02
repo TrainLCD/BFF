@@ -49,10 +49,11 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('到達できる範囲に代替候補がないか確認する');
   });
 
-  it('連結経路が見つかったら肯定的に案内して全駅を候補へ含める', () => {
+  it('連結経路が見つかったら行き先だけを候補として肯定的に案内する', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('その駅へ到達できることを肯定的に案内');
-    expect(prompt).toContain('経路上の全駅を suggestions に含める');
+    expect(prompt).toContain('その行き先駅を suggestions に含める');
+    expect(prompt).toContain('途中駅を別の行き先候補として追加してはならない');
     expect(prompt).toContain('ツール結果と矛盾する返答をしてはならない');
   });
 
