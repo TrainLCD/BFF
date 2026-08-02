@@ -23,6 +23,7 @@ import { classifyTopic } from './gate';
 import { resolveAgentModel, resolveOpenAIReasoningOptions } from './llm';
 import { buildContextMessage, buildSystemPrompt, loadAgentFaq } from './prompt';
 import {
+  AGENT_MAX_SUGGESTIONS,
   type AgentChatResult,
   type AgentOutput,
   agentOutputSchema,
@@ -407,7 +408,7 @@ export const runAgentTurn = async (
         (station) => [station.stationId, station]
       )
     ).values(),
-  ];
+  ].slice(0, AGENT_MAX_SUGGESTIONS);
   return {
     reply: output.reply.trim() || FALLBACK_REPLY[params.locale],
     suggestions,
