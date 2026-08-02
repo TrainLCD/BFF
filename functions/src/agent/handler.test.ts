@@ -183,7 +183,7 @@ describe('runAgentTurn', () => {
       searchScope: 'reachable-from-known-station',
       searchStations: jest.fn().mockResolvedValue([]),
     });
-    expect(notice).toContain('without a transfer');
+    expect(notice).toContain('connectable sequence of train types');
   });
 
   it('現在駅の解決状況でスコープを分ける', () => {
