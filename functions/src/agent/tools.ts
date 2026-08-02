@@ -62,6 +62,27 @@ const STATION_GROUP_STATIONS_QUERY = `
   }
 `;
 
+const ROUTE_TYPES_QUERY = `
+  query AgentRouteTypes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
+    routeTypes(
+      fromStationGroupId: $fromStationGroupId
+      toStationGroupId: $toStationGroupId
+    ) {
+      trainTypes {
+        groupId
+      }
+    }
+  }
+`;
+
+const CONNECTED_LINE_GROUP_STATIONS_QUERY = `
+  query AgentConnectedLineGroupStations($lineGroupIds: [Int!]!) {
+    connectedLineGroupStations(lineGroupIds: $lineGroupIds) {
+      groupId
+    }
+  }
+`;
+
 interface GqlLine {
   nameShort?: string | null;
 }
@@ -173,6 +194,70 @@ const searchOnce = (
     parentSignal
   );
 
+const hasConnectedRoute = async (
+  env: Env,
+  fromStationGroupId: number,
+  toStationGroupId: number,
+  parentSignal: AbortSignal | undefined
+): Promise<boolean> => {
+  const controller = new AbortController();
+  if (parentSignal?.aborted) controller.abort();
+  const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
+  const onParentAbort = () => controller.abort();
+  parentSignal?.addEventListener('abort', onParentAbort, { once: true });
+  try {
+    const routeTypesResponse = await postGraphQL(
+      env,
+      JSON.stringify({
+        query: ROUTE_TYPES_QUERY,
+        variables: { fromStationGroupId, toStationGroupId },
+      }),
+      controller.signal
+    );
+    if (!routeTypesResponse.ok) return false;
+    const routeTypesJson = (await routeTypesResponse.json()) as {
+      data?: {
+        routeTypes?: {
+          trainTypes?: Array<{ groupId?: number | null }> | null;
+        } | null;
+      } | null;
+      errors?: unknown[];
+    };
+    if (routeTypesJson.errors?.length) return false;
+    const lineGroupIds = [
+      ...new Set(
+        (routeTypesJson.data?.routeTypes?.trainTypes ?? [])
+          .map((trainType) => trainType.groupId)
+          .filter((groupId): groupId is number => typeof groupId === 'number')
+      ),
+    ];
+    if (lineGroupIds.length === 0) return false;
+
+    const connectedResponse = await postGraphQL(
+      env,
+      JSON.stringify({
+        query: CONNECTED_LINE_GROUP_STATIONS_QUERY,
+        variables: { lineGroupIds },
+      }),
+      controller.signal
+    );
+    if (!connectedResponse.ok) return false;
+    const connectedJson = (await connectedResponse.json()) as {
+      data?: {
+        connectedLineGroupStations?: Array<{ groupId?: number | null }> | null;
+      } | null;
+      errors?: unknown[];
+    };
+    if (connectedJson.errors?.length) return false;
+    return (connectedJson.data?.connectedLineGroupStations ?? []).some(
+      (station) => station.groupId === toStationGroupId
+    );
+  } finally {
+    clearTimeout(timer);
+    parentSignal?.removeEventListener('abort', onParentAbort);
+  }
+};
+
 /**
  * 検索クエリの表記ゆれを吸収する候補を、試す順に生成する。
  * 上流の stationsByName は駅名（漢字・かな）と公式ローマ字表記への部分一致で、
@@ -224,7 +309,7 @@ export const buildStationNameVariants = (raw: string): string[] => {
  * 再試行を許す（LLM 呼び出しと違いコスト重複の心配がない）。
  * 全候補が 0 件なら空配列、1 度も応答を得られなければ最後のエラーを送出する。
  */
-export const searchStationsByName = async (
+const searchStationsByNameDirect = async (
   env: Env,
   name: string,
   fromStationGroupId: number | undefined,
@@ -260,6 +345,46 @@ export const searchStationsByName = async (
 
   if (!responded && lastError) throw lastError;
   return [];
+};
+
+export const searchStationsByName = async (
+  env: Env,
+  name: string,
+  fromStationGroupId: number | undefined,
+  parentSignal?: AbortSignal
+): Promise<StationSuggestion[]> => {
+  const directStations = await searchStationsByNameDirect(
+    env,
+    name,
+    fromStationGroupId,
+    parentSignal
+  );
+  if (directStations.length > 0 || fromStationGroupId === undefined) {
+    return directStations;
+  }
+
+  const nationwideStations = await searchStationsByNameDirect(
+    env,
+    name,
+    undefined,
+    parentSignal
+  );
+  const reachable = await Promise.all(
+    nationwideStations.map(async (station) => {
+      try {
+        return await hasConnectedRoute(
+          env,
+          fromStationGroupId,
+          station.stationGroupId,
+          parentSignal
+        );
+      } catch (error) {
+        console.error('agent tool: connected route check failed', error);
+        return false;
+      }
+    })
+  );
+  return nationwideStations.filter((_, index) => reachable[index]);
 };
 
 /**
@@ -299,7 +424,7 @@ export const fetchStationByGroupId = async (
 
 /**
  * 駅検索のスコープ。上流の stationsByName は fromStationGroupId を渡すと
- * 「その駅から乗り換えなしで行ける駅」だけを返す（仕様）ため、
+ * 直通または列車種別を連結して到達できる駅だけを返すため、
  * 0 件の意味とモデルへ促す次の一手がスコープごとに変わる。
  */
 export type StationSearchScope =
@@ -318,20 +443,20 @@ const NO_MATCH_NOTICE: Record<StationSearchScope, string> = {
   // 0 件は「存在しない」ではなく「直通で行けない」の可能性が高い。
   // 現在駅の乗入路線はコンテキストに含まれているため、沿線での引き直しを促せる
   'reachable-from-known-station':
-    'No match. Results are limited to stations reachable from the user\'s current station without a transfer, so a well-known station may simply be out of reach — this does NOT mean it does not exist. Retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), or with a different station on the current station\'s own lines or their through-services. Do not give up after one empty result.',
+    'No match. Results are limited to stations reachable from the user\'s current station either directly or through a connectable sequence of train types, so a well-known station may simply be out of reach — this does NOT mean it does not exist. Retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), or with a different reachable station. Do not give up after one empty result.',
   // 路線名がモデルに渡っていないため、沿線での引き直しは指示できない。
   // 表記ゆれの確認と、ユーザへの確認を促す
   'reachable-from-unknown-station':
-    'No match. Results are limited to stations reachable from the user\'s current station without a transfer, so a well-known station may simply be out of reach — this does NOT mean it does not exist. The current station could not be resolved, so its lines are unknown: retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), and if it is still empty, ask the user which area or line they are on instead of guessing.',
+    'No match. Results are limited to stations reachable from the user\'s current station either directly or through a connectable sequence of train types, so a well-known station may simply be out of reach — this does NOT mean it does not exist. The current station could not be resolved, so its lines are unknown: retry with the Japanese name (kanji or kana, no spaces, no "Station" suffix), and if it is still empty, ask the user which area or line they are on instead of guessing.',
 };
 
 /** 現在駅のスコープでのみ足すツール説明（路線名を知らないケースでは案内を変える） */
 const SCOPE_DESCRIPTION: Record<StationSearchScope, string | null> = {
   nationwide: null,
   'reachable-from-known-station':
-    '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多いため、現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと。',
+    '結果は現在駅から直通、または列車種別を連結して到達できる駅に限定される。0 件は「存在しない」ではなく「到達できる経路がない」ことが多いため、別の到達可能な駅で引き直すこと。',
   'reachable-from-unknown-station':
-    '結果は現在駅から乗り換えなしで行ける駅に限定される（仕様）。0 件は「存在しない」ではなく「直通で行けない」ことが多い。現在駅の路線は不明なため、表記を変えても 0 件ならユーザにどのエリア・路線にいるかを尋ねること。',
+    '結果は現在駅から直通、または列車種別を連結して到達できる駅に限定される。0 件は「存在しない」ではなく「到達できる経路がない」ことが多い。現在駅の路線は不明なため、表記を変えても 0 件ならユーザにどのエリア・路線にいるかを尋ねること。',
 };
 
 /** ツール結果（駅一覧と、0 件・失敗時にモデルへ返す次の一手） */

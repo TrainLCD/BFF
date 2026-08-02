@@ -13,13 +13,13 @@ describe('buildContextMessage', () => {
     expect(msg).toContain('JR総武線・東京メトロ東西線');
     expect(msg).toContain('「ここ」');
     // 到達可能性による絞り込みは仕様。0 件を「存在しない」と誤解させない
-    expect(msg).toContain('乗り換えなしで行ける駅だけを返す');
+    expect(msg).toContain('列車種別を連結して到達できる駅だけを返す');
   });
 
   it('現在駅が未解決ならグループ ID のみへフォールバックする', () => {
     const msg = buildContextMessage('ja', null, 1130205);
     expect(msg).toContain('現在駅グループID: 1130205');
-    expect(msg).toContain('乗り換えなしで行ける駅だけを返す');
+    expect(msg).toContain('列車種別を連結して到達できる駅だけを返す');
     expect(msg).not.toContain('「ここ」');
   });
 
@@ -43,10 +43,10 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('Kinugawa-onsen');
   });
 
-  it('0 件で諦めず直通で行ける沿線から引き直す指示を含む', () => {
+  it('0 件で諦めず到達可能な範囲から引き直す指示を含む', () => {
     const prompt = buildSystemPrompt(null);
-    expect(prompt).toContain('乗り換えなしで行ける駅');
-    expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
+    expect(prompt).toContain('列車種別の');
+    expect(prompt).toContain('到達できる範囲に代替候補がないか確認する');
   });
 
   // 端末が英語設定でも日本語で聞かれたら日本語で返す（locale 追従をやめた経緯）

@@ -2,6 +2,7 @@ import { Reader } from 'protobufjs/minimal';
 import { graphql, buildSchema, GraphQLError, GraphQLSchema, ExecutionResult } from 'graphql';
 import { app } from './generated/stationapi.js';
 import { schemaSDL } from './schema.js';
+import { getConnectedLineGroupStations } from './connectedLineGroupStations.js';
 
 const grpcTypes = app.trainlcd.grpc;
 const SERVICE_FQN = 'app.trainlcd.grpc.StationAPI';
@@ -292,6 +293,12 @@ function createResolvers(client: GrpcClient) {
 				cleanPayload({ lineGroupIds, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus })
 			);
 			return payload.stations ?? [];
+		},
+		connectedLineGroupStations: async ({ lineGroupIds, transportType }: { lineGroupIds: number[]; transportType?: string }) => {
+			const resolvedTransportType = transportType
+				? TransportType[transportType as keyof typeof TransportType]
+				: TransportType.RailAndBus;
+			return getConnectedLineGroupStations(client, lineGroupIds, resolvedTransportType);
 		},
 		stationTrainTypes: async ({ stationId }: { stationId: number }) => {
 			const payload = await client.call(
