@@ -487,6 +487,7 @@ describe('createStationSearchTool', () => {
       name: '鎌倉',
       nameRoman: 'Kamakura',
       lineNames: ['JR横須賀線'],
+      routeStationIds: [10, 20, 30],
     };
     const tool = createStationSearchTool({
       search: jest.fn().mockResolvedValue([station]),
@@ -494,7 +495,16 @@ describe('createStationSearchTool', () => {
       budget: { remaining: MAX_TOOL_CALLS_PER_TURN },
     });
     const result = await execute(tool, '鎌倉');
-    expect(result.stations).toEqual([station]);
+    expect(result.stations).toEqual([
+      {
+        stationId: 1,
+        stationGroupId: 1001,
+        name: '鎌倉',
+        nameRoman: 'Kamakura',
+        lineNames: ['JR横須賀線'],
+      },
+    ]);
+    expect(result.notice).toContain('connected route');
     expect(verified.get(1)).toEqual(station);
   });
 
