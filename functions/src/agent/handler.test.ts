@@ -145,6 +145,45 @@ describe('runAgentTurn', () => {
     expect(result.suggestions[0].name).toBe('鎌倉');
   });
 
+  it('生成した連結経路はモデルが選ばなくても suggestions に含める', async () => {
+    const connectedRoute = [
+      station(1, '東京'),
+      station(2, '品川'),
+      station(3, '新横浜'),
+      station(4, '名古屋'),
+      station(5, '京都'),
+      station(6, '新大阪'),
+    ];
+    const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
+      await options.tools.search_stations_by_name.execute(
+        { name: '名古屋' },
+        {}
+      );
+      return streamResult({
+        output: {
+          reply: '経路はこちらです。',
+          suggestions: [station(4, '名古屋')],
+        },
+      });
+    });
+
+    const result = await runAgentTurn({
+      ...baseParams,
+      streamText,
+      searchStations: jest.fn().mockResolvedValue(connectedRoute),
+      connectedRouteSuggestions: connectedRoute,
+    });
+
+    expect(result.suggestions.map((s) => s.name)).toEqual([
+      '名古屋',
+      '東京',
+      '品川',
+      '新横浜',
+      '京都',
+      '新大阪',
+    ]);
+  });
+
   it('ツール結果が 0 件なら suggestions は必ず空配列になる', async () => {
     const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
       await options.tools.search_stations_by_name.execute(
