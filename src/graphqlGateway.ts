@@ -293,6 +293,28 @@ function createResolvers(client: GrpcClient) {
 			);
 			return payload.stations ?? [];
 		},
+		connectedLineGroupStations: async ({ lineGroupIds, transportType }: { lineGroupIds: number[]; transportType?: string }) => {
+			if (lineGroupIds.length === 0) {
+				return [];
+			}
+
+			const resolvedTransportType = transportType
+				? TransportType[transportType as keyof typeof TransportType]
+				: TransportType.RailAndBus;
+			const stationGroups = await Promise.all(
+				lineGroupIds.map(async (lineGroupId) => {
+					const payload = await client.call(
+						'GetStationsByLineGroupId',
+						grpcTypes.GetStationsByLineGroupIdRequest,
+						grpcTypes.MultipleStationResponse,
+						{ lineGroupId, transportType: resolvedTransportType }
+					);
+					return payload.stations ?? [];
+				})
+			);
+
+			return connectStationGroups(stationGroups);
+		},
 		stationTrainTypes: async ({ stationId }: { stationId: number }) => {
 			const payload = await client.call(
 				'GetTrainTypesByStationId',
@@ -423,6 +445,25 @@ function createResolvers(client: GrpcClient) {
 			return routes;
 		},
 	};
+}
+
+function connectStationGroups(stationGroups: Array<Array<Record<string, any>>>): Array<Record<string, any>> {
+	if (stationGroups.some((stations) => stations.length === 0)) {
+		return [];
+	}
+
+	const connected = stationGroups[0].slice();
+	for (let i = 1; i < stationGroups.length; i++) {
+		const next = stationGroups[i];
+		const previousTerminal = connected[connected.length - 1];
+		const nextOrigin = next[0];
+		if (previousTerminal.groupId !== nextOrigin.groupId) {
+			return [];
+		}
+		connected.push(...next.slice(1));
+	}
+
+	return connected;
 }
 
 class GrpcClient {
