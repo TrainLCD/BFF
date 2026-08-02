@@ -122,6 +122,27 @@ describe('searchStationsByName', () => {
       ([, init]) => JSON.parse(init.body).variables.name
     );
 
+  const operationName = (init: RequestInit): string | undefined =>
+    JSON.parse(init.body as string).query.match(/query\s+(\w+)/)?.[1];
+
+  const mockGraphQL = (responses: Record<string, Response[]>): jest.Mock =>
+    jest.fn((_: string, init: RequestInit) => {
+      const operation = operationName(init);
+      const response = operation ? responses[operation]?.shift() : undefined;
+      if (!response) {
+        throw new Error(`Unexpected GraphQL operation: ${operation}`);
+      }
+      return Promise.resolve(response);
+    });
+
+  const requestsFor = (
+    fetchMock: jest.Mock,
+    operation: string
+  ): RequestInit[] =>
+    fetchMock.mock.calls
+      .map(([, init]) => init as RequestInit)
+      .filter((init) => operationName(init) === operation);
+
   it('Service Binding 経由で検索し結果をマップする', async () => {
     const fetchMock = jest.fn().mockResolvedValue(gqlResponse([gqlStation(1)]));
     const result = await searchStationsByName(
@@ -203,28 +224,28 @@ describe('searchStationsByName', () => {
 
   it('直通検索が 0 件でも連結経路があれば全国検索の候補を返す', async () => {
     const station = gqlStation(3, '江ノ島');
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce(gqlResponse([]))
-      .mockResolvedValueOnce(gqlResponse([station]))
-      .mockResolvedValueOnce(
+    const fetchMock = mockGraphQL({
+      AgentStationsByName: [gqlResponse([]), gqlResponse([station])],
+      AgentStationGroupTrainTypes: [
         gqlResponse(
           [{ id: 1, trainType: { groupId: 10 } }],
           'stationGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
+        ),
+        gqlResponse([], 'stationGroupStations'),
+      ],
+      AgentLineGroupStations: [
         gqlResponse(
           [{ groupId: 1130205 }, { groupId: station.groupId }],
           'lineGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
+        ),
+      ],
+      AgentConnectedLineGroupStations: [
         gqlResponse(
           [{ groupId: 1130205 }, { groupId: station.groupId }],
           'connectedLineGroupStations'
-        )
-      );
+        ),
+      ],
+    });
 
     const result = await searchStationsByName(
       makeEnv(fetchMock),
@@ -233,43 +254,45 @@ describe('searchStationsByName', () => {
     );
 
     expect(result.map((item) => item.stationId)).toEqual([station.id]);
-    expect(fetchMock).toHaveBeenCalledTimes(5);
-    expect(JSON.parse(fetchMock.mock.calls[4][1].body).variables).toEqual({
+    const [connectedRequest] = requestsFor(
+      fetchMock,
+      'AgentConnectedLineGroupStations'
+    );
+    expect(JSON.parse(connectedRequest.body as string).variables).toEqual({
       lineGroupIds: [10],
     });
   });
 
   it('終点と次の始発が一致する複数種別を連結して候補を返す', async () => {
     const station = gqlStation(3, '名古屋');
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce(gqlResponse([]))
-      .mockResolvedValueOnce(gqlResponse([station]))
-      .mockResolvedValueOnce(
+    const fetchMock = mockGraphQL({
+      AgentStationsByName: [gqlResponse([]), gqlResponse([station])],
+      AgentStationGroupTrainTypes: [
         gqlResponse(
           [{ id: 1, trainType: { groupId: 10 } }],
           'stationGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
-        gqlResponse(
-          [{ groupId: 1130205 }, { groupId: 1000 }],
-          'lineGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
+        ),
         gqlResponse(
           [{ id: 2, trainType: { groupId: 20 } }],
           'stationGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
+        ),
+        gqlResponse([], 'stationGroupStations'),
+      ],
+      AgentLineGroupStations: [
+        gqlResponse(
+          [{ groupId: 1130205 }, { groupId: 1000 }],
+          'lineGroupStations'
+        ),
         gqlResponse(
           [{ groupId: 1000 }, { groupId: station.groupId }],
           'lineGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
+        ),
+      ],
+      AgentConnectedLineGroupStations: [
+        gqlResponse(
+          [{ groupId: 1130205 }, { groupId: 1000 }],
+          'connectedLineGroupStations'
+        ),
         gqlResponse(
           [
             { groupId: 1130205 },
@@ -277,8 +300,9 @@ describe('searchStationsByName', () => {
             { groupId: station.groupId },
           ],
           'connectedLineGroupStations'
-        )
-      );
+        ),
+      ],
+    });
 
     const result = await searchStationsByName(
       makeEnv(fetchMock),
@@ -287,26 +311,36 @@ describe('searchStationsByName', () => {
     );
 
     expect(result.map((item) => item.stationId)).toEqual([station.id]);
-    expect(JSON.parse(fetchMock.mock.calls[6][1].body).variables).toEqual({
-      lineGroupIds: [10, 20],
-    });
+    const connectedRequests = requestsFor(
+      fetchMock,
+      'AgentConnectedLineGroupStations'
+    );
+    expect(
+      connectedRequests.map(
+        (init) => JSON.parse(init.body as string).variables.lineGroupIds
+      )
+    ).toContainEqual([10, 20]);
   });
 
   it('全国検索で見つかっても連結経路が無ければ候補から除外する', async () => {
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce(gqlResponse([]))
-      .mockResolvedValueOnce(gqlResponse([gqlStation(3, '江ノ島')]))
-      .mockResolvedValueOnce(
+    const fetchMock = mockGraphQL({
+      AgentStationsByName: [
+        gqlResponse([]),
+        gqlResponse([gqlStation(3, '江ノ島')]),
+      ],
+      AgentStationGroupTrainTypes: [
         gqlResponse(
           [{ id: 1, trainType: { groupId: 10 } }],
           'stationGroupStations'
-        )
-      )
-      .mockResolvedValueOnce(
-        gqlResponse([{ groupId: 1130205 }], 'lineGroupStations')
-      )
-      .mockResolvedValueOnce(gqlResponse([], 'stationGroupStations'));
+        ),
+      ],
+      AgentLineGroupStations: [
+        gqlResponse([{ groupId: 1130205 }], 'lineGroupStations'),
+      ],
+      AgentConnectedLineGroupStations: [
+        gqlResponse([], 'connectedLineGroupStations'),
+      ],
+    });
 
     const result = await searchStationsByName(
       makeEnv(fetchMock),

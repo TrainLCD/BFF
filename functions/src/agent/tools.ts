@@ -203,18 +203,19 @@ const searchOnce = (
     parentSignal
   );
 
-const hasConnectedRoute = async (
+const reachableStationGroupIdsFrom = async (
   env: Env,
   fromStationGroupId: number,
-  toStationGroupId: number,
   parentSignal: AbortSignal | undefined
-): Promise<boolean> => {
+): Promise<Set<number>> => {
   const controller = new AbortController();
   if (parentSignal?.aborted) controller.abort();
   const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
   const onParentAbort = () => controller.abort();
   parentSignal?.addEventListener('abort', onParentAbort, { once: true });
   try {
+    const trainTypeIdsByStationGroupId = new Map<number, Promise<number[]>>();
+
     const query = async <T>(
       document: string,
       variables: Record<string, unknown>,
@@ -225,31 +226,40 @@ const hasConnectedRoute = async (
         JSON.stringify({ query: document, variables }),
         controller.signal
       );
-      if (!response.ok) return null;
+      if (!response.ok) {
+        throw new Error(`${field} failed with status ${response.status}`);
+      }
       const json = (await response.json()) as {
         data?: Record<string, T | null> | null;
-        errors?: unknown[];
+        errors?: { message?: string }[];
       };
-      return json.errors?.length ? null : (json.data?.[field] ?? null);
+      if (json.errors?.length) {
+        throw new Error(
+          `${field} GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+        );
+      }
+      return json.data?.[field] ?? null;
     };
 
-    const trainTypeIdsAt = async (
-      stationGroupId: number
-    ): Promise<number[]> => {
-      const stations = await query<
+    const trainTypeIdsAt = (stationGroupId: number): Promise<number[]> => {
+      const cached = trainTypeIdsByStationGroupId.get(stationGroupId);
+      if (cached) return cached;
+
+      const result = query<
         Array<{ trainType?: { groupId?: number | null } | null }>
       >(
         STATION_GROUP_TRAIN_TYPES_QUERY,
         { groupId: stationGroupId },
         'stationGroupStations'
-      );
-      return [
+      ).then((stations) => [
         ...new Set(
           (stations ?? [])
             .map((station) => station.trainType?.groupId)
             .filter((id): id is number => typeof id === 'number')
         ),
-      ];
+      ]);
+      trainTypeIdsByStationGroupId.set(stationGroupId, result);
+      return result;
     };
 
     const stationGroupsOn = async (lineGroupId: number): Promise<number[]> => {
@@ -266,7 +276,23 @@ const hasConnectedRoute = async (
     const queue: Array<{ stationGroupId: number; lineGroupIds: number[] }> = [
       { stationGroupId: fromStationGroupId, lineGroupIds: [] },
     ];
+    const reachableStationGroupIds = new Set([fromStationGroupId]);
+    const visitedStationGroupIds = new Set([fromStationGroupId]);
     const visitedLineGroupIds = new Set<number>();
+
+    const enqueue = (
+      stationGroupId: number | undefined,
+      lineGroupIds: number[]
+    ): void => {
+      if (
+        stationGroupId === undefined ||
+        visitedStationGroupIds.has(stationGroupId)
+      ) {
+        return;
+      }
+      visitedStationGroupIds.add(stationGroupId);
+      queue.push({ stationGroupId, lineGroupIds });
+    };
 
     while (queue.length > 0) {
       const current = queue.shift();
@@ -286,34 +312,26 @@ const hasConnectedRoute = async (
         if (stationGroupIds.length === 0) continue;
 
         const connectedLineGroupIds = [...current.lineGroupIds, lineGroupId];
-        if (stationGroupIds.includes(toStationGroupId)) {
-          const connectedStations = await query<
-            Array<{ groupId?: number | null }>
-          >(
-            CONNECTED_LINE_GROUP_STATIONS_QUERY,
-            { lineGroupIds: connectedLineGroupIds },
-            'connectedLineGroupStations'
-          );
-          if (
-            (connectedStations ?? []).some(
-              (station) => station.groupId === toStationGroupId
-            )
-          ) {
-            return true;
+        const connectedStations = await query<
+          Array<{ groupId?: number | null }>
+        >(
+          CONNECTED_LINE_GROUP_STATIONS_QUERY,
+          { lineGroupIds: connectedLineGroupIds },
+          'connectedLineGroupStations'
+        );
+        if (!connectedStations?.length) continue;
+        for (const station of connectedStations) {
+          if (typeof station.groupId === 'number') {
+            reachableStationGroupIds.add(station.groupId);
           }
         }
 
-        const terminalGroupId = stationGroupIds.at(-1);
-        if (terminalGroupId !== undefined) {
-          queue.push({
-            stationGroupId: terminalGroupId,
-            lineGroupIds: connectedLineGroupIds,
-          });
-        }
+        enqueue(stationGroupIds.at(0), connectedLineGroupIds);
+        enqueue(stationGroupIds.at(-1), connectedLineGroupIds);
       }
     }
 
-    return false;
+    return reachableStationGroupIds;
   } finally {
     clearTimeout(timer);
     parentSignal?.removeEventListener('abort', onParentAbort);
@@ -431,22 +449,19 @@ export const searchStationsByName = async (
     undefined,
     parentSignal
   );
-  const reachable = await Promise.all(
-    nationwideStations.map(async (station) => {
-      try {
-        return await hasConnectedRoute(
-          env,
-          fromStationGroupId,
-          station.stationGroupId,
-          parentSignal
-        );
-      } catch (error) {
-        console.error('agent tool: connected route check failed', error);
-        return false;
-      }
-    })
-  );
-  return nationwideStations.filter((_, index) => reachable[index]);
+  try {
+    const reachableStationGroupIds = await reachableStationGroupIdsFrom(
+      env,
+      fromStationGroupId,
+      parentSignal
+    );
+    return nationwideStations.filter((station) =>
+      reachableStationGroupIds.has(station.stationGroupId)
+    );
+  } catch (error) {
+    console.error('agent tool: connected route check failed', error);
+    return [];
+  }
 };
 
 /**
