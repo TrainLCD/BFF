@@ -3,6 +3,13 @@ import { graphql, buildSchema, GraphQLError, GraphQLSchema, ExecutionResult } fr
 import { app } from './generated/stationapi.js';
 import { schemaSDL } from './schema.js';
 import { getConnectedLineGroupStations } from './connectedLineGroupStations.js';
+import {
+	assignConnectedLineGroupId,
+	createConnectedLineGroupId,
+	isConnectedLineGroupId,
+	loadConnectedLineGroup,
+	storeConnectedLineGroup,
+} from './connectedTrainType.js';
 
 const grpcTypes = app.trainlcd.grpc;
 const SERVICE_FQN = 'app.trainlcd.grpc.StationAPI';
@@ -130,7 +137,7 @@ export async function handleGraphQLRequest(request: Request, env: GatewayEnv, ct
 
 	const kvCache = env.DISABLE_KV_CACHE === 'true' ? undefined : env.GRPC_CACHE;
 	const client = new GrpcClient(config, kvCache, ctx);
-	const rootValue = createResolvers(client);
+	const rootValue = createResolvers(client, env.GRPC_CACHE);
 
 	try {
 		if (Array.isArray(body)) {
@@ -198,7 +205,7 @@ async function executeGraphQLQuery(operation: GraphQLOperationPayload, rootValue
 	return result;
 }
 
-function createResolvers(client: GrpcClient) {
+function createResolvers(client: GrpcClient, connectedLineGroupStore?: KVNamespace) {
 	return {
 		station: async ({ id, transportType }: { id: number; transportType?: string }) => {
 			const payload = await client.call('GetStationById', grpcTypes.GetStationByIdRequest, grpcTypes.SingleStationResponse, { id, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus });
@@ -242,6 +249,9 @@ function createResolvers(client: GrpcClient) {
 			return payload.stations ?? [];
 		},
 		lineGroupStations: async ({ lineGroupId, directionId, transportType }: { lineGroupId: number; directionId?: number; transportType?: string }) => {
+			if (isConnectedLineGroupId(lineGroupId)) {
+				return loadConnectedLineGroup(connectedLineGroupStore, lineGroupId);
+			}
 			const payload = await client.call(
 				'GetStationsByLineGroupId',
 				grpcTypes.GetStationsByLineGroupIdRequest,
@@ -295,6 +305,9 @@ function createResolvers(client: GrpcClient) {
 			return payload.stations ?? [];
 		},
 		connectedLineGroupStations: async ({ lineGroupIds, transportType }: { lineGroupIds: number[]; transportType?: string }) => {
+			if (lineGroupIds.length === 1 && isConnectedLineGroupId(lineGroupIds[0])) {
+				return loadConnectedLineGroup(connectedLineGroupStore, lineGroupIds[0]);
+			}
 			const resolvedTransportType = transportType
 				? TransportType[transportType as keyof typeof TransportType]
 				: TransportType.RailAndBus;
@@ -360,8 +373,52 @@ function createResolvers(client: GrpcClient) {
 			grpcTypes.RouteTypeResponse,
 			cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize, pageToken })
 		);
+			const trainTypes = payload.trainTypes ?? [];
+			const lineGroupIds = [
+				...new Set<number>(
+					trainTypes
+						.map((trainType: Record<string, any>) => trainType.groupId)
+						.filter((groupId: unknown): groupId is number => typeof groupId === 'number'),
+				),
+			];
+			if (lineGroupIds.length <= 1 || !connectedLineGroupStore) {
+				return {
+					trainTypes,
+					nextPageToken: payload.nextPageToken ?? null,
+				};
+			}
+
+			const stations = await getConnectedLineGroupStations(
+				client,
+				lineGroupIds,
+				TransportType.RailAndBus,
+			);
+			if (stations.length === 0) {
+				return {
+					trainTypes,
+					nextPageToken: payload.nextPageToken ?? null,
+				};
+			}
+
+			const lineGroupId = createConnectedLineGroupId(lineGroupIds, stations);
+			const connectedStations = assignConnectedLineGroupId(stations, lineGroupId);
+			await storeConnectedLineGroup(connectedLineGroupStore, lineGroupId, connectedStations);
+
+			const lines = [
+				...new Map(
+					trainTypes
+						.flatMap((trainType: Record<string, any>) => trainType.lines ?? (trainType.line ? [trainType.line] : []))
+						.filter((line: Record<string, any>) => typeof line?.id === 'number')
+						.map((line: Record<string, any>) => [line.id, line]),
+				).values(),
+			];
 			return {
-				trainTypes: payload.trainTypes ?? [],
+				trainTypes: [{
+					...trainTypes[0],
+					groupId: lineGroupId,
+					line: lines[0] ?? trainTypes[0]?.line,
+					lines,
+				}],
 				nextPageToken: payload.nextPageToken ?? null,
 			};
 		},
