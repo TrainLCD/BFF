@@ -213,7 +213,9 @@ const reachableStationGroupIdsFrom = async (
   env: Env,
   fromStationGroupId: number,
   parentSignal: AbortSignal | undefined
-): Promise<Map<number, StationSuggestion[]>> => {
+): Promise<
+  Map<number, { stations: StationSuggestion[]; lineGroupIds: number[] }>
+> => {
   const controller = new AbortController();
   if (parentSignal?.aborted) controller.abort();
   const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
@@ -282,7 +284,10 @@ const reachableStationGroupIdsFrom = async (
     const queue: Array<{ stationGroupId: number; lineGroupIds: number[] }> = [
       { stationGroupId: fromStationGroupId, lineGroupIds: [] },
     ];
-    const routesByStationGroupId = new Map<number, StationSuggestion[]>();
+    const routesByStationGroupId = new Map<
+      number,
+      { stations: StationSuggestion[]; lineGroupIds: number[] }
+    >();
     const visitedStationGroupIds = new Set([fromStationGroupId]);
     const visitedLineGroupIds = new Set<number>();
 
@@ -329,7 +334,10 @@ const reachableStationGroupIdsFrom = async (
           .filter((station): station is StationSuggestion => station !== null);
         for (const station of route) {
           if (!routesByStationGroupId.has(station.stationGroupId)) {
-            routesByStationGroupId.set(station.stationGroupId, route);
+            routesByStationGroupId.set(station.stationGroupId, {
+              stations: route,
+              lineGroupIds: connectedLineGroupIds,
+            });
           }
         }
 
@@ -467,8 +475,10 @@ export const searchStationsByName = async (
       routesByStationGroupId.has(station.stationGroupId)
     );
     const connectedDestinations = reachableDestinations.flatMap((station) => {
-      const route = routesByStationGroupId.get(station.stationGroupId);
-      if (!route) return [];
+      const connectedRoute = routesByStationGroupId.get(station.stationGroupId);
+      if (!connectedRoute) return [];
+
+      const { stations: route, lineGroupIds } = connectedRoute;
 
       const fromIndex = route.findIndex(
         (routeStation) => routeStation.stationGroupId === fromStationGroupId
@@ -478,16 +488,10 @@ export const searchStationsByName = async (
       );
       if (fromIndex === -1 || destinationIndex === -1) return [];
 
-      const routeToDestination =
-        fromIndex <= destinationIndex
-          ? route.slice(fromIndex, destinationIndex + 1)
-          : route.slice(destinationIndex, fromIndex + 1).reverse();
       return [
         {
           ...station,
-          routeStationIds: routeToDestination.map(
-            (routeStation) => routeStation.stationId
-          ),
+          routeLineGroupIds: lineGroupIds,
         },
       ];
     });
@@ -643,7 +647,7 @@ export const createStationSearchTool = ({
         }));
         return {
           stations: stationsForModel,
-          ...(stations.some((station) => station.routeStationIds?.length)
+          ...(stations.some((station) => station.routeLineGroupIds?.length)
             ? {
                 notice:
                   'A connected route was found. Present this destination as reachable.',

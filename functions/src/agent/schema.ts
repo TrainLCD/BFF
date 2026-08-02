@@ -44,17 +44,17 @@ export const stationSuggestionSchema = z.object({
   name: z.string(),
   nameRoman: z.string(),
   lineNames: z.array(z.string()),
-  /** 連結経路で到達する候補だけが持つ、現在駅から行き先までの駅 ID 列 */
-  routeStationIds: z.array(z.number().int()).optional(),
+  /** 連結経路で到達する候補だけが持つ、接続順の列車種別グループ ID */
+  routeLineGroupIds: z.array(z.number().int()).optional(),
 });
 export type StationSuggestion = z.infer<typeof stationSuggestionSchema>;
 
 /**
- * モデルが生成する駅候補。routeStationIds はサーバが検証済み経路から付与するため、
+ * モデルが生成する駅候補。routeLineGroupIds はサーバが検証済み経路から付与するため、
  * OpenAI の strict Structured Outputs へ渡すスキーマには含めない。
  */
 const modelStationSuggestionSchema = stationSuggestionSchema.omit({
-  routeStationIds: true,
+  routeLineGroupIds: true,
 });
 
 /** LLM の最終応答（構造化出力で強制する形） */

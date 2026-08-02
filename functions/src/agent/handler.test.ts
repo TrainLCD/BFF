@@ -148,7 +148,7 @@ describe('runAgentTurn', () => {
   it('連結経路を行き先候補に紐付けつつモデルの reply を配信する', async () => {
     const connectedDestination = {
       ...station(4, '名古屋'),
-      routeStationIds: [1, 2, 3, 4, 5, 6],
+      routeLineGroupIds: [10, 20],
     };
     const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
       await options.tools.search_stations_by_name.execute(
@@ -177,7 +177,7 @@ describe('runAgentTurn', () => {
     expect(onDelta).toHaveBeenCalledTimes(1);
     expect(onDelta).toHaveBeenCalledWith(result.reply);
     expect(result.suggestions.map((s) => s.name)).toEqual(['名古屋']);
-    expect(result.suggestions[0].routeStationIds).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(result.suggestions[0].routeLineGroupIds).toEqual([10, 20]);
   });
 
   it('ツール結果が 0 件なら suggestions は必ず空配列になる', async () => {
