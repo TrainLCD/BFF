@@ -238,6 +238,91 @@ describe('GraphQL gateway', () => {
 		expect(result.errors).toBeUndefined();
 	});
 
+	it('connects line group stations when adjacent endpoints match', async () => {
+		const fetchMock = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
+					stations: [
+						{ id: 101, groupId: 1, name: 'A' },
+						{ id: 102, groupId: 2, name: 'B' },
+					],
+				}),
+			)
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
+					stations: [
+						{ id: 201, groupId: 2, name: 'B' },
+						{ id: 202, groupId: 3, name: 'C' },
+					],
+				}),
+			);
+
+		const query = `
+			query ConnectedLineGroupStations($lineGroupIds: [Int!]!) {
+				connectedLineGroupStations(lineGroupIds: $lineGroupIds) {
+					id
+					groupId
+					name
+				}
+			}
+		`;
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(graphqlRequest(query, { lineGroupIds: [10, 20] }), env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		const requests = fetchMock.mock.calls.map(([url, init]) => ({
+			url,
+			payload: decodeRequestPayload(init?.body as Uint8Array, grpc.GetStationsByLineGroupIdRequest),
+		}));
+		expect(requests).toEqual([
+			{
+				url: 'https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetStationsByLineGroupId',
+				payload: { lineGroupId: 10, transportType: 3 },
+			},
+			{
+				url: 'https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetStationsByLineGroupId',
+				payload: { lineGroupId: 20, transportType: 3 },
+			},
+		]);
+
+		const result = await response.json() as GraphQLResponse<{ connectedLineGroupStations: StationData[] }>;
+		expect(result.errors).toBeUndefined();
+		expect(result.data?.connectedLineGroupStations).toEqual([
+			{ id: 101, groupId: 1, name: 'A' },
+			{ id: 102, groupId: 2, name: 'B' },
+			{ id: 202, groupId: 3, name: 'C' },
+		]);
+	});
+
+	it('returns no connected stations when adjacent endpoints differ', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
+					stations: [{ id: 101, groupId: 1 }, { id: 102, groupId: 2 }],
+				}),
+			)
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
+					stations: [{ id: 201, groupId: 9 }, { id: 202, groupId: 3 }],
+				}),
+			);
+
+		const query = `
+			query ConnectedLineGroupStations($lineGroupIds: [Int!]!) {
+				connectedLineGroupStations(lineGroupIds: $lineGroupIds) { id }
+			}
+		`;
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(graphqlRequest(query, { lineGroupIds: [10, 20] }), env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		const result = await response.json() as GraphQLResponse<{ connectedLineGroupStations: StationData[] }>;
+		expect(result.errors).toBeUndefined();
+		expect(result.data?.connectedLineGroupStations).toEqual([]);
+	});
+
 	it('resolves routes query with pagination parameters', async () => {
 		const fetchMock = vi
 			.spyOn(globalThis, 'fetch')
