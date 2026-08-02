@@ -145,15 +145,11 @@ describe('runAgentTurn', () => {
     expect(result.suggestions[0].name).toBe('鎌倉');
   });
 
-  it('生成した連結経路を suggestions に含めつつモデルの reply を配信する', async () => {
-    const connectedRoute = [
-      station(1, '東京'),
-      station(2, '品川'),
-      station(3, '新横浜'),
-      station(4, '名古屋'),
-      station(5, '京都'),
-      station(6, '新大阪'),
-    ];
+  it('連結経路を行き先候補に紐付けつつモデルの reply を配信する', async () => {
+    const connectedDestination = {
+      ...station(4, '名古屋'),
+      routeStationIds: [1, 2, 3, 4, 5, 6],
+    };
     const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
       await options.tools.search_stations_by_name.execute(
         { name: '名古屋' },
@@ -172,22 +168,16 @@ describe('runAgentTurn', () => {
     const result = await runAgentTurn({
       ...baseParams,
       streamText,
-      searchStations: jest.fn().mockResolvedValue(connectedRoute),
-      connectedRouteSuggestions: connectedRoute,
+      searchStations: jest.fn().mockResolvedValue([connectedDestination]),
+      connectedRouteSuggestions: [connectedDestination],
       onDelta,
     });
 
     expect(result.reply).toBe('名古屋駅までの経路が見つかりました。');
     expect(onDelta).toHaveBeenCalledTimes(1);
     expect(onDelta).toHaveBeenCalledWith(result.reply);
-    expect(result.suggestions.map((s) => s.name)).toEqual([
-      '名古屋',
-      '東京',
-      '品川',
-      '新横浜',
-      '京都',
-      '新大阪',
-    ]);
+    expect(result.suggestions.map((s) => s.name)).toEqual(['名古屋']);
+    expect(result.suggestions[0].routeStationIds).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
   it('ツール結果が 0 件なら suggestions は必ず空配列になる', async () => {
