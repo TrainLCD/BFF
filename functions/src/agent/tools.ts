@@ -437,7 +437,10 @@ export const searchStationsByName = async (
   name: string,
   fromStationGroupId: number | undefined,
   parentSignal?: AbortSignal,
-  onConnectedRoute?: (stations: StationSuggestion[]) => void
+  onConnectedRoute?: (
+    stations: StationSuggestion[],
+    destinations: StationSuggestion[]
+  ) => void
 ): Promise<StationSuggestion[]> => {
   const directStations = await searchStationsByNameDirect(
     env,
@@ -461,7 +464,10 @@ export const searchStationsByName = async (
       fromStationGroupId,
       parentSignal
     );
-    const routeStations = nationwideStations.flatMap(
+    const reachableDestinations = nationwideStations.filter((station) =>
+      routesByStationGroupId.has(station.stationGroupId)
+    );
+    const routeStations = reachableDestinations.flatMap(
       (station) => routesByStationGroupId.get(station.stationGroupId) ?? []
     );
     const connectedRoute = [
@@ -469,7 +475,9 @@ export const searchStationsByName = async (
         routeStations.map((station) => [station.stationId, station])
       ).values(),
     ];
-    if (connectedRoute.length > 0) onConnectedRoute?.(connectedRoute);
+    if (connectedRoute.length > 0) {
+      onConnectedRoute?.(connectedRoute, reachableDestinations);
+    }
     return connectedRoute;
   } catch (error) {
     console.error('agent tool: connected route check failed', error);
