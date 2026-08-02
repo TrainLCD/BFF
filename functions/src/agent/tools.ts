@@ -213,7 +213,7 @@ const reachableStationGroupIdsFrom = async (
   env: Env,
   fromStationGroupId: number,
   parentSignal: AbortSignal | undefined
-): Promise<Map<number, StationSuggestion[]>> => {
+): Promise<Map<number, { stations: StationSuggestion[]; lineGroupIds: number[] }>> => {
   const controller = new AbortController();
   if (parentSignal?.aborted) controller.abort();
   const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
@@ -282,7 +282,10 @@ const reachableStationGroupIdsFrom = async (
     const queue: Array<{ stationGroupId: number; lineGroupIds: number[] }> = [
       { stationGroupId: fromStationGroupId, lineGroupIds: [] },
     ];
-    const routesByStationGroupId = new Map<number, StationSuggestion[]>();
+    const routesByStationGroupId = new Map<
+      number,
+      { stations: StationSuggestion[]; lineGroupIds: number[] }
+    >();
     const visitedStationGroupIds = new Set([fromStationGroupId]);
     const visitedLineGroupIds = new Set<number>();
 
@@ -328,7 +331,10 @@ const reachableStationGroupIdsFrom = async (
           .map(toStationSuggestion)
           .filter((station): station is StationSuggestion => station !== null);
         for (const station of route) {
-          routesByStationGroupId.set(station.stationGroupId, route);
+          routesByStationGroupId.set(station.stationGroupId, {
+            stations: route,
+            lineGroupIds: connectedLineGroupIds,
+          });
         }
 
         enqueue(stationGroupIds.at(0), connectedLineGroupIds);
@@ -437,10 +443,7 @@ export const searchStationsByName = async (
   name: string,
   fromStationGroupId: number | undefined,
   parentSignal?: AbortSignal,
-  onConnectedRoute?: (
-    stations: StationSuggestion[],
-    destinations: StationSuggestion[]
-  ) => void
+  onConnectedRoute?: (destinations: StationSuggestion[]) => void
 ): Promise<StationSuggestion[]> => {
   const directStations = await searchStationsByNameDirect(
     env,
@@ -467,18 +470,19 @@ export const searchStationsByName = async (
     const reachableDestinations = nationwideStations.filter((station) =>
       routesByStationGroupId.has(station.stationGroupId)
     );
-    const routeStations = reachableDestinations.flatMap(
-      (station) => routesByStationGroupId.get(station.stationGroupId) ?? []
-    );
-    const connectedRoute = [
-      ...new Map(
-        routeStations.map((station) => [station.stationId, station])
-      ).values(),
-    ];
-    if (connectedRoute.length > 0) {
-      onConnectedRoute?.(connectedRoute, reachableDestinations);
+    const connectedDestinations = reachableDestinations.map((station) => {
+      const route = routesByStationGroupId.get(station.stationGroupId);
+      return {
+        ...station,
+        routeStationIds: route?.stations.map(
+          (routeStation) => routeStation.stationId
+        ),
+      };
+    });
+    if (connectedDestinations.length > 0) {
+      onConnectedRoute?.(connectedDestinations);
     }
-    return connectedRoute;
+    return connectedDestinations;
   } catch (error) {
     console.error('agent tool: connected route check failed', error);
     return [];
