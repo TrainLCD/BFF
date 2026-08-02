@@ -2,6 +2,7 @@ import { Reader } from 'protobufjs/minimal';
 import { graphql, buildSchema, GraphQLError, GraphQLSchema, ExecutionResult } from 'graphql';
 import { app } from './generated/stationapi.js';
 import { schemaSDL } from './schema.js';
+import { getConnectedLineGroupStations } from './connectedLineGroupStations.js';
 
 const grpcTypes = app.trainlcd.grpc;
 const SERVICE_FQN = 'app.trainlcd.grpc.StationAPI';
@@ -294,18 +295,10 @@ function createResolvers(client: GrpcClient) {
 			return payload.stations ?? [];
 		},
 		connectedLineGroupStations: async ({ lineGroupIds, transportType }: { lineGroupIds: number[]; transportType?: string }) => {
-			if (lineGroupIds.length === 0) {
-				return [];
-			}
-
-			const payload = await client.call(
-				'GetStationsByLineGroupIdList',
-				grpcTypes.GetStationsByLineGroupIdListRequest,
-				grpcTypes.MultipleStationResponse,
-				cleanPayload({ lineGroupIds, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus })
-			);
-
-			return connectStationGroups(payload.stations ?? [], lineGroupIds.length);
+			const resolvedTransportType = transportType
+				? TransportType[transportType as keyof typeof TransportType]
+				: TransportType.RailAndBus;
+			return getConnectedLineGroupStations(client, lineGroupIds, resolvedTransportType);
 		},
 		stationTrainTypes: async ({ stationId }: { stationId: number }) => {
 			const payload = await client.call(
@@ -437,26 +430,6 @@ function createResolvers(client: GrpcClient) {
 			return routes;
 		},
 	};
-}
-
-function connectStationGroups(stations: Array<Record<string, any>>, lineGroupCount: number): Array<Record<string, any>> {
-	if (stations.length === 0) {
-		return [];
-	}
-
-	const connected = [stations[0]];
-	let connectionCount = 0;
-	for (let i = 1; i < stations.length; i++) {
-		const previousGroupId = stations[i - 1].groupId;
-		const nextGroupId = stations[i].groupId;
-		if (previousGroupId != null && nextGroupId != null && previousGroupId === nextGroupId) {
-			connectionCount++;
-		} else {
-			connected.push(stations[i]);
-		}
-	}
-
-	return connectionCount === lineGroupCount - 1 ? connected : [];
 }
 
 class GrpcClient {
