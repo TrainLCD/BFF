@@ -447,7 +447,9 @@ function connectStationGroups(stations: Array<Record<string, any>>, lineGroupCou
 	const connected = [stations[0]];
 	let connectionCount = 0;
 	for (let i = 1; i < stations.length; i++) {
-		if (stations[i - 1].groupId === stations[i].groupId) {
+		const previousGroupId = stations[i - 1].groupId;
+		const nextGroupId = stations[i].groupId;
+		if (previousGroupId != null && nextGroupId != null && previousGroupId === nextGroupId) {
 			connectionCount++;
 		} else {
 			connected.push(stations[i]);
