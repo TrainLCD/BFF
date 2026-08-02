@@ -44,6 +44,8 @@ export const stationSuggestionSchema = z.object({
   name: z.string(),
   nameRoman: z.string(),
   lineNames: z.array(z.string()),
+  /** 連結経路で到達する候補だけが持つ、現在駅から行き先までの駅 ID 列 */
+  routeStationIds: z.array(z.number().int()).optional(),
 });
 export type StationSuggestion = z.infer<typeof stationSuggestionSchema>;
 
