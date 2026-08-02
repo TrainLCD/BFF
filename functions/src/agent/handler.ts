@@ -284,7 +284,7 @@ export interface AgentTurnParams {
   messages: readonly ChatMessage[];
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
-  /** 連結処理で生成した経路。モデルの選択に関係なく suggestions へ含める。 */
+  /** 連結経路付きの行き先候補。モデルの選択に関係なく suggestions へ含める。 */
   connectedRouteSuggestions?: readonly StationSuggestion[];
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
@@ -552,11 +552,11 @@ const buildTurnParams = (
         name,
         chatReq.currentStationGroupId,
         signal,
-        (stations) => {
+        (destinations) => {
           connectedRouteSuggestions.splice(
             0,
             connectedRouteSuggestions.length,
-            ...stations
+            ...destinations
           );
         }
       ),
