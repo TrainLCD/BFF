@@ -46,6 +46,9 @@ describe('buildSystemPrompt', () => {
   it('0 件で諦めず到達可能な範囲から引き直す指示を含む', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('列車種別の');
+    expect(prompt).toContain('1 回 0 件だっただけで');
+    expect(prompt).toContain('同じ目的駅を漢字・かな・読み・特徴的な部分で');
+    expect(prompt).toContain('複数の列車種別を跨ぐ候補を確認する');
     expect(prompt).toContain('到達できる範囲に代替候補がないか確認する');
   });
 
