@@ -546,20 +546,18 @@ const buildTurnParams = (
       chatReq.currentStationGroupId,
       currentStation
     ),
-    searchStations: (name) =>
-      searchStationsByName(
+    searchStations: (name) => {
+      connectedRouteSuggestions.splice(0, connectedRouteSuggestions.length);
+      return searchStationsByName(
         env,
         name,
         chatReq.currentStationGroupId,
         signal,
         (destinations) => {
-          connectedRouteSuggestions.splice(
-            0,
-            connectedRouteSuggestions.length,
-            ...destinations
-          );
+          connectedRouteSuggestions.push(...destinations);
         }
-      ),
+      );
+    },
     connectedRouteSuggestions,
     signal,
     // 計測は内容を一切持たず、最初の delta までの所要時間とツール実行回数だけを数える
