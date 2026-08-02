@@ -284,6 +284,8 @@ export interface AgentTurnParams {
   messages: readonly ChatMessage[];
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
+  /** 連結処理で生成した経路。モデルの選択に関係なく suggestions へ含める。 */
+  connectedRouteSuggestions?: readonly StationSuggestion[];
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
   signal?: AbortSignal;
@@ -395,9 +397,21 @@ export const runAgentTurn = async (
     output = { reply: rescued, suggestions: [] };
   }
 
+  const modelSuggestions = sanitizeSuggestions(
+    output.suggestions ?? [],
+    verified
+  );
+  const suggestions = [
+    ...new Map(
+      [...modelSuggestions, ...(params.connectedRouteSuggestions ?? [])].map(
+        (station) => [station.stationId, station]
+      )
+    ).values(),
+  ];
+
   return {
     reply: output.reply.trim() || FALLBACK_REPLY[params.locale],
-    suggestions: sanitizeSuggestions(output.suggestions ?? [], verified),
+    suggestions,
     refused: false,
   };
 };
@@ -514,6 +528,7 @@ const buildTurnParams = (
   callbacks: Pick<AgentTurnParams, 'onDelta' | 'onToolStart'> = {}
 ): AgentTurnParams => {
   const { chatReq, faq, currentStation } = prepared;
+  const connectedRouteSuggestions: StationSuggestion[] = [];
   return {
     streamText: runtime.streamText,
     model: resolveAgentModel(env),
@@ -533,7 +548,20 @@ const buildTurnParams = (
       currentStation
     ),
     searchStations: (name) =>
-      searchStationsByName(env, name, chatReq.currentStationGroupId, signal),
+      searchStationsByName(
+        env,
+        name,
+        chatReq.currentStationGroupId,
+        signal,
+        (stations) => {
+          connectedRouteSuggestions.splice(
+            0,
+            connectedRouteSuggestions.length,
+            ...stations
+          );
+        }
+      ),
+    connectedRouteSuggestions,
     signal,
     // 計測は内容を一切持たず、最初の delta までの所要時間とツール実行回数だけを数える
     onDelta: async (text) => {
