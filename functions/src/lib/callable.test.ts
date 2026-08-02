@@ -18,7 +18,11 @@ describe('withCallable', () => {
     const response = await withCallable(() => Promise.reject(error));
 
     expect(response.status).toBe(500);
-    const detail = JSON.parse(String(consoleError.mock.calls[0][1]));
+    expect(consoleError).toHaveBeenCalledTimes(1);
+    const log = String(consoleError.mock.calls[0][0]);
+    const detail = JSON.parse(
+      log.replace('Unhandled error in callable handler: ', '')
+    );
     expect(detail).toMatchObject({
       name: 'Error',
       message: 'OpenAI request failed',

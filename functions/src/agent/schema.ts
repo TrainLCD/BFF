@@ -49,10 +49,18 @@ export const stationSuggestionSchema = z.object({
 });
 export type StationSuggestion = z.infer<typeof stationSuggestionSchema>;
 
+/**
+ * モデルが生成する駅候補。routeStationIds はサーバが検証済み経路から付与するため、
+ * OpenAI の strict Structured Outputs へ渡すスキーマには含めない。
+ */
+const modelStationSuggestionSchema = stationSuggestionSchema.omit({
+  routeStationIds: true,
+});
+
 /** LLM の最終応答（構造化出力で強制する形） */
 export const agentOutputSchema = z.object({
   reply: z.string(),
-  suggestions: z.array(stationSuggestionSchema),
+  suggestions: z.array(modelStationSuggestionSchema),
 });
 export type AgentOutput = z.infer<typeof agentOutputSchema>;
 

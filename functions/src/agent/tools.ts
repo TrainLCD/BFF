@@ -471,12 +471,10 @@ export const searchStationsByName = async (
       if (!route) return [];
 
       const fromIndex = route.findIndex(
-        (routeStation) =>
-          routeStation.stationGroupId === fromStationGroupId
+        (routeStation) => routeStation.stationGroupId === fromStationGroupId
       );
       const destinationIndex = route.findIndex(
-        (routeStation) =>
-          routeStation.stationGroupId === station.stationGroupId
+        (routeStation) => routeStation.stationGroupId === station.stationGroupId
       );
       if (fromIndex === -1 || destinationIndex === -1) return [];
 

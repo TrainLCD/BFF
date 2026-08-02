@@ -117,8 +117,7 @@ export const withCallable = async (
     // Error オブジェクトを直接渡すと Workers Logs ではスタックだけになることがある。
     // AI SDK の HTTP ステータス・レスポンス本文・cause を明示的に展開する。
     console.error(
-      'Unhandled error in callable handler:',
-      JSON.stringify(errorDetail(e))
+      `Unhandled error in callable handler: ${JSON.stringify(errorDetail(e))}`
     );
     return callableError(new CallableError('internal', 'Internal error'));
   }
