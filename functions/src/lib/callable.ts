@@ -74,6 +74,36 @@ export const callableError = (err: CallableError): Response =>
     { status: CODE_TO_HTTP[err.code], headers: JSON_HEADERS }
   );
 
+const errorDetail = (error: unknown, depth = 0): Record<string, unknown> => {
+  if (!(error instanceof Error)) {
+    return { value: String(error) };
+  }
+
+  const source = error as Error & {
+    statusCode?: unknown;
+    responseBody?: unknown;
+    isRetryable?: unknown;
+    cause?: unknown;
+  };
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    ...(source.statusCode !== undefined
+      ? { statusCode: source.statusCode }
+      : {}),
+    ...(source.responseBody !== undefined
+      ? { responseBody: source.responseBody }
+      : {}),
+    ...(source.isRetryable !== undefined
+      ? { isRetryable: source.isRetryable }
+      : {}),
+    ...(source.cause !== undefined && depth < 2
+      ? { cause: errorDetail(source.cause, depth + 1) }
+      : {}),
+  };
+};
+
 /** ハンドラを callable エラー整形でラップする。 */
 export const withCallable = async (
   handler: () => Promise<Response>
@@ -84,7 +114,12 @@ export const withCallable = async (
     if (e instanceof CallableError) {
       return callableError(e);
     }
-    console.error('Unhandled error in callable handler:', e);
+    // Error オブジェクトを直接渡すと Workers Logs ではスタックだけになることがある。
+    // AI SDK の HTTP ステータス・レスポンス本文・cause を明示的に展開する。
+    console.error(
+      'Unhandled error in callable handler:',
+      JSON.stringify(errorDetail(e))
+    );
     return callableError(new CallableError('internal', 'Internal error'));
   }
 };
