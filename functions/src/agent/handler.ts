@@ -286,8 +286,6 @@ export interface AgentTurnParams {
   searchStations: (name: string) => Promise<StationSuggestion[]>;
   /** 連結処理で生成した経路。モデルの選択に関係なく suggestions へ含める。 */
   connectedRouteSuggestions?: readonly StationSuggestion[];
-  /** 連結処理で到達可能と確認できた目的駅。reply と suggestions の整合に使う。 */
-  connectedRouteDestinations?: readonly StationSuggestion[];
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
   signal?: AbortSignal;
@@ -381,7 +379,6 @@ export const runAgentTurn = async (
     const delta = extractReplyDelta(emitted, partial?.reply);
     if (!delta) continue;
     emitted += delta;
-    if ((params.connectedRouteDestinations?.length ?? 0) > 0) continue;
     await params.onDelta?.(delta);
   }
 
@@ -411,17 +408,8 @@ export const runAgentTurn = async (
       )
     ).values(),
   ];
-  const connectedDestinations = params.connectedRouteDestinations ?? [];
-  const reply =
-    connectedDestinations.length > 0
-      ? params.locale === 'ja'
-        ? `${connectedDestinations.map((station) => `${station.name}駅`).join('、')}へは、${(params.connectedRouteSuggestions ?? []).map((station) => `${station.name}駅`).join('、')}を通る経路があります。`
-        : `A route to ${connectedDestinations.map((station) => station.name).join(', ')} is available via ${(params.connectedRouteSuggestions ?? []).map((station) => station.name).join(', ')}.`
-      : output.reply.trim() || FALLBACK_REPLY[params.locale];
-  if (connectedDestinations.length > 0) await params.onDelta?.(reply);
-
   return {
-    reply,
+    reply: output.reply.trim() || FALLBACK_REPLY[params.locale],
     suggestions,
     refused: false,
   };
@@ -540,7 +528,6 @@ const buildTurnParams = (
 ): AgentTurnParams => {
   const { chatReq, faq, currentStation } = prepared;
   const connectedRouteSuggestions: StationSuggestion[] = [];
-  const connectedRouteDestinations: StationSuggestion[] = [];
   return {
     streamText: runtime.streamText,
     model: resolveAgentModel(env),
@@ -565,21 +552,15 @@ const buildTurnParams = (
         name,
         chatReq.currentStationGroupId,
         signal,
-        (stations, destinations) => {
+        (stations) => {
           connectedRouteSuggestions.splice(
             0,
             connectedRouteSuggestions.length,
             ...stations
           );
-          connectedRouteDestinations.splice(
-            0,
-            connectedRouteDestinations.length,
-            ...destinations
-          );
         }
       ),
     connectedRouteSuggestions,
-    connectedRouteDestinations,
     signal,
     // 計測は内容を一切持たず、最初の delta までの所要時間とツール実行回数だけを数える
     onDelta: async (text) => {

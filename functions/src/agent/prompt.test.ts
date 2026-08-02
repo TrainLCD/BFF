@@ -49,6 +49,13 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('到達できる範囲に代替候補がないか確認する');
   });
 
+  it('連結経路が見つかったら肯定的に案内して全駅を候補へ含める', () => {
+    const prompt = buildSystemPrompt(null);
+    expect(prompt).toContain('その駅へ到達できることを肯定的に案内');
+    expect(prompt).toContain('経路上の全駅を suggestions に含める');
+    expect(prompt).toContain('ツール結果と矛盾する返答をしてはならない');
+  });
+
   // 端末が英語設定でも日本語で聞かれたら日本語で返す（locale 追従をやめた経緯）
   it('応答言語を直近のユーザ発話に合わせる指示を含む', () => {
     const prompt = buildSystemPrompt(null);
