@@ -246,12 +246,6 @@ describe('GraphQL gateway', () => {
 					stations: [
 						{ id: 101, groupId: 1, name: 'A' },
 						{ id: 102, groupId: 2, name: 'B' },
-					],
-				}),
-			)
-			.mockResolvedValueOnce(
-				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
-					stations: [
 						{ id: 201, groupId: 2, name: 'B' },
 						{ id: 202, groupId: 3, name: 'C' },
 					],
@@ -271,21 +265,13 @@ describe('GraphQL gateway', () => {
 		const response = await worker.fetch(graphqlRequest(query, { lineGroupIds: [10, 20] }), env, ctx);
 		await waitOnExecutionContext(ctx);
 
-		expect(fetchMock).toHaveBeenCalledTimes(2);
-		const requests = fetchMock.mock.calls.map(([url, init]) => ({
-			url,
-			payload: decodeRequestPayload(init?.body as Uint8Array, grpc.GetStationsByLineGroupIdRequest),
-		}));
-		expect(requests).toEqual([
-			{
-				url: 'https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetStationsByLineGroupId',
-				payload: { lineGroupId: 10, transportType: 3 },
-			},
-			{
-				url: 'https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetStationsByLineGroupId',
-				payload: { lineGroupId: 20, transportType: 3 },
-			},
-		]);
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		const [url, init] = fetchMock.mock.calls[0];
+		expect(url).toBe('https://grpc.example.com/app.trainlcd.grpc.StationAPI/GetStationsByLineGroupIdList');
+		expect(decodeRequestPayload(init?.body as Uint8Array, grpc.GetStationsByLineGroupIdListRequest)).toEqual({
+			lineGroupIds: [10, 20],
+			transportType: 3,
+		});
 
 		const result = await response.json() as GraphQLResponse<{ connectedLineGroupStations: StationData[] }>;
 		expect(result.errors).toBeUndefined();
@@ -300,12 +286,12 @@ describe('GraphQL gateway', () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(
 				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
-					stations: [{ id: 101, groupId: 1 }, { id: 102, groupId: 2 }],
-				}),
-			)
-			.mockResolvedValueOnce(
-				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
-					stations: [{ id: 201, groupId: 9 }, { id: 202, groupId: 3 }],
+					stations: [
+						{ id: 101, groupId: 1 },
+						{ id: 102, groupId: 2 },
+						{ id: 201, groupId: 9 },
+						{ id: 202, groupId: 3 },
+					],
 				}),
 			);
 
