@@ -241,7 +241,11 @@ describe('searchStationsByName', () => {
       ],
       AgentConnectedLineGroupStations: [
         gqlResponse(
-          [gqlStation(1, '新宿', 1130205), station],
+          [
+            gqlStation(1, '新宿', 1130205),
+            station,
+            gqlStation(4, '目的駅より先', 9999),
+          ],
           'connectedLineGroupStations'
         ),
       ],
@@ -299,6 +303,7 @@ describe('searchStationsByName', () => {
             gqlStation(1, '新宿', 1130205),
             gqlStation(2, '東京', 1000),
             station,
+            gqlStation(4, '目的駅より先', 9999),
           ],
           'connectedLineGroupStations'
         ),
