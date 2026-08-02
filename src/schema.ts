@@ -91,7 +91,6 @@ type Query {
 	lineStations(lineId: Int!, stationId: Int, directionId: Int, transportType: TransportType): [Station!]!
 	lineListStations(lineIds: [Int!]!, transportType: TransportType): [Station!]!
 	lineGroupListStations(lineGroupIds: [Int!]!, transportType: TransportType): [Station!]!
-	connectedLineGroupStations(lineGroupIds: [Int!]!, transportType: TransportType): [Station!]!
 	stationTrainTypes(stationId: Int!): [TrainType!]!
 	routes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RoutePage!
 	routeTypes(fromStationGroupId: Int!, toStationGroupId: Int!, viaLineId: Int, pageSize: Int, pageToken: String): RouteTypePage!

@@ -201,84 +201,6 @@ describe('searchStationsByName', () => {
     expect(result[0].name).toBe('鬼怒川温泉');
   });
 
-  it('直通検索が 0 件でも連結経路があれば全国検索の候補を返す', async () => {
-    const station = gqlStation(3, '江ノ島');
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce(gqlResponse([]))
-      .mockResolvedValueOnce(gqlResponse([station]))
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: {
-              routeTypes: {
-                trainTypes: [{ groupId: 10 }, { groupId: 20 }],
-              },
-            },
-          }),
-          { status: 200 }
-        )
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: {
-              connectedLineGroupStations: [
-                { groupId: 1130205 },
-                { groupId: station.groupId },
-              ],
-            },
-          }),
-          { status: 200 }
-        )
-      );
-
-    const result = await searchStationsByName(
-      makeEnv(fetchMock),
-      '江ノ島',
-      1130205
-    );
-
-    expect(result.map((item) => item.stationId)).toEqual([station.id]);
-    expect(fetchMock).toHaveBeenCalledTimes(4);
-    const routeTypesBody = JSON.parse(fetchMock.mock.calls[2][1].body);
-    expect(routeTypesBody.variables).toEqual({
-      fromStationGroupId: 1130205,
-      toStationGroupId: station.groupId,
-    });
-    const connectedBody = JSON.parse(fetchMock.mock.calls[3][1].body);
-    expect(connectedBody.variables).toEqual({ lineGroupIds: [10, 20] });
-  });
-
-  it('全国検索で見つかっても連結経路が無ければ候補から除外する', async () => {
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce(gqlResponse([]))
-      .mockResolvedValueOnce(gqlResponse([gqlStation(3, '江ノ島')]))
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: { routeTypes: { trainTypes: [{ groupId: 10 }] } },
-          }),
-          { status: 200 }
-        )
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ data: { connectedLineGroupStations: [] } }),
-          { status: 200 }
-        )
-      );
-
-    const result = await searchStationsByName(
-      makeEnv(fetchMock),
-      '江ノ島',
-      1130205
-    );
-
-    expect(result).toEqual([]);
-  });
-
   it('全候補が 0 件なら空配列を返す（呼び出しは上限まで）', async () => {
     // 候補ごとにボディが読まれるため、呼び出しごとに新しい Response を返す
     const fetchMock = jest
@@ -454,9 +376,10 @@ describe('createStationSearchTool', () => {
     });
     const result = await execute(tool, '江ノ島');
     expect(result.stations).toEqual([]);
-    expect(result.notice).toContain('connectable sequence of train types');
+    expect(result.notice).toContain('without a transfer');
     expect(result.notice).toContain('does NOT mean it does not exist');
-    expect(result.notice).toContain('different reachable station');
+    // 乗入路線はコンテキストで渡っているので沿線での引き直しを促せる
+    expect(result.notice).toContain("current station's own lines");
   });
 
   it('現在駅が未解決なら沿線での引き直しではなくユーザへの確認を促す', async () => {
@@ -467,7 +390,7 @@ describe('createStationSearchTool', () => {
       scope: 'reachable-from-unknown-station',
     });
     const result = await execute(tool, '江ノ島');
-    expect(result.notice).toContain('connectable sequence of train types');
+    expect(result.notice).toContain('without a transfer');
     // 路線名を知らないモデルに沿線検索を指示しない
     expect(result.notice).not.toContain("current station's own lines");
     expect(result.notice).toContain('ask the user which area or line');
@@ -485,12 +408,12 @@ describe('createStationSearchTool', () => {
       }).description ?? '';
 
     expect(describe_('reachable-from-known-station')).toContain(
-      '別の到達可能な駅で引き直すこと'
+      '現在駅の乗入路線・直通先の沿線にある別の駅で引き直すこと'
     );
     expect(describe_('reachable-from-unknown-station')).toContain(
       'ユーザにどのエリア・路線にいるかを尋ねること'
     );
-    expect(describe_()).not.toContain('列車種別を連結');
+    expect(describe_()).not.toContain('乗り換えなし');
   });
 
   it('検索失敗はエラーにせずツール結果として返す', async () => {
