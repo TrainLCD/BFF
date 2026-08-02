@@ -9,9 +9,9 @@ import {
   toStationSuggestion,
 } from './tools';
 
-const gqlStation = (id: number, name = `駅${id}`) => ({
+const gqlStation = (id: number, name = `駅${id}`, groupId = id + 1000) => ({
   id,
-  groupId: id + 1000,
+  groupId,
   name,
   nameRoman: `Sta${id}`,
   lines: [{ nameShort: 'JR横須賀線' }, { nameShort: null }],
@@ -241,7 +241,7 @@ describe('searchStationsByName', () => {
       ],
       AgentConnectedLineGroupStations: [
         gqlResponse(
-          [{ groupId: 1130205 }, { groupId: station.groupId }],
+          [gqlStation(1, '新宿', 1130205), station],
           'connectedLineGroupStations'
         ),
       ],
@@ -253,7 +253,7 @@ describe('searchStationsByName', () => {
       1130205
     );
 
-    expect(result.map((item) => item.stationId)).toEqual([station.id]);
+    expect(result.map((item) => item.name)).toEqual(['新宿', '江ノ島']);
     const [connectedRequest] = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
@@ -290,14 +290,14 @@ describe('searchStationsByName', () => {
       ],
       AgentConnectedLineGroupStations: [
         gqlResponse(
-          [{ groupId: 1130205 }, { groupId: 1000 }],
+          [gqlStation(1, '新宿', 1130205), gqlStation(2, '東京', 1000)],
           'connectedLineGroupStations'
         ),
         gqlResponse(
           [
-            { groupId: 1130205 },
-            { groupId: 1000 },
-            { groupId: station.groupId },
+            gqlStation(1, '新宿', 1130205),
+            gqlStation(2, '東京', 1000),
+            station,
           ],
           'connectedLineGroupStations'
         ),
@@ -310,7 +310,7 @@ describe('searchStationsByName', () => {
       1130205
     );
 
-    expect(result.map((item) => item.stationId)).toEqual([station.id]);
+    expect(result.map((item) => item.name)).toEqual(['新宿', '東京', '名古屋']);
     const connectedRequests = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
