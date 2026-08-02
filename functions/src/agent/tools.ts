@@ -328,7 +328,9 @@ const reachableStationGroupIdsFrom = async (
           .map(toStationSuggestion)
           .filter((station): station is StationSuggestion => station !== null);
         for (const station of route) {
-          routesByStationGroupId.set(station.stationGroupId, route);
+          if (!routesByStationGroupId.has(station.stationGroupId)) {
+            routesByStationGroupId.set(station.stationGroupId, route);
+          }
         }
 
         enqueue(stationGroupIds.at(0), connectedLineGroupIds);
@@ -464,14 +466,32 @@ export const searchStationsByName = async (
     const reachableDestinations = nationwideStations.filter((station) =>
       routesByStationGroupId.has(station.stationGroupId)
     );
-    const connectedDestinations = reachableDestinations.map((station) => {
+    const connectedDestinations = reachableDestinations.flatMap((station) => {
       const route = routesByStationGroupId.get(station.stationGroupId);
-      return {
-        ...station,
-        routeStationIds: route?.map(
-          (routeStation) => routeStation.stationId
-        ),
-      };
+      if (!route) return [];
+
+      const fromIndex = route.findIndex(
+        (routeStation) =>
+          routeStation.stationGroupId === fromStationGroupId
+      );
+      const destinationIndex = route.findIndex(
+        (routeStation) =>
+          routeStation.stationGroupId === station.stationGroupId
+      );
+      if (fromIndex === -1 || destinationIndex === -1) return [];
+
+      const routeToDestination =
+        fromIndex <= destinationIndex
+          ? route.slice(fromIndex, destinationIndex + 1)
+          : route.slice(destinationIndex, fromIndex + 1).reverse();
+      return [
+        {
+          ...station,
+          routeStationIds: routeToDestination.map(
+            (routeStation) => routeStation.stationId
+          ),
+        },
+      ];
     });
     if (connectedDestinations.length > 0) {
       onConnectedRoute?.(connectedDestinations);
