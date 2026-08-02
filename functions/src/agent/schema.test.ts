@@ -15,7 +15,6 @@ describe('agentOutputSchema', () => {
     };
     const station = jsonSchema.properties.suggestions.items;
 
-    expect(station.properties).not.toHaveProperty('routeLineGroupIds');
     expect(station.required).toEqual(Object.keys(station.properties));
   });
 });

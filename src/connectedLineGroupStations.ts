@@ -1,5 +1,6 @@
 import { Reader } from 'protobufjs/minimal';
 import { app } from './generated/stationapi.js';
+import { assignConnectedLineGroupId, storeConnectedLineGroup } from './connectedTrainType.js';
 
 const grpcTypes = app.trainlcd.grpc;
 
@@ -23,7 +24,8 @@ export interface ConnectedLineGroupStationsClient {
 export async function getConnectedLineGroupStations(
 	client: ConnectedLineGroupStationsClient,
 	lineGroupIds: number[],
-	transportType: number
+	transportType: number,
+	store?: KVNamespace,
 ): Promise<Array<Record<string, any>>> {
 	if (lineGroupIds.length === 0) {
 		return [];
@@ -36,7 +38,12 @@ export async function getConnectedLineGroupStations(
 		{ lineGroupIds, transportType }
 	);
 
-	return connectStationGroups(payload.stations ?? [], lineGroupIds.length);
+	const connected = connectStationGroups(payload.stations ?? [], lineGroupIds.length);
+	if (connected.length === 0) return [];
+
+	const synthetic = assignConnectedLineGroupId(connected, lineGroupIds);
+	await storeConnectedLineGroup(store, synthetic.lineGroupId, synthetic.stations);
+	return synthetic.stations;
 }
 
 function connectStationGroups(stations: Array<Record<string, any>>, lineGroupCount: number): Array<Record<string, any>> {

@@ -98,6 +98,9 @@ const CONNECTED_LINE_GROUP_STATIONS_QUERY = `
 /** 終点での種別接続を探索する最大本数。無制限探索による呼び出し増加を防ぐ。 */
 const MAX_CONNECTED_TRAIN_TYPES = 4;
 
+/** 連結経路由来かどうかはワイヤ形式へ混ぜず、同一プロセス内だけで保持する。 */
+const connectedRouteSuggestions = new WeakSet<StationSuggestion>();
+
 interface GqlLine {
   nameShort?: string | null;
 }
@@ -478,7 +481,7 @@ export const searchStationsByName = async (
       const connectedRoute = routesByStationGroupId.get(station.stationGroupId);
       if (!connectedRoute) return [];
 
-      const { stations: route, lineGroupIds } = connectedRoute;
+      const { stations: route } = connectedRoute;
 
       const fromIndex = route.findIndex(
         (routeStation) => routeStation.stationGroupId === fromStationGroupId
@@ -488,14 +491,12 @@ export const searchStationsByName = async (
       );
       if (fromIndex === -1 || destinationIndex === -1) return [];
 
-      return [
-        {
-          ...station,
-          routeLineGroupIds: lineGroupIds,
-        },
-      ];
+      return [station];
     });
     if (connectedDestinations.length > 0) {
+      for (const destination of connectedDestinations) {
+        connectedRouteSuggestions.add(destination);
+      }
       onConnectedRoute?.(connectedDestinations);
     }
     return connectedDestinations;
@@ -647,7 +648,7 @@ export const createStationSearchTool = ({
         }));
         return {
           stations: stationsForModel,
-          ...(stations.some((station) => station.routeLineGroupIds?.length)
+          ...(stations.some((station) => connectedRouteSuggestions.has(station))
             ? {
                 notice:
                   'A connected route was found. Present this destination as reachable.',

@@ -3,6 +3,12 @@ import { graphql, buildSchema, GraphQLError, GraphQLSchema, ExecutionResult } fr
 import { app } from './generated/stationapi.js';
 import { schemaSDL } from './schema.js';
 import { getConnectedLineGroupStations } from './connectedLineGroupStations.js';
+import {
+	assignConnectedLineGroupId,
+	isConnectedLineGroupId,
+	loadConnectedLineGroup,
+	storeConnectedLineGroup,
+} from './connectedTrainType.js';
 
 const grpcTypes = app.trainlcd.grpc;
 const SERVICE_FQN = 'app.trainlcd.grpc.StationAPI';
@@ -130,7 +136,7 @@ export async function handleGraphQLRequest(request: Request, env: GatewayEnv, ct
 
 	const kvCache = env.DISABLE_KV_CACHE === 'true' ? undefined : env.GRPC_CACHE;
 	const client = new GrpcClient(config, kvCache, ctx);
-	const rootValue = createResolvers(client);
+	const rootValue = createResolvers(client, env.GRPC_CACHE);
 
 	try {
 		if (Array.isArray(body)) {
@@ -198,7 +204,7 @@ async function executeGraphQLQuery(operation: GraphQLOperationPayload, rootValue
 	return result;
 }
 
-function createResolvers(client: GrpcClient) {
+function createResolvers(client: GrpcClient, connectedLineGroupStore?: KVNamespace) {
 	return {
 		station: async ({ id, transportType }: { id: number; transportType?: string }) => {
 			const payload = await client.call('GetStationById', grpcTypes.GetStationByIdRequest, grpcTypes.SingleStationResponse, { id, transportType: transportType ? TransportType[transportType as keyof typeof TransportType] : TransportType.RailAndBus });
@@ -242,6 +248,9 @@ function createResolvers(client: GrpcClient) {
 			return payload.stations ?? [];
 		},
 		lineGroupStations: async ({ lineGroupId, directionId, transportType }: { lineGroupId: number; directionId?: number; transportType?: string }) => {
+			if (isConnectedLineGroupId(lineGroupId)) {
+				return loadConnectedLineGroup(connectedLineGroupStore, lineGroupId);
+			}
 			const payload = await client.call(
 				'GetStationsByLineGroupId',
 				grpcTypes.GetStationsByLineGroupIdRequest,
@@ -298,7 +307,7 @@ function createResolvers(client: GrpcClient) {
 			const resolvedTransportType = transportType
 				? TransportType[transportType as keyof typeof TransportType]
 				: TransportType.RailAndBus;
-			return getConnectedLineGroupStations(client, lineGroupIds, resolvedTransportType);
+			return getConnectedLineGroupStations(client, lineGroupIds, resolvedTransportType, connectedLineGroupStore);
 		},
 		stationTrainTypes: async ({ stationId }: { stationId: number }) => {
 			const payload = await client.call(
@@ -360,8 +369,59 @@ function createResolvers(client: GrpcClient) {
 			grpcTypes.RouteTypeResponse,
 			cleanPayload({ fromStationGroupId, toStationGroupId, viaLineId, pageSize, pageToken })
 		);
+			const trainTypes = payload.trainTypes ?? [];
+			if (trainTypes.length > 0) {
+				return {
+					trainTypes,
+					nextPageToken: payload.nextPageToken ?? null,
+				};
+			}
+
+			const connectedPayload = await client.call(
+				'GetConnectedRoutes',
+				grpcTypes.GetConnectedStationsRequest,
+				grpcTypes.RouteResponse,
+				{ fromStationGroupId, toStationGroupId },
+			);
+			const connectedRoute = (connectedPayload.routes ?? []).find((route: Record<string, any>) => {
+				const stops = route.stops ?? [];
+				return !viaLineId || stops.some((station: Record<string, any>) =>
+					station.line?.id === viaLineId ||
+					(station.lines ?? []).some((line: Record<string, any>) => line.id === viaLineId)
+				);
+			});
+			const connectedStations = connectedRoute?.stops ?? [];
+			if (connectedStations.length === 0) {
+				return { trainTypes: [], nextPageToken: null };
+			}
+
+			const sourceLineGroupIds = [
+				...new Set<number>(
+					connectedStations.flatMap((station: Record<string, any>) => {
+						const id = station.trainType?.groupId;
+						return typeof id === 'number' && id > 0 ? [id] : [];
+					}),
+				),
+			];
+			const synthetic = assignConnectedLineGroupId(connectedStations, sourceLineGroupIds);
+			await storeConnectedLineGroup(connectedLineGroupStore, synthetic.lineGroupId, synthetic.stations);
+
+			const firstTrainType = synthetic.stations.find((station) => station.trainType)?.trainType ?? {};
+			const lines = [
+				...new Map(
+					synthetic.stations
+						.flatMap((station) => station.lines ?? (station.line ? [station.line] : []))
+						.filter((line) => typeof line?.id === 'number')
+						.map((line) => [line.id, line]),
+				).values(),
+			];
 			return {
-				trainTypes: payload.trainTypes ?? [],
+				trainTypes: [{
+					...firstTrainType,
+					groupId: synthetic.lineGroupId,
+					line: lines[0] ?? firstTrainType.line,
+					lines,
+				}],
 				nextPageToken: payload.nextPageToken ?? null,
 			};
 		},

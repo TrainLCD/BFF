@@ -258,7 +258,6 @@ describe('searchStationsByName', () => {
     );
 
     expect(result.map((item) => item.name)).toEqual(['江ノ島']);
-    expect(result[0].routeLineGroupIds).toEqual([10]);
     const [connectedRequest] = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
@@ -317,7 +316,6 @@ describe('searchStationsByName', () => {
     );
 
     expect(result.map((item) => item.name)).toEqual(['名古屋']);
-    expect(result[0].routeLineGroupIds).toEqual([10, 20]);
     const connectedRequests = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
@@ -487,7 +485,6 @@ describe('createStationSearchTool', () => {
       name: '鎌倉',
       nameRoman: 'Kamakura',
       lineNames: ['JR横須賀線'],
-      routeLineGroupIds: [10, 20, 30],
     };
     const tool = createStationSearchTool({
       search: jest.fn().mockResolvedValue([station]),
@@ -504,7 +501,7 @@ describe('createStationSearchTool', () => {
         lineNames: ['JR横須賀線'],
       },
     ]);
-    expect(result.notice).toContain('connected route');
+    expect(result.notice).toBeUndefined();
     expect(verified.get(1)).toEqual(station);
   });
 

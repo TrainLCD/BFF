@@ -258,6 +258,7 @@ describe('GraphQL gateway', () => {
 					id
 					groupId
 					name
+					trainType { groupId }
 				}
 			}
 		`;
@@ -275,11 +276,14 @@ describe('GraphQL gateway', () => {
 
 		const result = await response.json() as GraphQLResponse<{ connectedLineGroupStations: StationData[] }>;
 		expect(result.errors).toBeUndefined();
-		expect(result.data?.connectedLineGroupStations).toEqual([
+		expect(result.data?.connectedLineGroupStations.map(({ id, groupId, name }) => ({ id, groupId, name }))).toEqual([
 			{ id: 101, groupId: 1, name: 'A' },
 			{ id: 102, groupId: 2, name: 'B' },
 			{ id: 202, groupId: 3, name: 'C' },
 		]);
+		const syntheticIds = result.data?.connectedLineGroupStations.map((station) => station.trainType?.groupId);
+		expect(new Set(syntheticIds).size).toBe(1);
+		expect(syntheticIds?.[0]).toBeLessThan(0);
 	});
 
 	it('returns no connected stations when adjacent endpoints differ', async () => {
@@ -409,6 +413,95 @@ describe('GraphQL gateway', () => {
 		const result = await response.json() as GraphQLResponse<{ routeTypes: { trainTypes: Array<{ id: number }>; nextPageToken: string } }>;
 		expect(result.data?.routeTypes.trainTypes).toEqual([{ id: 7 }]);
 		expect(result.data?.routeTypes.nextPageToken).toBe('next');
+	});
+
+	it('returns connected stations through a synthetic line group without client-specific handling', async () => {
+		const fetchMock = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.RouteTypeResponse, {
+					trainTypes: [],
+				}),
+			)
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.RouteResponse, {
+					routes: [{
+						id: 1,
+						stops: [
+							{
+								id: 101,
+								groupId: 1,
+								name: 'A',
+								trainType: { id: 10, groupId: 10, name: 'Local', kind: 0 },
+								lines: [{ id: 100, nameShort: 'Line A' }],
+							},
+							{
+								id: 102,
+								groupId: 2,
+								name: 'B',
+								trainType: { id: 10, groupId: 10, name: 'Local', kind: 0 },
+								lines: [{ id: 100, nameShort: 'Line A' }],
+							},
+							{
+								id: 202,
+								groupId: 3,
+								name: 'C',
+								trainType: { id: 20, groupId: 20, name: 'Local', kind: 0 },
+								lines: [{ id: 200, nameShort: 'Line B' }],
+							},
+						],
+					}],
+				}),
+			);
+
+		const routeTypesQuery = `
+			query RouteTypes($from: Int!, $to: Int!) {
+				routeTypes(fromStationGroupId: $from, toStationGroupId: $to) {
+					trainTypes {
+						groupId
+						lines { id }
+					}
+				}
+			}
+		`;
+		const routeTypesResponse = await worker.fetch(
+			graphqlRequest(routeTypesQuery, { from: 1, to: 3 }),
+			env,
+			createExecutionContext(),
+		);
+		const routeTypesResult = await routeTypesResponse.json() as GraphQLResponse<{
+			routeTypes: { trainTypes: Array<{ groupId: number; lines: Array<{ id: number }> }> };
+		}>;
+		const syntheticLineGroupId = routeTypesResult.data?.routeTypes.trainTypes[0]?.groupId;
+
+		expect(syntheticLineGroupId).toBeLessThan(0);
+		expect(routeTypesResult.data?.routeTypes.trainTypes[0]?.lines).toEqual([{ id: 100 }, { id: 200 }]);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+
+		const stationsQuery = `
+			query LineGroupStations($lineGroupId: Int!) {
+				lineGroupStations(lineGroupId: $lineGroupId) {
+					id
+					stopCondition
+					trainType { groupId }
+				}
+			}
+		`;
+		const stationsResponse = await worker.fetch(
+			graphqlRequest(stationsQuery, { lineGroupId: syntheticLineGroupId }),
+			env,
+			createExecutionContext(),
+		);
+		const stationsResult = await stationsResponse.json() as GraphQLResponse<{
+			lineGroupStations: Array<{ id: number; stopCondition: string; trainType: { groupId: number } }>;
+		}>;
+
+		expect(stationsResult.data?.lineGroupStations.map((station) => station.id)).toEqual([101, 102, 202]);
+		expect(stationsResult.data?.lineGroupStations.every(
+			(station) => station.trainType.groupId === syntheticLineGroupId,
+		)).toBe(true);
+		// 仮想種別はKVから復元され、3回目のgRPC呼び出しを発生させない。
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
 	it('reconstructs full stations from minimal route response with complete line details', async () => {
