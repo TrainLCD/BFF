@@ -253,7 +253,8 @@ describe('searchStationsByName', () => {
       1130205
     );
 
-    expect(result.map((item) => item.name)).toEqual(['新宿', '江ノ島']);
+    expect(result.map((item) => item.name)).toEqual(['江ノ島']);
+    expect(result[0].routeStationIds).toEqual([1, 3]);
     const [connectedRequest] = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
@@ -310,7 +311,8 @@ describe('searchStationsByName', () => {
       1130205
     );
 
-    expect(result.map((item) => item.name)).toEqual(['新宿', '東京', '名古屋']);
+    expect(result.map((item) => item.name)).toEqual(['名古屋']);
+    expect(result[0].routeStationIds).toEqual([1, 2, 3]);
     const connectedRequests = requestsFor(
       fetchMock,
       'AgentConnectedLineGroupStations'
