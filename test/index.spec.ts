@@ -411,6 +411,86 @@ describe('GraphQL gateway', () => {
 		expect(result.data?.routeTypes.nextPageToken).toBe('next');
 	});
 
+	it('connects multiple route types behind one synthetic line group', async () => {
+		const fetchMock = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.RouteTypeResponse, {
+					trainTypes: [
+						{ id: 10, groupId: 10, name: 'Local', lines: [{ id: 100, nameShort: 'Line A' }] },
+						{ id: 20, groupId: 20, name: 'Local', lines: [{ id: 200, nameShort: 'Line B' }] },
+					],
+				}),
+			)
+			.mockResolvedValueOnce(
+				createGrpcSuccessResponse(grpc.MultipleStationResponse, {
+					stations: [
+						{ id: 101, groupId: 1, name: 'A', trainType: { id: 10, groupId: 10 } },
+						{ id: 102, groupId: 2, name: 'B', trainType: { id: 10, groupId: 10 } },
+						{ id: 201, groupId: 2, name: 'B', trainType: { id: 20, groupId: 20 } },
+						{ id: 202, groupId: 3, name: 'C', trainType: { id: 20, groupId: 20 } },
+					],
+				}),
+			);
+
+		const routeTypesQuery = `
+			query RouteTypes($from: Int!, $to: Int!) {
+				routeTypes(fromStationGroupId: $from, toStationGroupId: $to) {
+					trainTypes {
+						groupId
+						lines { id }
+					}
+				}
+			}
+		`;
+		const routeTypesResponse = await worker.fetch(
+			graphqlRequest(routeTypesQuery, { from: 1, to: 3 }),
+			env,
+			createExecutionContext(),
+		);
+		const routeTypesResult = await routeTypesResponse.json() as GraphQLResponse<{
+			routeTypes: { trainTypes: Array<{ groupId: number; lines: Array<{ id: number }> }> };
+		}>;
+		const syntheticLineGroupId = routeTypesResult.data?.routeTypes.trainTypes[0]?.groupId;
+
+		expect(routeTypesResult.errors).toBeUndefined();
+		expect(routeTypesResult.data?.routeTypes.trainTypes).toHaveLength(1);
+		expect(syntheticLineGroupId).toBeLessThan(0);
+		expect(routeTypesResult.data?.routeTypes.trainTypes[0]?.lines).toEqual([{ id: 100 }, { id: 200 }]);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+
+		const stationsQuery = `
+			query ConnectedStations($lineGroupId: Int!) {
+				lineGroupStations(lineGroupId: $lineGroupId) {
+					id
+					trainType { groupId }
+				}
+				connectedLineGroupStations(lineGroupIds: [$lineGroupId]) {
+					id
+					trainType { groupId }
+				}
+			}
+		`;
+		const stationsResponse = await worker.fetch(
+			graphqlRequest(stationsQuery, { lineGroupId: syntheticLineGroupId }),
+			env,
+			createExecutionContext(),
+		);
+		const stationsResult = await stationsResponse.json() as GraphQLResponse<{
+			lineGroupStations: Array<{ id: number; trainType: { groupId: number } }>;
+			connectedLineGroupStations: Array<{ id: number; trainType: { groupId: number } }>;
+		}>;
+
+		for (const stations of [
+			stationsResult.data?.lineGroupStations,
+			stationsResult.data?.connectedLineGroupStations,
+		]) {
+			expect(stations?.map((station) => station.id)).toEqual([101, 102, 202]);
+			expect(stations?.every((station) => station.trainType.groupId === syntheticLineGroupId)).toBe(true);
+		}
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
 	it('reconstructs full stations from minimal route response with complete line details', async () => {
 		const fetchMock = vi
 			.spyOn(globalThis, 'fetch')
