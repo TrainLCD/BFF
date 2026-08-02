@@ -213,7 +213,7 @@ const reachableStationGroupIdsFrom = async (
   env: Env,
   fromStationGroupId: number,
   parentSignal: AbortSignal | undefined
-): Promise<Map<number, { stations: StationSuggestion[]; lineGroupIds: number[] }>> => {
+): Promise<Map<number, StationSuggestion[]>> => {
   const controller = new AbortController();
   if (parentSignal?.aborted) controller.abort();
   const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
@@ -282,10 +282,7 @@ const reachableStationGroupIdsFrom = async (
     const queue: Array<{ stationGroupId: number; lineGroupIds: number[] }> = [
       { stationGroupId: fromStationGroupId, lineGroupIds: [] },
     ];
-    const routesByStationGroupId = new Map<
-      number,
-      { stations: StationSuggestion[]; lineGroupIds: number[] }
-    >();
+    const routesByStationGroupId = new Map<number, StationSuggestion[]>();
     const visitedStationGroupIds = new Set([fromStationGroupId]);
     const visitedLineGroupIds = new Set<number>();
 
@@ -331,10 +328,7 @@ const reachableStationGroupIdsFrom = async (
           .map(toStationSuggestion)
           .filter((station): station is StationSuggestion => station !== null);
         for (const station of route) {
-          routesByStationGroupId.set(station.stationGroupId, {
-            stations: route,
-            lineGroupIds: connectedLineGroupIds,
-          });
+          routesByStationGroupId.set(station.stationGroupId, route);
         }
 
         enqueue(stationGroupIds.at(0), connectedLineGroupIds);
@@ -474,7 +468,7 @@ export const searchStationsByName = async (
       const route = routesByStationGroupId.get(station.stationGroupId);
       return {
         ...station,
-        routeStationIds: route?.stations.map(
+        routeStationIds: route?.map(
           (routeStation) => routeStation.stationId
         ),
       };
