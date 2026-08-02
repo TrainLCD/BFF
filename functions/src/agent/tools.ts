@@ -62,15 +62,21 @@ const STATION_GROUP_STATIONS_QUERY = `
   }
 `;
 
-const ROUTE_TYPES_QUERY = `
-  query AgentRouteTypes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
-    routeTypes(
-      fromStationGroupId: $fromStationGroupId
-      toStationGroupId: $toStationGroupId
-    ) {
-      trainTypes {
+const STATION_GROUP_TRAIN_TYPES_QUERY = `
+  query AgentStationGroupTrainTypes($groupId: Int!) {
+    stationGroupStations(groupId: $groupId) {
+      id
+      trainType {
         groupId
       }
+    }
+  }
+`;
+
+const LINE_GROUP_STATIONS_QUERY = `
+  query AgentLineGroupStations($lineGroupId: Int!) {
+    lineGroupStations(lineGroupId: $lineGroupId) {
+      groupId
     }
   }
 `;
@@ -82,6 +88,9 @@ const CONNECTED_LINE_GROUP_STATIONS_QUERY = `
     }
   }
 `;
+
+/** 終点での種別接続を探索する最大本数。無制限探索による呼び出し増加を防ぐ。 */
+const MAX_CONNECTED_TRAIN_TYPES = 4;
 
 interface GqlLine {
   nameShort?: string | null;
@@ -206,52 +215,105 @@ const hasConnectedRoute = async (
   const onParentAbort = () => controller.abort();
   parentSignal?.addEventListener('abort', onParentAbort, { once: true });
   try {
-    const routeTypesResponse = await postGraphQL(
-      env,
-      JSON.stringify({
-        query: ROUTE_TYPES_QUERY,
-        variables: { fromStationGroupId, toStationGroupId },
-      }),
-      controller.signal
-    );
-    if (!routeTypesResponse.ok) return false;
-    const routeTypesJson = (await routeTypesResponse.json()) as {
-      data?: {
-        routeTypes?: {
-          trainTypes?: Array<{ groupId?: number | null }> | null;
-        } | null;
-      } | null;
-      errors?: unknown[];
+    const query = async <T>(
+      document: string,
+      variables: Record<string, unknown>,
+      field: string
+    ): Promise<T | null> => {
+      const response = await postGraphQL(
+        env,
+        JSON.stringify({ query: document, variables }),
+        controller.signal
+      );
+      if (!response.ok) return null;
+      const json = (await response.json()) as {
+        data?: Record<string, T | null> | null;
+        errors?: unknown[];
+      };
+      return json.errors?.length ? null : (json.data?.[field] ?? null);
     };
-    if (routeTypesJson.errors?.length) return false;
-    const lineGroupIds = [
-      ...new Set(
-        (routeTypesJson.data?.routeTypes?.trainTypes ?? [])
-          .map((trainType) => trainType.groupId)
-          .filter((groupId): groupId is number => typeof groupId === 'number')
-      ),
-    ];
-    if (lineGroupIds.length === 0) return false;
 
-    const connectedResponse = await postGraphQL(
-      env,
-      JSON.stringify({
-        query: CONNECTED_LINE_GROUP_STATIONS_QUERY,
-        variables: { lineGroupIds },
-      }),
-      controller.signal
-    );
-    if (!connectedResponse.ok) return false;
-    const connectedJson = (await connectedResponse.json()) as {
-      data?: {
-        connectedLineGroupStations?: Array<{ groupId?: number | null }> | null;
-      } | null;
-      errors?: unknown[];
+    const trainTypeIdsAt = async (
+      stationGroupId: number
+    ): Promise<number[]> => {
+      const stations = await query<
+        Array<{ trainType?: { groupId?: number | null } | null }>
+      >(
+        STATION_GROUP_TRAIN_TYPES_QUERY,
+        { groupId: stationGroupId },
+        'stationGroupStations'
+      );
+      return [
+        ...new Set(
+          (stations ?? [])
+            .map((station) => station.trainType?.groupId)
+            .filter((id): id is number => typeof id === 'number')
+        ),
+      ];
     };
-    if (connectedJson.errors?.length) return false;
-    return (connectedJson.data?.connectedLineGroupStations ?? []).some(
-      (station) => station.groupId === toStationGroupId
-    );
+
+    const stationGroupsOn = async (lineGroupId: number): Promise<number[]> => {
+      const stations = await query<Array<{ groupId?: number | null }>>(
+        LINE_GROUP_STATIONS_QUERY,
+        { lineGroupId },
+        'lineGroupStations'
+      );
+      return (stations ?? [])
+        .map((station) => station.groupId)
+        .filter((id): id is number => typeof id === 'number');
+    };
+
+    const queue: Array<{ stationGroupId: number; lineGroupIds: number[] }> = [
+      { stationGroupId: fromStationGroupId, lineGroupIds: [] },
+    ];
+    const visitedLineGroupIds = new Set<number>();
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (
+        !current ||
+        current.lineGroupIds.length >= MAX_CONNECTED_TRAIN_TYPES
+      ) {
+        continue;
+      }
+
+      const lineGroupIds = await trainTypeIdsAt(current.stationGroupId);
+      for (const lineGroupId of lineGroupIds) {
+        if (visitedLineGroupIds.has(lineGroupId)) continue;
+        visitedLineGroupIds.add(lineGroupId);
+
+        const stationGroupIds = await stationGroupsOn(lineGroupId);
+        if (stationGroupIds.length === 0) continue;
+
+        const connectedLineGroupIds = [...current.lineGroupIds, lineGroupId];
+        if (stationGroupIds.includes(toStationGroupId)) {
+          const connectedStations = await query<
+            Array<{ groupId?: number | null }>
+          >(
+            CONNECTED_LINE_GROUP_STATIONS_QUERY,
+            { lineGroupIds: connectedLineGroupIds },
+            'connectedLineGroupStations'
+          );
+          if (
+            (connectedStations ?? []).some(
+              (station) => station.groupId === toStationGroupId
+            )
+          ) {
+            return true;
+          }
+        }
+
+        const terminalGroupId = stationGroupIds.at(-1);
+        if (terminalGroupId !== undefined) {
+          queue.push({
+            stationGroupId: terminalGroupId,
+            lineGroupIds: connectedLineGroupIds,
+          });
+        }
+      }
+    }
+
+    return false;
   } finally {
     clearTimeout(timer);
     parentSignal?.removeEventListener('abort', onParentAbort);
