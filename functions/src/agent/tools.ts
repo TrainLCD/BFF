@@ -636,7 +636,22 @@ export const createStationSearchTool = ({
             notice: NO_MATCH_NOTICE[scope],
           };
         }
-        return { stations };
+        const stationsForModel = stations.map((station) => ({
+          stationId: station.stationId,
+          stationGroupId: station.stationGroupId,
+          name: station.name,
+          nameRoman: station.nameRoman,
+          lineNames: station.lineNames,
+        }));
+        return {
+          stations: stationsForModel,
+          ...(stations.some((station) => station.routeStationIds?.length)
+            ? {
+                notice:
+                  'A connected route was found. Present this destination as reachable.',
+              }
+            : {}),
+        };
       } catch (e) {
         // 失敗はエラーではなくツール結果として返し、モデルに正直な応答を生成させる
         console.error('agent tool: stationsByName failed', e);
