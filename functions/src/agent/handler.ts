@@ -525,6 +525,7 @@ const buildTurnParams = (
   callbacks: Pick<AgentTurnParams, 'onDelta' | 'onToolStart'> = {}
 ): AgentTurnParams => {
   const { chatReq, faq, currentStation, topic } = prepared;
+  const currentStationGroupId = chatReq.currentStationGroupId;
   return {
     streamText: runtime.streamText,
     model: resolveAgentModel(env),
@@ -546,13 +547,13 @@ const buildTurnParams = (
     ),
     searchStations: (name) =>
       searchStationsByName(env, name, chatReq.currentStationGroupId, signal),
-    ...(chatReq.currentStationGroupId !== undefined
+    ...(currentStationGroupId !== undefined
       ? {
           searchConnectedRoutes: (name: string) =>
             searchStationsByConnectedRoutes(
               env,
               name,
-              chatReq.currentStationGroupId as number,
+              currentStationGroupId,
               signal
             ),
         }

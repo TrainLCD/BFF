@@ -505,6 +505,48 @@ describe('connectedRoutes fallback', () => {
     expect(stations[0].lineNames).toEqual(['両毛線', '上越線', '吾妻線']);
   });
 
+  it('乗換区間ごとの Route を現在駅からの順序で連結する', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([gqlStation(1, '大前')]))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              connectedRoutes: [
+                {
+                  stops: [
+                    { groupId: 3, line: { nameShort: '吾妻線' } },
+                    { groupId: 4, line: { nameShort: '吾妻線' } },
+                  ],
+                },
+                {
+                  stops: [
+                    { groupId: 2, line: { nameShort: '上越線' } },
+                    { groupId: 3, line: { nameShort: '上越線' } },
+                  ],
+                },
+                {
+                  stops: [
+                    { groupId: 1134108, line: { nameShort: '両毛線' } },
+                    { groupId: 2, line: { nameShort: '両毛線' } },
+                  ],
+                },
+              ],
+            },
+          })
+        )
+      );
+
+    const stations = await searchStationsByConnectedRoutes(
+      { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+      '大前',
+      1134108
+    );
+
+    expect(stations[0].lineNames).toEqual(['両毛線', '上越線', '吾妻線']);
+  });
+
   it('完全一致候補があれば部分一致の別駅は経路検索しない', async () => {
     const fetchMock = jest
       .fn()
@@ -617,8 +659,8 @@ describe('connectedRoutes fallback', () => {
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('GetConnectedRoutes');
     expect(result.notice).toContain('retry with a concrete nearby station');
-    expect(result.notice).toContain('大前');
-    expect(result.notice).toContain('万座・鹿沢口');
+    expect(result.notice).not.toContain('大前');
+    expect(result.notice).not.toContain('万座・鹿沢口');
     expect(result.notice).toContain('One credible candidate is enough');
     expect(result.notice).toContain('do not invent extra stations');
     expect(result.notice).not.toContain('without a transfer');

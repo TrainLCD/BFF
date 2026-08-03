@@ -19,6 +19,8 @@ const STATION_SEARCH_LIMIT = 10;
 const TOOL_TIMEOUT_MS = 5_000;
 /** GetConnectedRoutes は上流BFF側で最大8秒待つため、その応答を受け取れる期限にする */
 const CONNECTED_ROUTE_TIMEOUT_MS = 10_000;
+/** 最終応答を生成する時間を残すため、連結経路フォールバック全体を20秒未満に制限する */
+const CONNECTED_ROUTE_FALLBACK_TIMEOUT_MS = 19_000;
 /** 1 ターン合計のツール呼び出し上限 */
 export const MAX_TOOL_CALLS_PER_TURN = 5;
 /**
@@ -69,6 +71,8 @@ const CONNECTED_ROUTES_QUERY = `
   query AgentConnectedRoutes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
     connectedRoutes(fromStationGroupId: $fromStationGroupId, toStationGroupId: $toStationGroupId) {
       stops {
+        groupId
+        name
         line {
           nameShort
         }
@@ -322,110 +326,174 @@ export const searchStationsByConnectedRoutes = async (
   fromStationGroupId: number,
   parentSignal?: AbortSignal
 ): Promise<StationSuggestion[]> => {
-  const candidates = await searchStationsByName(
-    env,
-    name,
-    undefined,
-    parentSignal
+  const fallbackController = new AbortController();
+  const deadline = Date.now() + CONNECTED_ROUTE_FALLBACK_TIMEOUT_MS;
+  const onParentAbort = () => fallbackController.abort();
+  if (parentSignal?.aborted) fallbackController.abort();
+  parentSignal?.addEventListener('abort', onParentAbort, { once: true });
+  const fallbackTimer = setTimeout(
+    () => fallbackController.abort(),
+    CONNECTED_ROUTE_FALLBACK_TIMEOUT_MS
   );
-  if (candidates.length === 0) return [];
 
-  // 部分一致では「大前」に対して「東北福祉大前」なども返る。完全一致があるのに
-  // 無関係な候補へ重い経路検索を投げないよう、完全一致だけを優先する。
-  const queryName = name.trim().replace(STATION_SUFFIX_PATTERN, '').trim();
-  const exactCandidates = candidates.filter(
-    (candidate) => candidate.name === queryName
-  );
-  const routeCandidates =
-    exactCandidates.length > 0 ? exactCandidates : candidates.slice(0, 5);
+  try {
+    const candidates = await searchStationsByName(
+      env,
+      name,
+      undefined,
+      fallbackController.signal
+    );
+    if (candidates.length === 0) return [];
 
-  const checks = await Promise.all(
-    routeCandidates.map(async (candidate) => {
-      let lastError: unknown;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const controller = new AbortController();
-        if (parentSignal?.aborted) controller.abort();
-        const timer = setTimeout(
-          () => controller.abort(),
-          CONNECTED_ROUTE_TIMEOUT_MS
-        );
-        const onParentAbort = () => controller.abort();
-        parentSignal?.addEventListener('abort', onParentAbort, { once: true });
-        try {
-          const res = await postGraphQL(
-            env,
-            JSON.stringify({
-              query: CONNECTED_ROUTES_QUERY,
-              variables: {
-                fromStationGroupId,
-                toStationGroupId: candidate.stationGroupId,
-              },
-            }),
-            controller.signal
+    // 部分一致では「大前」に対して「東北福祉大前」なども返る。完全一致があるのに
+    // 無関係な候補へ重い経路検索を投げないよう、完全一致だけを優先する。
+    const queryName = name.trim().replace(STATION_SUFFIX_PATTERN, '').trim();
+    const exactCandidates = candidates.filter(
+      (candidate) => candidate.name === queryName
+    );
+    const routeCandidates =
+      exactCandidates.length > 0 ? exactCandidates : candidates.slice(0, 5);
+
+    const checks = await Promise.all(
+      routeCandidates.map(async (candidate) => {
+        let lastError: unknown;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const remainingMs = deadline - Date.now();
+          if (remainingMs <= 0 || fallbackController.signal.aborted) break;
+          const controller = new AbortController();
+          if (fallbackController.signal.aborted) controller.abort();
+          const timer = setTimeout(
+            () => controller.abort(),
+            Math.min(CONNECTED_ROUTE_TIMEOUT_MS, remainingMs)
           );
-          if (!res.ok) {
-            throw new Error(`connectedRoutes failed with status ${res.status}`);
-          }
-          const json = (await res.json()) as {
-            data?: {
-              connectedRoutes?: Array<{
-                stops?: Array<{
-                  line?: { nameShort?: string | null } | null;
+          const onFallbackAbort = () => controller.abort();
+          fallbackController.signal.addEventListener('abort', onFallbackAbort, {
+            once: true,
+          });
+          try {
+            const res = await postGraphQL(
+              env,
+              JSON.stringify({
+                query: CONNECTED_ROUTES_QUERY,
+                variables: {
+                  fromStationGroupId,
+                  toStationGroupId: candidate.stationGroupId,
+                },
+              }),
+              controller.signal
+            );
+            if (!res.ok) {
+              throw new Error(
+                `connectedRoutes failed with status ${res.status}`
+              );
+            }
+            const json = (await res.json()) as {
+              data?: {
+                connectedRoutes?: Array<{
+                  stops?: Array<{
+                    groupId?: number | null;
+                    name?: string | null;
+                    line?: { nameShort?: string | null } | null;
+                  }> | null;
                 }> | null;
-              }> | null;
-            } | null;
-            errors?: { message?: string }[];
-          };
-          if (json.errors?.length) {
-            throw new Error(
-              `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+              } | null;
+              errors?: { message?: string }[];
+            };
+            if (json.errors?.length) {
+              throw new Error(
+                `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+              );
+            }
+            const routes = json.data?.connectedRoutes ?? [];
+            if (routes.length === 0) {
+              return { station: null, failed: false };
+            }
+
+            // GetConnectedRoutes が乗換区間ごとに複数 Route を返す場合も、現在駅を
+            // 起点に区間を接続する。逆向きの区間は反転し、全停車駅を経路順に並べる。
+            const remainingRoutes = routes
+              .map((route) => [...(route.stops ?? [])])
+              .filter((stops) => stops.length > 0);
+            const orderedStops: (typeof remainingRoutes)[number] = [];
+            let currentGroupId = fromStationGroupId;
+            while (remainingRoutes.length > 0) {
+              const routeIndex = remainingRoutes.findIndex((stops) => {
+                const firstGroupId = stops[0]?.groupId;
+                const lastGroupId = stops[stops.length - 1]?.groupId;
+                return (
+                  firstGroupId === currentGroupId ||
+                  lastGroupId === currentGroupId
+                );
+              });
+              if (routeIndex < 0) break;
+              const [stops] = remainingRoutes.splice(routeIndex, 1);
+              if (stops[0]?.groupId !== currentGroupId) stops.reverse();
+              if (
+                orderedStops.length > 0 &&
+                orderedStops[orderedStops.length - 1]?.groupId ===
+                  stops[0]?.groupId
+              ) {
+                stops.shift();
+              }
+              orderedStops.push(...stops);
+              currentGroupId =
+                stops[stops.length - 1]?.groupId ?? currentGroupId;
+            }
+            // groupId が欠けた旧レスポンスも捨てず、未接続区間を返却順で補完する。
+            for (const stops of remainingRoutes) orderedStops.push(...stops);
+
+            // 到着駅自身の路線だけでなく、全区間の路線を順序どおり返す。
+            // 同一路線が複数駅続く部分だけを畳み、乗換順は保持する。
+            const routeLineNames: string[] = [];
+            for (const stop of orderedStops) {
+              const lineName = stop.line?.nameShort;
+              if (
+                lineName &&
+                routeLineNames[routeLineNames.length - 1] !== lineName
+              ) {
+                routeLineNames.push(lineName);
+              }
+            }
+            return {
+              station:
+                routeLineNames.length > 0
+                  ? { ...candidate, lineNames: routeLineNames }
+                  : candidate,
+              failed: false,
+            };
+          } catch (e) {
+            lastError = e;
+            if (fallbackController.signal.aborted) throw e;
+            // 期限まで待っても応答がない場合は、全体予算を守るため再試行しない。
+            // HTTP 502など短時間で確定した一過性エラーだけ次の試行へ進める。
+            if (controller.signal.aborted) break;
+          } finally {
+            clearTimeout(timer);
+            fallbackController.signal.removeEventListener(
+              'abort',
+              onFallbackAbort
             );
           }
-          const route = json.data?.connectedRoutes?.[0];
-          if (!route) return { station: null, failed: false };
-
-          // 到着駅自身の路線だけでなく、経路上の路線を順序どおり返す。
-          // 同一路線が複数駅続く部分だけを畳み、乗換順は保持する。
-          const routeLineNames: string[] = [];
-          for (const stop of route.stops ?? []) {
-            const lineName = stop.line?.nameShort;
-            if (
-              lineName &&
-              routeLineNames[routeLineNames.length - 1] !== lineName
-            ) {
-              routeLineNames.push(lineName);
-            }
-          }
-          return {
-            station:
-              routeLineNames.length > 0
-                ? { ...candidate, lineNames: routeLineNames }
-                : candidate,
-            failed: false,
-          };
-        } catch (e) {
-          lastError = e;
-          if (parentSignal?.aborted) throw e;
-          // 10秒待っても応答がない場合は、全体25秒予算を守るため再試行しない。
-          // HTTP 502など短時間で確定した一過性エラーだけ次の試行へ進める。
-          if (controller.signal.aborted) break;
-        } finally {
-          clearTimeout(timer);
-          parentSignal?.removeEventListener('abort', onParentAbort);
         }
-      }
-      console.error('agent tool: connectedRoutes candidate failed', lastError);
-      return { station: null, failed: true };
-    })
-  );
+        console.error(
+          'agent tool: connectedRoutes candidate failed',
+          lastError
+        );
+        return { station: null, failed: true };
+      })
+    );
 
-  const connected = checks
-    .map((check) => check.station)
-    .filter((station): station is StationSuggestion => station !== null);
-  if (connected.length === 0 && checks.some((check) => check.failed)) {
-    throw new Error('connectedRoutes failed for one or more candidates');
+    const connected = checks
+      .map((check) => check.station)
+      .filter((station): station is StationSuggestion => station !== null);
+    if (connected.length === 0 && checks.some((check) => check.failed)) {
+      throw new Error('connectedRoutes failed for one or more candidates');
+    }
+    return connected;
+  } finally {
+    clearTimeout(fallbackTimer);
+    parentSignal?.removeEventListener('abort', onParentAbort);
   }
-  return connected;
 };
 
 /**
@@ -540,7 +608,7 @@ export const createStationSearchTool = ({
               return {
                 stations: [],
                 notice:
-                  'The direct search was empty, and no GetConnectedRoutes-confirmed station was found for this query. If the query was an area, attraction, scenery, or facility rather than a concrete station name, retry with a concrete nearby station when you can identify one reliably. One credible candidate is enough; do not invent extra stations. For Tsumagoi cabbage fields, try 大前 or 万座・鹿沢口 instead of 嬬恋.',
+                  'The direct search was empty, and no GetConnectedRoutes-confirmed station was found for this query. If the query was an area, attraction, scenery, or facility rather than a concrete station name, retry with a concrete nearby station when you can identify one reliably. One credible candidate is enough; do not invent extra stations.',
               };
             } catch (e) {
               console.error('agent tool: connectedRoutes failed', e);
