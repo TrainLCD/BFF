@@ -477,7 +477,7 @@ export const createStationSearchTool = ({
               return {
                 stations: [],
                 notice:
-                  'The direct search was empty, and GetConnectedRoutes also found no route for this candidate. Try another destination candidate before concluding that no suitable station exists.',
+                  'The direct search was empty, and no GetConnectedRoutes-confirmed station was found for this query. If the query was an area, attraction, scenery, or facility rather than a concrete station name, retry with a concrete nearby station when you can identify one reliably. One credible candidate is enough; do not invent extra stations. For Tsumagoi cabbage fields, try 大前 or 万座・鹿沢口 instead of 嬬恋.',
               };
             } catch (e) {
               console.error('agent tool: connectedRoutes failed', e);

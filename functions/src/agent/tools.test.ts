@@ -536,7 +536,11 @@ describe('connectedRoutes fallback', () => {
     expect(connectedSearch).toHaveBeenCalledWith('大前');
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('GetConnectedRoutes');
-    expect(result.notice).toContain('Try another destination candidate');
+    expect(result.notice).toContain('retry with a concrete nearby station');
+    expect(result.notice).toContain('大前');
+    expect(result.notice).toContain('万座・鹿沢口');
+    expect(result.notice).toContain('One credible candidate is enough');
+    expect(result.notice).toContain('do not invent extra stations');
     expect(result.notice).not.toContain('without a transfer');
   });
 });

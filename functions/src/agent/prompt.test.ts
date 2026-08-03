@@ -49,6 +49,10 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
     expect(prompt).toContain('search_stations_by_name ツールは自動的に');
     expect(prompt).toContain('GetConnectedRoutes');
+    expect(prompt).toContain('「大前」「万座・鹿沢口」');
+    expect(prompt).toContain('それだけを根拠に候補なしと結論づけない');
+    expect(prompt).toContain('候補が 1 駅だけなら');
+    expect(prompt).toContain('駅を推測で増やしてはならない');
   });
 
   // 端末が英語設定でも日本語で聞かれたら日本語で返す（locale 追従をやめた経緯）
