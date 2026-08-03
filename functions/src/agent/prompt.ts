@@ -68,6 +68,9 @@ export const buildSystemPrompt = (faq: string | null): string =>
   2. 現在駅の乗入路線・その直通先の沿線にある別の駅
      （例: 東京駅からの「海が見える駅」なら、江ノ電の駅ではなく
       東海道線の根府川・早川・真鶴、京葉線の稲毛海岸、内房線の館山など）
+- 現在駅があり、上記の通常検索が 0 件だった場合は search_connected_routes を実行し、
+  GetConnectedRoutes による乗り換え経路があるか確認してから候補を再提案する
+- search_connected_routes は通常検索が 0 件になる前には使わない
 - 有名な駅が引けない場合も、直通で行ける範囲に代替候補がないか確認する。
   見つからなければ、候補がないことを正直に伝えて suggestions は空配列にする
 

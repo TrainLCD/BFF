@@ -8,6 +8,8 @@
 import { type Tool, tool } from 'ai';
 import type { Env } from '../types';
 import {
+  type ConnectedRouteSearchInput,
+  connectedRouteSearchInputSchema,
   type StationSearchInput,
   type StationSuggestion,
   stationSearchInputSchema,
@@ -58,6 +60,15 @@ const STATION_GROUP_STATIONS_QUERY = `
       lines {
         nameShort
       }
+    }
+  }
+`;
+
+/** GetConnectedRoutes を呼ぶ GraphQL フォールバック。経路の有無だけを取得する。 */
+const CONNECTED_ROUTES_QUERY = `
+  query AgentConnectedRoutes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
+    connectedRoutes(fromStationGroupId: $fromStationGroupId, toStationGroupId: $toStationGroupId) {
+      id
     }
   }
 `;
@@ -298,6 +309,65 @@ export const fetchStationByGroupId = async (
 };
 
 /**
+ * 駅名を全国検索して候補の groupId を解決し、GetConnectedRoutes で現在駅からの
+ * 乗換経路が存在する候補だけを返す。直通限定検索の 0 件時専用フォールバック。
+ */
+export const searchStationsByConnectedRoutes = async (
+  env: Env,
+  name: string,
+  fromStationGroupId: number,
+  parentSignal?: AbortSignal
+): Promise<StationSuggestion[]> => {
+  const candidates = await searchStationsByName(
+    env,
+    name,
+    undefined,
+    parentSignal
+  );
+  if (candidates.length === 0) return [];
+
+  const checks = candidates.slice(0, 5).map(async (candidate) => {
+    const controller = new AbortController();
+    if (parentSignal?.aborted) controller.abort();
+    const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
+    const onParentAbort = () => controller.abort();
+    parentSignal?.addEventListener('abort', onParentAbort, { once: true });
+    try {
+      const res = await postGraphQL(
+        env,
+        JSON.stringify({
+          query: CONNECTED_ROUTES_QUERY,
+          variables: {
+            fromStationGroupId,
+            toStationGroupId: candidate.stationGroupId,
+          },
+        }),
+        controller.signal
+      );
+      if (!res.ok)
+        throw new Error(`connectedRoutes failed with status ${res.status}`);
+      const json = (await res.json()) as {
+        data?: { connectedRoutes?: unknown[] | null } | null;
+        errors?: { message?: string }[];
+      };
+      if (json.errors?.length) {
+        throw new Error(
+          `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+        );
+      }
+      return (json.data?.connectedRoutes?.length ?? 0) > 0 ? candidate : null;
+    } finally {
+      clearTimeout(timer);
+      parentSignal?.removeEventListener('abort', onParentAbort);
+    }
+  });
+
+  return (await Promise.all(checks)).filter(
+    (station): station is StationSuggestion => station !== null
+  );
+};
+
+/**
  * 駅検索のスコープ。上流の stationsByName は fromStationGroupId を渡すと
  * 「その駅から乗り換えなしで行ける駅」だけを返す（仕様）ため、
  * 0 件の意味とモデルへ促す次の一手がスコープごとに変わる。
@@ -349,6 +419,8 @@ export interface StationSearchToolOptions {
   budget: { remaining: number };
   /** 検索スコープ（0 件時の案内とツール説明を切り替える） */
   scope?: StationSearchScope;
+  /** 通常検索が一度でも 0 件になったことをフォールバックツールと共有する */
+  emptySearchObserved?: { value: boolean };
 }
 
 /** search_stations_by_name ツール定義（AI SDK 形式・プロバイダ非依存） */
@@ -357,6 +429,7 @@ export const createStationSearchTool = ({
   verified,
   budget,
   scope = 'nationwide',
+  emptySearchObserved,
 }: StationSearchToolOptions): Tool<
   StationSearchInput,
   StationSearchToolResult
@@ -390,6 +463,7 @@ export const createStationSearchTool = ({
         // 0 件のときは次の一手を具体的に示す（表記ゆれや到達不能で空振りし、
         // そのまま「候補が見つからない」と諦めてしまうのを防ぐ）
         if (stations.length === 0) {
+          if (emptySearchObserved) emptySearchObserved.value = true;
           return {
             stations: [],
             notice: NO_MATCH_NOTICE[scope],
@@ -402,6 +476,63 @@ export const createStationSearchTool = ({
         return {
           stations: [],
           notice: 'Search failed. Do not invent stations.',
+        };
+      }
+    },
+  });
+
+export interface ConnectedRouteSearchToolOptions {
+  search: (name: string) => Promise<StationSuggestion[]>;
+  verified: Map<number, StationSuggestion>;
+  budget: { remaining: number };
+  emptySearchObserved: { value: boolean };
+}
+
+/** 直通限定の通常検索が 0 件だった場合だけ利用できる乗換経路検索ツール。 */
+export const createConnectedRouteSearchTool = ({
+  search,
+  verified,
+  budget,
+  emptySearchObserved,
+}: ConnectedRouteSearchToolOptions): Tool<
+  ConnectedRouteSearchInput,
+  StationSearchToolResult
+> =>
+  tool({
+    description:
+      'search_stations_by_name が 0 件だった場合だけ使うフォールバック。駅名を全国検索し、GetConnectedRoutes で現在駅から乗り換えて到達できる経路がある駅を返す。通常検索より先に呼ばないこと。',
+    inputSchema: connectedRouteSearchInputSchema,
+    execute: async ({ name }): Promise<StationSearchToolResult> => {
+      if (!emptySearchObserved.value) {
+        return {
+          stations: [],
+          notice:
+            'Run search_stations_by_name first. This fallback is only available after an empty result.',
+        };
+      }
+      if (budget.remaining <= 0) {
+        return {
+          stations: [],
+          notice:
+            'Search limit reached. Answer using the results you already have.',
+        };
+      }
+      budget.remaining -= 1;
+      try {
+        const stations = await search(name);
+        for (const station of stations)
+          verified.set(station.stationId, station);
+        return stations.length > 0
+          ? { stations }
+          : {
+              stations: [],
+              notice: 'No connected route was found. Do not invent stations.',
+            };
+      } catch (e) {
+        console.error('agent tool: connectedRoutes failed', e);
+        return {
+          stations: [],
+          notice: 'Connected-route search failed. Do not invent stations.',
         };
       }
     },

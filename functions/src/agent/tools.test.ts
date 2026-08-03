@@ -2,9 +2,11 @@ import type { Env } from '../types';
 import type { StationSuggestion } from './schema';
 import {
   buildStationNameVariants,
+  createConnectedRouteSearchTool,
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
+  searchStationsByConnectedRoutes,
   searchStationsByName,
   toStationSuggestion,
 } from './tools';
@@ -425,5 +427,94 @@ describe('createStationSearchTool', () => {
     const result = await execute(tool, '鎌倉');
     expect(result.stations).toEqual([]);
     expect(result.notice).toContain('failed');
+  });
+});
+
+describe('connectedRoutes fallback', () => {
+  it('全国検索した候補を connectedRoutes の有無で絞り込む', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([gqlStation(1, '江ノ島')]))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { connectedRoutes: [{ id: 1 }] } }))
+      );
+
+    const stations = await searchStationsByConnectedRoutes(
+      { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+      '江ノ島',
+      2000
+    );
+
+    expect(stations.map((station) => station.name)).toEqual(['江ノ島']);
+    const connectedRequest = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(connectedRequest.variables).toEqual({
+      fromStationGroupId: 2000,
+      toStationGroupId: 1001,
+    });
+    expect(connectedRequest.query).toContain('connectedRoutes');
+  });
+
+  it('connectedRoutes が空の候補は返さない', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([gqlStation(1, '江ノ島')]))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { connectedRoutes: [] } }))
+      );
+
+    await expect(
+      searchStationsByConnectedRoutes(
+        { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+        '江ノ島',
+        2000
+      )
+    ).resolves.toEqual([]);
+  });
+
+  it('通常検索が 0 件になるまでは fallback を実行しない', async () => {
+    const search = jest.fn().mockResolvedValue([]);
+    const tool = createConnectedRouteSearchTool({
+      search,
+      verified: new Map(),
+      budget: { remaining: 1 },
+      emptySearchObserved: { value: false },
+    });
+    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
+    const result = await (tool as any).execute({ name: '江ノ島' }, {});
+    expect(search).not.toHaveBeenCalled();
+    expect(result.notice).toContain('search_stations_by_name first');
+  });
+
+  it('通常検索が 0 件になった後は fallback の結果を検証済みにする', async () => {
+    const emptySearchObserved = { value: false };
+    const verified = new Map<number, StationSuggestion>();
+    const budget = { remaining: 2 };
+    const directTool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
+      verified,
+      budget,
+      emptySearchObserved,
+    });
+    const connectedStation: StationSuggestion = {
+      stationId: 1,
+      stationGroupId: 1001,
+      name: '江ノ島',
+      nameRoman: 'Enoshima',
+      lineNames: ['江ノ島電鉄線'],
+    };
+    const fallbackTool = createConnectedRouteSearchTool({
+      search: jest.fn().mockResolvedValue([connectedStation]),
+      verified,
+      budget,
+      emptySearchObserved,
+    });
+
+    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
+    await (directTool as any).execute({ name: '江ノ島' }, {});
+    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
+    const result = await (fallbackTool as any).execute({ name: '江ノ島' }, {});
+
+    expect(result.stations).toEqual([connectedStation]);
+    expect(verified.get(connectedStation.stationId)).toEqual(connectedStation);
   });
 });

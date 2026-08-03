@@ -47,6 +47,8 @@ describe('buildSystemPrompt', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('乗り換えなしで行ける駅');
     expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
+    expect(prompt).toContain('search_connected_routes');
+    expect(prompt).toContain('GetConnectedRoutes');
   });
 
   // 端末が英語設定でも日本語で聞かれたら日本語で返す（locale 追従をやめた経緯）

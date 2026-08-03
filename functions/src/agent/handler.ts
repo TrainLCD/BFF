@@ -36,10 +36,12 @@ import {
   extractReplyDelta,
 } from './stream';
 import {
+  createConnectedRouteSearchTool,
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
   type StationSearchScope,
+  searchStationsByConnectedRoutes,
   searchStationsByName,
 } from './tools';
 import {
@@ -284,6 +286,7 @@ export interface AgentTurnParams {
   messages: readonly ChatMessage[];
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
+  searchConnectedRoutes?: (name: string) => Promise<StationSuggestion[]>;
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
   signal?: AbortSignal;
@@ -315,6 +318,7 @@ export const runAgentTurn = async (
 ): Promise<AgentChatResult> => {
   const verified = new Map<number, StationSuggestion>();
   const budget = { remaining: MAX_TOOL_CALLS_PER_TURN };
+  const emptySearchObserved = { value: false };
   const openaiReasoning = resolveOpenAIReasoningOptions(params.model);
 
   const result = await params.streamText({
@@ -337,7 +341,18 @@ export const runAgentTurn = async (
         verified,
         budget,
         scope: params.searchScope,
+        emptySearchObserved,
       }),
+      ...(params.searchConnectedRoutes
+        ? {
+            search_connected_routes: createConnectedRouteSearchTool({
+              search: params.searchConnectedRoutes,
+              verified,
+              budget,
+              emptySearchObserved,
+            }),
+          }
+        : {}),
     },
     stopWhen: stepCountIs(MAX_TOOL_ITERATIONS + 1),
     // イテレーション上限に達したらツールを外し、その時点の結果で応答を生成させる
@@ -534,6 +549,17 @@ const buildTurnParams = (
     ),
     searchStations: (name) =>
       searchStationsByName(env, name, chatReq.currentStationGroupId, signal),
+    ...(chatReq.currentStationGroupId !== undefined
+      ? {
+          searchConnectedRoutes: (name: string) =>
+            searchStationsByConnectedRoutes(
+              env,
+              name,
+              chatReq.currentStationGroupId as number,
+              signal
+            ),
+        }
+      : {}),
     signal,
     // 計測は内容を一切持たず、最初の delta までの所要時間とツール実行回数だけを数える
     onDelta: async (text) => {

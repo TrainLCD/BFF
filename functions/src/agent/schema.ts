@@ -64,6 +64,10 @@ export const stationSearchInputSchema = z.object({
 });
 export type StationSearchInput = z.infer<typeof stationSearchInputSchema>;
 
+/** 直通検索が 0 件だった場合の、乗換経路検索ツールの入力 */
+export const connectedRouteSearchInputSchema = stationSearchInputSchema;
+export type ConnectedRouteSearchInput = StationSearchInput;
+
 /** クライアントへ返すレスポンス（callable の result） */
 export interface AgentChatResult {
   reply: string;
