@@ -68,7 +68,11 @@ const STATION_GROUP_STATIONS_QUERY = `
 const CONNECTED_ROUTES_QUERY = `
   query AgentConnectedRoutes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
     connectedRoutes(fromStationGroupId: $fromStationGroupId, toStationGroupId: $toStationGroupId) {
-      __typename
+      stops {
+        line {
+          nameShort
+        }
+      }
     }
   }
 `;
@@ -363,7 +367,13 @@ export const searchStationsByConnectedRoutes = async (
             throw new Error(`connectedRoutes failed with status ${res.status}`);
           }
           const json = (await res.json()) as {
-            data?: { connectedRoutes?: unknown[] | null } | null;
+            data?: {
+              connectedRoutes?: Array<{
+                stops?: Array<{
+                  line?: { nameShort?: string | null } | null;
+                }> | null;
+              }> | null;
+            } | null;
             errors?: { message?: string }[];
           };
           if (json.errors?.length) {
@@ -371,9 +381,26 @@ export const searchStationsByConnectedRoutes = async (
               `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
             );
           }
+          const route = json.data?.connectedRoutes?.[0];
+          if (!route) return { station: null, failed: false };
+
+          // 到着駅自身の路線だけでなく、経路上の路線を順序どおり返す。
+          // 同一路線が複数駅続く部分だけを畳み、乗換順は保持する。
+          const routeLineNames: string[] = [];
+          for (const stop of route.stops ?? []) {
+            const lineName = stop.line?.nameShort;
+            if (
+              lineName &&
+              routeLineNames[routeLineNames.length - 1] !== lineName
+            ) {
+              routeLineNames.push(lineName);
+            }
+          }
           return {
             station:
-              (json.data?.connectedRoutes?.length ?? 0) > 0 ? candidate : null,
+              routeLineNames.length > 0
+                ? { ...candidate, lineNames: routeLineNames }
+                : candidate,
             failed: false,
           };
         } catch (e) {

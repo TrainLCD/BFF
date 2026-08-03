@@ -451,7 +451,7 @@ describe('connectedRoutes fallback', () => {
       toStationGroupId: 1001,
     });
     expect(connectedRequest.query).toContain('connectedRoutes');
-    expect(connectedRequest.query).toContain('__typename');
+    expect(connectedRequest.query).toContain('nameShort');
     expect(connectedRequest.query).not.toMatch(/\bid\b/);
   });
 
@@ -470,6 +470,39 @@ describe('connectedRoutes fallback', () => {
         2000
       )
     ).resolves.toEqual([]);
+  });
+
+  it('経路上の路線を乗換順にまとめて lineNames へ設定する', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([gqlStation(1, '大前')]))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              connectedRoutes: [
+                {
+                  stops: [
+                    { line: { nameShort: '両毛線' } },
+                    { line: { nameShort: '両毛線' } },
+                    { line: { nameShort: '上越線' } },
+                    { line: { nameShort: '上越線' } },
+                    { line: { nameShort: '吾妻線' } },
+                  ],
+                },
+              ],
+            },
+          })
+        )
+      );
+
+    const stations = await searchStationsByConnectedRoutes(
+      { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+      '大前',
+      1134108
+    );
+
+    expect(stations[0].lineNames).toEqual(['両毛線', '上越線', '吾妻線']);
   });
 
   it('完全一致候補があれば部分一致の別駅は経路検索しない', async () => {
