@@ -2,7 +2,6 @@ import type { Env } from '../types';
 import type { StationSuggestion } from './schema';
 import {
   buildStationNameVariants,
-  createConnectedRouteSearchTool,
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
@@ -471,30 +470,8 @@ describe('connectedRoutes fallback', () => {
     ).resolves.toEqual([]);
   });
 
-  it('通常検索が 0 件になるまでは fallback を実行しない', async () => {
-    const search = jest.fn().mockResolvedValue([]);
-    const tool = createConnectedRouteSearchTool({
-      search,
-      verified: new Map(),
-      budget: { remaining: 1 },
-      emptySearchObserved: { value: false },
-    });
-    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
-    const result = await (tool as any).execute({ name: '江ノ島' }, {});
-    expect(search).not.toHaveBeenCalled();
-    expect(result.notice).toContain('search_stations_by_name first');
-  });
-
-  it('通常検索が 0 件になった後は fallback の結果を検証済みにする', async () => {
-    const emptySearchObserved = { value: false };
+  it('通常検索が 0 件なら fallback を自動実行して結果を検証済みにする', async () => {
     const verified = new Map<number, StationSuggestion>();
-    const budget = { remaining: 2 };
-    const directTool = createStationSearchTool({
-      search: jest.fn().mockResolvedValue([]),
-      verified,
-      budget,
-      emptySearchObserved,
-    });
     const connectedStation: StationSuggestion = {
       stationId: 1,
       stationGroupId: 1001,
@@ -502,19 +479,64 @@ describe('connectedRoutes fallback', () => {
       nameRoman: 'Enoshima',
       lineNames: ['江ノ島電鉄線'],
     };
-    const fallbackTool = createConnectedRouteSearchTool({
-      search: jest.fn().mockResolvedValue([connectedStation]),
+    const connectedSearch = jest.fn().mockResolvedValue([connectedStation]);
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
+      connectedSearch,
       verified,
-      budget,
-      emptySearchObserved,
+      budget: { remaining: 1 },
     });
 
     // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
-    await (directTool as any).execute({ name: '江ノ島' }, {});
-    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
-    const result = await (fallbackTool as any).execute({ name: '江ノ島' }, {});
+    const result = await (tool as any).execute({ name: '江ノ島' }, {});
 
+    expect(connectedSearch).toHaveBeenCalledWith('江ノ島');
     expect(result.stations).toEqual([connectedStation]);
+    expect(result.notice).toContain('GetConnectedRoutes');
     expect(verified.get(connectedStation.stationId)).toEqual(connectedStation);
+  });
+
+  it('通常検索がヒットした場合は fallback を実行しない', async () => {
+    const directStation: StationSuggestion = {
+      stationId: 1,
+      stationGroupId: 1001,
+      name: '江ノ島',
+      nameRoman: 'Enoshima',
+      lineNames: ['江ノ島電鉄線'],
+    };
+    const connectedSearch = jest.fn();
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([directStation]),
+      connectedSearch,
+      verified: new Map(),
+      budget: { remaining: 1 },
+    });
+
+    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
+    const result = await (tool as any).execute({ name: '江ノ島' }, {});
+
+    expect(result.stations).toEqual([directStation]);
+    expect(connectedSearch).not.toHaveBeenCalled();
+  });
+
+  it('伊勢崎駅からの通常検索と連結経路が 0 件でも別候補を試すよう促す', async () => {
+    const connectedSearch = jest.fn().mockResolvedValue([]);
+    const tool = createStationSearchTool({
+      search: jest.fn().mockResolvedValue([]),
+      connectedSearch,
+      verified: new Map(),
+      budget: { remaining: 2 },
+      scope: 'reachable-from-known-station',
+    });
+
+    // 「キャベツ畑」からモデルが最初に選んだ候補駅が空振りするケースを再現する
+    // biome-ignore lint/suspicious/noExplicitAny: AI SDK tool の execute を直接検証する
+    const result = await (tool as any).execute({ name: '大前' }, {});
+
+    expect(connectedSearch).toHaveBeenCalledWith('大前');
+    expect(result.stations).toEqual([]);
+    expect(result.notice).toContain('GetConnectedRoutes');
+    expect(result.notice).toContain('Try another destination candidate');
+    expect(result.notice).not.toContain('without a transfer');
   });
 });

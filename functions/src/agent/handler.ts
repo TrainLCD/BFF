@@ -36,7 +36,6 @@ import {
   extractReplyDelta,
 } from './stream';
 import {
-  createConnectedRouteSearchTool,
   createStationSearchTool,
   fetchStationByGroupId,
   MAX_TOOL_CALLS_PER_TURN,
@@ -318,7 +317,6 @@ export const runAgentTurn = async (
 ): Promise<AgentChatResult> => {
   const verified = new Map<number, StationSuggestion>();
   const budget = { remaining: MAX_TOOL_CALLS_PER_TURN };
-  const emptySearchObserved = { value: false };
   const openaiReasoning = resolveOpenAIReasoningOptions(params.model);
 
   const result = await params.streamText({
@@ -341,18 +339,8 @@ export const runAgentTurn = async (
         verified,
         budget,
         scope: params.searchScope,
-        emptySearchObserved,
+        connectedSearch: params.searchConnectedRoutes,
       }),
-      ...(params.searchConnectedRoutes
-        ? {
-            search_connected_routes: createConnectedRouteSearchTool({
-              search: params.searchConnectedRoutes,
-              verified,
-              budget,
-              emptySearchObserved,
-            }),
-          }
-        : {}),
     },
     stopWhen: stepCountIs(MAX_TOOL_ITERATIONS + 1),
     // イテレーション上限に達したらツールを外し、その時点の結果で応答を生成させる

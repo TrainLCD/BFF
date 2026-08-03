@@ -8,8 +8,6 @@
 import { type Tool, tool } from 'ai';
 import type { Env } from '../types';
 import {
-  type ConnectedRouteSearchInput,
-  connectedRouteSearchInputSchema,
   type StationSearchInput,
   type StationSuggestion,
   stationSearchInputSchema,
@@ -419,8 +417,8 @@ export interface StationSearchToolOptions {
   budget: { remaining: number };
   /** 検索スコープ（0 件時の案内とツール説明を切り替える） */
   scope?: StationSearchScope;
-  /** 通常検索が一度でも 0 件になったことをフォールバックツールと共有する */
-  emptySearchObserved?: { value: boolean };
+  /** 通常検索が 0 件だった場合に実行する GetConnectedRoutes フォールバック */
+  connectedSearch?: (name: string) => Promise<StationSuggestion[]>;
 }
 
 /** search_stations_by_name ツール定義（AI SDK 形式・プロバイダ非依存） */
@@ -429,7 +427,7 @@ export const createStationSearchTool = ({
   verified,
   budget,
   scope = 'nationwide',
-  emptySearchObserved,
+  connectedSearch,
 }: StationSearchToolOptions): Tool<
   StationSearchInput,
   StationSearchToolResult
@@ -463,7 +461,33 @@ export const createStationSearchTool = ({
         // 0 件のときは次の一手を具体的に示す（表記ゆれや到達不能で空振りし、
         // そのまま「候補が見つからない」と諦めてしまうのを防ぐ）
         if (stations.length === 0) {
-          if (emptySearchObserved) emptySearchObserved.value = true;
+          if (connectedSearch) {
+            try {
+              const connectedStations = await connectedSearch(name);
+              for (const station of connectedStations) {
+                verified.set(station.stationId, station);
+              }
+              if (connectedStations.length > 0) {
+                return {
+                  stations: connectedStations,
+                  notice:
+                    'The direct search was empty, but these stations have a route confirmed by GetConnectedRoutes.',
+                };
+              }
+              return {
+                stations: [],
+                notice:
+                  'The direct search was empty, and GetConnectedRoutes also found no route for this candidate. Try another destination candidate before concluding that no suitable station exists.',
+              };
+            } catch (e) {
+              console.error('agent tool: connectedRoutes failed', e);
+              return {
+                stations: [],
+                notice:
+                  'The direct search was empty and the connected-route search failed. Do not invent stations.',
+              };
+            }
+          }
           return {
             stations: [],
             notice: NO_MATCH_NOTICE[scope],
@@ -476,63 +500,6 @@ export const createStationSearchTool = ({
         return {
           stations: [],
           notice: 'Search failed. Do not invent stations.',
-        };
-      }
-    },
-  });
-
-export interface ConnectedRouteSearchToolOptions {
-  search: (name: string) => Promise<StationSuggestion[]>;
-  verified: Map<number, StationSuggestion>;
-  budget: { remaining: number };
-  emptySearchObserved: { value: boolean };
-}
-
-/** 直通限定の通常検索が 0 件だった場合だけ利用できる乗換経路検索ツール。 */
-export const createConnectedRouteSearchTool = ({
-  search,
-  verified,
-  budget,
-  emptySearchObserved,
-}: ConnectedRouteSearchToolOptions): Tool<
-  ConnectedRouteSearchInput,
-  StationSearchToolResult
-> =>
-  tool({
-    description:
-      'search_stations_by_name が 0 件だった場合だけ使うフォールバック。駅名を全国検索し、GetConnectedRoutes で現在駅から乗り換えて到達できる経路がある駅を返す。通常検索より先に呼ばないこと。',
-    inputSchema: connectedRouteSearchInputSchema,
-    execute: async ({ name }): Promise<StationSearchToolResult> => {
-      if (!emptySearchObserved.value) {
-        return {
-          stations: [],
-          notice:
-            'Run search_stations_by_name first. This fallback is only available after an empty result.',
-        };
-      }
-      if (budget.remaining <= 0) {
-        return {
-          stations: [],
-          notice:
-            'Search limit reached. Answer using the results you already have.',
-        };
-      }
-      budget.remaining -= 1;
-      try {
-        const stations = await search(name);
-        for (const station of stations)
-          verified.set(station.stationId, station);
-        return stations.length > 0
-          ? { stations }
-          : {
-              stations: [],
-              notice: 'No connected route was found. Do not invent stations.',
-            };
-      } catch (e) {
-        console.error('agent tool: connectedRoutes failed', e);
-        return {
-          stations: [],
-          notice: 'Connected-route search failed. Do not invent stations.',
         };
       }
     },

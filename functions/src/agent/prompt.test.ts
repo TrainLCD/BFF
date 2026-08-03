@@ -47,7 +47,7 @@ describe('buildSystemPrompt', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain('乗り換えなしで行ける駅');
     expect(prompt).toContain('直通で行ける範囲に代替候補がないか確認する');
-    expect(prompt).toContain('search_connected_routes');
+    expect(prompt).toContain('search_stations_by_name ツールは自動的に');
     expect(prompt).toContain('GetConnectedRoutes');
   });
 
