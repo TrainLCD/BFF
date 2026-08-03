@@ -167,6 +167,40 @@ describe('runAgentTurn', () => {
     expect(result.reply).toBe('見つかりませんでした。');
   });
 
+  it('行き先相談では最初のステップで駅検索ツールを必須にする', async () => {
+    let firstStep: unknown;
+    const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
+      firstStep = options.prepareStep({ stepNumber: 0 });
+      return streamResult({ output: { reply: 'ok', suggestions: [] } });
+    });
+
+    await runAgentTurn({
+      ...baseParams,
+      streamText,
+      requireStationSearch: true,
+      searchStations: jest.fn().mockResolvedValue([]),
+    });
+
+    expect(firstStep).toEqual({ toolChoice: 'required' });
+  });
+
+  it('使い方質問では駅検索ツールを必須にしない', async () => {
+    let firstStep: unknown;
+    const streamText: AnyFn = jest.fn(async (options: AnyFn) => {
+      firstStep = options.prepareStep({ stepNumber: 0 });
+      return streamResult({ output: { reply: 'ok', suggestions: [] } });
+    });
+
+    await runAgentTurn({
+      ...baseParams,
+      streamText,
+      requireStationSearch: false,
+      searchStations: jest.fn(),
+    });
+
+    expect(firstStep).toBeUndefined();
+  });
+
   it('現在駅ありの 0 件は「直通で行けないだけ」とモデルへ伝える', async () => {
     let notice: string | undefined;
     const streamText: AnyFn = jest.fn(async (options: AnyFn) => {

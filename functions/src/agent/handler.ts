@@ -286,6 +286,8 @@ export interface AgentTurnParams {
   locale: 'ja' | 'en';
   searchStations: (name: string) => Promise<StationSuggestion[]>;
   searchConnectedRoutes?: (name: string) => Promise<StationSuggestion[]>;
+  /** 行き先相談では最初の駅検索ツール呼び出しを構造的に強制する */
+  requireStationSearch?: boolean;
   /** 検索スコープ（0 件時の案内とツール説明の出し分けに使う） */
   searchScope?: StationSearchScope;
   signal?: AbortSignal;
@@ -344,8 +346,13 @@ export const runAgentTurn = async (
     },
     stopWhen: stepCountIs(MAX_TOOL_ITERATIONS + 1),
     // イテレーション上限に達したらツールを外し、その時点の結果で応答を生成させる
-    prepareStep: ({ stepNumber }) =>
-      stepNumber >= MAX_TOOL_ITERATIONS ? { activeTools: [] } : undefined,
+    prepareStep: ({ stepNumber }) => {
+      if (stepNumber >= MAX_TOOL_ITERATIONS) return { activeTools: [] };
+      if (stepNumber === 0 && params.requireStationSearch) {
+        return { toolChoice: 'required' as const };
+      }
+      return undefined;
+    },
     output: Output.object({ schema: agentOutputSchema }),
     // 思考（reasoning）の抑制。プロバイダは自分のキーだけを読むため、
     // 使っていない側のキーは無視される（anthropic 使用時に openai は無視、その逆も同様）
@@ -412,6 +419,7 @@ type PreparedTurn =
       chatReq: ChatRequest;
       faq: string | null;
       currentStation: StationSuggestion | null;
+      topic: 'destination' | 'app_usage';
       /** 本体ターン開始時に消費する日次カウンタ（commitDailyTurn に渡す） */
       usage: DailyUsage;
     };
@@ -504,7 +512,7 @@ const prepareAgentTurn = async (
 
   const [faq, currentStation] = await contextPromise;
   markPhase(metrics, 'context', parallelStartedAt);
-  return { chatReq, faq, currentStation, usage };
+  return { chatReq, faq, currentStation, topic, usage };
 };
 
 /** 前段処理の結果から runAgentTurn の引数を組み立てる（両エンドポイントで共通） */
@@ -516,7 +524,7 @@ const buildTurnParams = (
   metrics: TurnMetrics,
   callbacks: Pick<AgentTurnParams, 'onDelta' | 'onToolStart'> = {}
 ): AgentTurnParams => {
-  const { chatReq, faq, currentStation } = prepared;
+  const { chatReq, faq, currentStation, topic } = prepared;
   return {
     streamText: runtime.streamText,
     model: resolveAgentModel(env),
@@ -528,6 +536,7 @@ const buildTurnParams = (
     ),
     messages: chatReq.messages,
     locale: chatReq.locale,
+    requireStationSearch: topic === 'destination',
     // 検索フィルタの有無（currentStationGroupId）と、現在駅の名称・路線が
     // 解決できたかは別物。解決に失敗したときに沿線での引き直しを指示しても
     // モデルは路線名を知らないため、スコープを分けて案内を変える
