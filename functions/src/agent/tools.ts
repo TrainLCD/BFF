@@ -17,6 +17,8 @@ import {
 const STATION_SEARCH_LIMIT = 10;
 /** sapi-bff 呼び出しの 1 試行あたり期限 */
 const TOOL_TIMEOUT_MS = 5_000;
+/** GetConnectedRoutes は上流BFF側で最大8秒待つため、その応答を受け取れる期限にする */
+const CONNECTED_ROUTE_TIMEOUT_MS = 10_000;
 /** 1 ターン合計のツール呼び出し上限 */
 export const MAX_TOOL_CALLS_PER_TURN = 5;
 /**
@@ -339,7 +341,10 @@ export const searchStationsByConnectedRoutes = async (
       for (let attempt = 0; attempt < 2; attempt++) {
         const controller = new AbortController();
         if (parentSignal?.aborted) controller.abort();
-        const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
+        const timer = setTimeout(
+          () => controller.abort(),
+          CONNECTED_ROUTE_TIMEOUT_MS
+        );
         const onParentAbort = () => controller.abort();
         parentSignal?.addEventListener('abort', onParentAbort, { once: true });
         try {
@@ -374,6 +379,9 @@ export const searchStationsByConnectedRoutes = async (
         } catch (e) {
           lastError = e;
           if (parentSignal?.aborted) throw e;
+          // 10秒待っても応答がない場合は、全体25秒予算を守るため再試行しない。
+          // HTTP 502など短時間で確定した一過性エラーだけ次の試行へ進める。
+          if (controller.signal.aborted) break;
         } finally {
           clearTimeout(timer);
           parentSignal?.removeEventListener('abort', onParentAbort);
