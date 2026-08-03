@@ -470,6 +470,51 @@ describe('connectedRoutes fallback', () => {
     ).resolves.toEqual([]);
   });
 
+  it('完全一致候補があれば部分一致の別駅は経路検索しない', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(
+        gqlResponse([
+          gqlStation(1, '東北福祉大前'),
+          gqlStation(2, '大前'),
+          gqlStation(3, '九州工大前'),
+        ])
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { connectedRoutes: [{ id: 1 }] } }))
+      );
+
+    const stations = await searchStationsByConnectedRoutes(
+      { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+      '大前',
+      1134108
+    );
+
+    expect(stations.map((station) => station.name)).toEqual(['大前']);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const connectedRequest = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(connectedRequest.variables.toStationGroupId).toBe(1002);
+  });
+
+  it('connectedRoutes の一過性エラーを 1 回再試行する', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(gqlResponse([gqlStation(1, '大前')]))
+      .mockResolvedValueOnce(new Response('bad gateway', { status: 502 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { connectedRoutes: [{ id: 1 }] } }))
+      );
+
+    await expect(
+      searchStationsByConnectedRoutes(
+        { SAPI_BFF: { fetch: fetchMock } } as unknown as Env,
+        '大前',
+        1134108
+      )
+    ).resolves.toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
   it('通常検索が 0 件なら fallback を自動実行して結果を検証済みにする', async () => {
     const verified = new Map<number, StationSuggestion>();
     const connectedStation: StationSuggestion = {

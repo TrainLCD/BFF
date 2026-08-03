@@ -324,45 +324,73 @@ export const searchStationsByConnectedRoutes = async (
   );
   if (candidates.length === 0) return [];
 
-  const checks = candidates.slice(0, 5).map(async (candidate) => {
-    const controller = new AbortController();
-    if (parentSignal?.aborted) controller.abort();
-    const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
-    const onParentAbort = () => controller.abort();
-    parentSignal?.addEventListener('abort', onParentAbort, { once: true });
-    try {
-      const res = await postGraphQL(
-        env,
-        JSON.stringify({
-          query: CONNECTED_ROUTES_QUERY,
-          variables: {
-            fromStationGroupId,
-            toStationGroupId: candidate.stationGroupId,
-          },
-        }),
-        controller.signal
-      );
-      if (!res.ok)
-        throw new Error(`connectedRoutes failed with status ${res.status}`);
-      const json = (await res.json()) as {
-        data?: { connectedRoutes?: unknown[] | null } | null;
-        errors?: { message?: string }[];
-      };
-      if (json.errors?.length) {
-        throw new Error(
-          `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
-        );
-      }
-      return (json.data?.connectedRoutes?.length ?? 0) > 0 ? candidate : null;
-    } finally {
-      clearTimeout(timer);
-      parentSignal?.removeEventListener('abort', onParentAbort);
-    }
-  });
-
-  return (await Promise.all(checks)).filter(
-    (station): station is StationSuggestion => station !== null
+  // 部分一致では「大前」に対して「東北福祉大前」なども返る。完全一致があるのに
+  // 無関係な候補へ重い経路検索を投げないよう、完全一致だけを優先する。
+  const queryName = name.trim().replace(STATION_SUFFIX_PATTERN, '').trim();
+  const exactCandidates = candidates.filter(
+    (candidate) => candidate.name === queryName
   );
+  const routeCandidates =
+    exactCandidates.length > 0 ? exactCandidates : candidates.slice(0, 5);
+
+  const checks = await Promise.all(
+    routeCandidates.map(async (candidate) => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        if (parentSignal?.aborted) controller.abort();
+        const timer = setTimeout(() => controller.abort(), TOOL_TIMEOUT_MS);
+        const onParentAbort = () => controller.abort();
+        parentSignal?.addEventListener('abort', onParentAbort, { once: true });
+        try {
+          const res = await postGraphQL(
+            env,
+            JSON.stringify({
+              query: CONNECTED_ROUTES_QUERY,
+              variables: {
+                fromStationGroupId,
+                toStationGroupId: candidate.stationGroupId,
+              },
+            }),
+            controller.signal
+          );
+          if (!res.ok) {
+            throw new Error(`connectedRoutes failed with status ${res.status}`);
+          }
+          const json = (await res.json()) as {
+            data?: { connectedRoutes?: unknown[] | null } | null;
+            errors?: { message?: string }[];
+          };
+          if (json.errors?.length) {
+            throw new Error(
+              `connectedRoutes GraphQL error: ${json.errors[0]?.message ?? 'unknown'}`
+            );
+          }
+          return {
+            station:
+              (json.data?.connectedRoutes?.length ?? 0) > 0 ? candidate : null,
+            failed: false,
+          };
+        } catch (e) {
+          lastError = e;
+          if (parentSignal?.aborted) throw e;
+        } finally {
+          clearTimeout(timer);
+          parentSignal?.removeEventListener('abort', onParentAbort);
+        }
+      }
+      console.error('agent tool: connectedRoutes candidate failed', lastError);
+      return { station: null, failed: true };
+    })
+  );
+
+  const connected = checks
+    .map((check) => check.station)
+    .filter((station): station is StationSuggestion => station !== null);
+  if (connected.length === 0 && checks.some((check) => check.failed)) {
+    throw new Error('connectedRoutes failed for one or more candidates');
+  }
+  return connected;
 };
 
 /**
