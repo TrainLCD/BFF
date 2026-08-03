@@ -451,6 +451,8 @@ describe('connectedRoutes fallback', () => {
       toStationGroupId: 1001,
     });
     expect(connectedRequest.query).toContain('connectedRoutes');
+    expect(connectedRequest.query).toContain('__typename');
+    expect(connectedRequest.query).not.toMatch(/\bid\b/);
   });
 
   it('connectedRoutes が空の候補は返さない', async () => {

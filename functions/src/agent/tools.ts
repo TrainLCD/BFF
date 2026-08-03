@@ -66,7 +66,7 @@ const STATION_GROUP_STATIONS_QUERY = `
 const CONNECTED_ROUTES_QUERY = `
   query AgentConnectedRoutes($fromStationGroupId: Int!, $toStationGroupId: Int!) {
     connectedRoutes(fromStationGroupId: $fromStationGroupId, toStationGroupId: $toStationGroupId) {
-      id
+      __typename
     }
   }
 `;
