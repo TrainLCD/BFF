@@ -39,6 +39,10 @@
 - Refresh inline snapshots via `npm run test -- --update` and review the resulting diffs before committing.
 
 ## Commit & Pull Request Guidelines
+- Follow git-flow for branch management: use `dev` as the integration branch and keep `master` production-ready.
+- Create `feature/*` branches from `dev` and merge them back into `dev` through pull requests.
+- Create `release/*` branches from `dev`, then merge completed releases into both `master` and `dev`.
+- Create `hotfix/*` branches from `master`, then merge completed hotfixes into both `master` and `dev`.
 - Write imperative commit subjects within 72 characters (e.g., `Require gRPC origin config`).
 - Check in regenerated artifacts (`worker-configuration.d.ts`, updated snapshots) alongside the changes that produced them.
 - PR descriptions should state scope, testing evidence (`npm run test`, manual verification), related issues, and any new bindings or secrets with setup steps.
