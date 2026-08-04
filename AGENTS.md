@@ -47,6 +47,7 @@
 - Write imperative commit subjects within 72 characters (e.g., `Require gRPC origin config`).
 - Check in regenerated artifacts (`worker-configuration.d.ts`, updated snapshots) alongside the changes that produced them.
 - PR descriptions should state scope, testing evidence (`npm run test`, manual verification), related issues, and any new bindings or secrets with setup steps.
+- Assign pull requests to `@TinyKitten`.
 
 ## Cloudflare Workers Operations
 - Register secrets with `wrangler secret put` and document required keys outside version control.
