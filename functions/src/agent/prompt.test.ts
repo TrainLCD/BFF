@@ -67,10 +67,16 @@ describe('buildSystemPrompt', () => {
       '「目的地へ行けない」ではなく「現在駅から直通の候補としては確認できない」と区別'
     );
     expect(prompt).toContain(
-      '実在確認できた乗換地点は suggestions に含め'
+      '最終目的地への接続まで確認できる情報がある場合に限り'
     );
     expect(prompt).toContain(
-      'まずその駅を選び、到着後に現在駅が更新された状態でもう一度最終目的を相談できる'
+      'search_stations_by_name の結果は現在駅からの直通到達性しか保証しない'
+    );
+    expect(prompt).toContain(
+      'それだけを根拠に駅を乗換地点として扱わない'
+    );
+    expect(prompt).toContain(
+      '最終目的地への接続を確認できない場合は suggestions を空配列'
     );
     expect(prompt).toContain(
       '単に「乗り換えが必要です」「見つかりませんでした」と言い換えて終えない'
