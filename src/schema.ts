@@ -6,6 +6,8 @@ schema {
 	query: Query
 }
 
+scalar UInt32
+
 enum LineType {
 	OtherLineType
 	BulletTrain
@@ -111,7 +113,7 @@ type RouteTypePage {
 
 type Station {
 	id: Int
-	groupId: Int
+	groupId: UInt32
 	name: String
 	nameKatakana: String
 	nameRoman: String
@@ -141,7 +143,7 @@ type Station {
 
 type StationNested {
 	id: Int
-	groupId: Int
+	groupId: UInt32
 	name: String
 	nameKatakana: String
 	nameRoman: String
@@ -243,7 +245,7 @@ type Company {
 type TrainType {
 	id: Int
 	typeId: Int
-	groupId: Int
+	groupId: UInt32
 	name: String
 	nameKatakana: String
 	nameRoman: String
@@ -262,7 +264,7 @@ type TrainType {
 type TrainTypeNested {
 	id: Int
 	typeId: Int
-	groupId: Int
+	groupId: UInt32
 	name: String
 	nameKatakana: String
 	nameRoman: String
@@ -279,13 +281,13 @@ type TrainTypeNested {
 }
 
 type Route {
-	id: Int
+	id: UInt32
 	stops: [StationNested!]
 }
 
 type EstimatedArrivalStop {
 	stationId: Int
-	stationGroupId: Int
+	stationGroupId: UInt32
 	cumulativeMinutes: Float
 	stopsHere: Boolean
 	departureCumulativeMinutes: Float
