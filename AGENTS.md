@@ -17,7 +17,8 @@
 ## Build, Test, and Development Commands
 - `npm run dev` / `npm start`: Start `wrangler dev` at `http://localhost:8787` with local bindings.
 - `npm run test`: Execute Vitest against the Workers pool, covering CORS, proxy forwarding, and configuration-failure paths.
-- `npm run deploy`: Deploy through Wrangler using the currently authenticated Cloudflare account.
+- `npm run deploy:dev`: Deploy the staging Worker through Wrangler using the currently authenticated Cloudflare account.
+- `npm run deploy:prod`: Deploy the production Worker with the Wrangler `production` environment.
 - `npm run cf-typegen`: Regenerate runtime typings after updating `wrangler.jsonc` or rotating secrets.
 - `npm run proto:generate`: Rebuild `src/generated/stationapi.js` / `.d.ts` from `proto/stationapi.proto` via `protobufjs`.
 - `npm run schema:generate`: Regenerate `src/schema.ts` from `schema.graphql` - run this after modifying the GraphQL schema.
