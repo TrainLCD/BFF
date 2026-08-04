@@ -61,11 +61,19 @@ describe('buildSystemPrompt', () => {
     );
   });
 
-  it('候補が無いときは正直に空配列を返させる（断定で埋めさせない）', () => {
+  it('直通候補が無いときも最終目的に役立つ次の一手を案内させる', () => {
     const prompt = buildSystemPrompt(null);
     expect(prompt).toContain(
-      '見つからなければ、候補がないことを正直に伝えて suggestions は空配列にする'
+      '「目的地へ行けない」ではなく「現在駅から直通の候補としては確認できない」と区別'
     );
-    expect(prompt).not.toContain('必ず代替候補がある');
+    expect(prompt).toContain(
+      '実在確認できた乗換地点は suggestions に含め'
+    );
+    expect(prompt).toContain(
+      'まずその駅を選び、到着後に現在駅が更新された状態でもう一度最終目的を相談できる'
+    );
+    expect(prompt).toContain(
+      '単に「乗り換えが必要です」「見つかりませんでした」と言い換えて終えない'
+    );
   });
 });
