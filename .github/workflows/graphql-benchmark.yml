@@ -1,0 +1,213 @@
+name: GraphQL benchmark
+
+on:
+  push:
+    branches:
+      - benchmark-gql-20260822
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Benchmark production and staging
+        shell: bash
+        run: |
+          cat > /tmp/bench.mjs <<'NODE'
+          import { performance } from 'node:perf_hooks';
+
+          const endpoints = {
+            production: 'https://gql.trainlcd.app',
+            staging: 'https://gql-stg.trainlcd.app',
+          };
+
+          async function gql(url, query, variables = {}, timeoutMs = 30000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+              const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ query, variables }),
+                signal: controller.signal,
+              });
+              const text = await res.text();
+              let json = null;
+              try { json = JSON.parse(text); } catch {}
+              return {
+                ok: res.ok && !json?.errors,
+                status: res.status,
+                bytes: Buffer.byteLength(text),
+                json,
+                text: text.slice(0, 500),
+              };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+
+          async function timed(url, query, variables) {
+            const t0 = performance.now();
+            try {
+              const r = await gql(url, query, variables);
+              return { ms: performance.now() - t0, ...r };
+            } catch (e) {
+              return {
+                ms: performance.now() - t0,
+                ok: false,
+                status: 0,
+                bytes: 0,
+                error: e?.name + ': ' + e?.message,
+              };
+            }
+          }
+
+          function median(xs) {
+            const a = [...xs].sort((a,b)=>a-b);
+            const m = Math.floor(a.length/2);
+            return a.length % 2 ? a[m] : (a[m-1] + a[m]) / 2;
+          }
+          function percentile(xs, p) {
+            const a = [...xs].sort((a,b)=>a-b);
+            const idx = Math.min(a.length - 1, Math.ceil((p/100)*a.length)-1);
+            return a[idx];
+          }
+          function round(n) { return Math.round(n * 10) / 10; }
+
+          async function must(url, query, variables, label) {
+            const r = await gql(url, query, variables);
+            if (!r.ok) throw new Error(`${label} failed: HTTP ${r.status} ${r.text}`);
+            return r.json.data;
+          }
+
+          async function bootstrap(url) {
+            const byNameQ = `query($name:String!){stationsByName(name:$name,limit:20){id groupId name latitude longitude line{id nameShort} lines{id nameShort}}}`;
+            const found = await must(url, byNameQ, { name: '東京' }, 'stationsByName bootstrap');
+            const seed = found.stationsByName.find(s => Number.isInteger(s?.line?.id))
+              ?? found.stationsByName.find(s => Array.isArray(s?.lines) && Number.isInteger(s.lines[0]?.id));
+            if (!seed) throw new Error('Could not find a Tokyo station with a line ID');
+            const lineId = seed.line?.id ?? seed.lines[0].id;
+
+            const lineStationsQ = `query($lineId:Int!){lineStations(lineId:$lineId){id groupId name latitude longitude line{id nameShort}}}`;
+            const ls = await must(url, lineStationsQ, { lineId }, 'lineStations bootstrap');
+            const valid = ls.lineStations.filter(s => Number.isInteger(s?.id) && Number.isInteger(s?.groupId));
+            if (valid.length < 2) throw new Error('Need at least two stations on bootstrap line');
+            const a = valid[0];
+            const b = valid.find((s, i) => i >= 4 && s.groupId !== a.groupId) ?? valid.find(s => s.groupId !== a.groupId) ?? valid[1];
+
+            const lineQ = `query($lineId:Int!){line(lineId:$lineId){id nameShort nameFull}}`;
+            const lineData = await must(url, lineQ, { lineId }, 'line bootstrap');
+            const lineName = lineData.line?.nameShort || lineData.line?.nameFull || '山手';
+
+            const ttQ = `query($stationId:Int!){stationTrainTypes(stationId:$stationId){id groupId name}}`;
+            const tts = await must(url, ttQ, { stationId: a.id }, 'stationTrainTypes bootstrap');
+            let lineGroupId = tts.stationTrainTypes.find(t => Number.isInteger(t?.groupId))?.groupId;
+            if (!Number.isInteger(lineGroupId)) {
+              const rtQ = `query($from:Int!,$to:Int!){routeTypes(fromStationGroupId:$from,toStationGroupId:$to,pageSize:10){trainTypes{id groupId name}}}`;
+              const rt = await must(url, rtQ, { from: a.groupId, to: b.groupId }, 'routeTypes bootstrap');
+              lineGroupId = rt.routeTypes.trainTypes.find(t => Number.isInteger(t?.groupId))?.groupId;
+            }
+            if (!Number.isInteger(lineGroupId)) throw new Error('Could not discover a lineGroupId');
+
+            return {
+              a,
+              b,
+              lineId,
+              lineName,
+              lineGroupId,
+              latitude: Number.isFinite(a.latitude) ? a.latitude : 35.681236,
+              longitude: Number.isFinite(a.longitude) ? a.longitude : 139.767125,
+            };
+          }
+
+          function cases(v) {
+            return [
+              ['station', `query($id:Int!){station(id:$id){id name groupId}}`, { id: v.a.id }],
+              ['stations', `query($ids:[Int!]!){stations(ids:$ids){id name groupId}}`, { ids: [v.a.id, v.b.id] }],
+              ['stationsNearby', `query($latitude:Float!,$longitude:Float!){stationsNearby(latitude:$latitude,longitude:$longitude,limit:10){id name groupId distance}}`, { latitude: v.latitude, longitude: v.longitude }],
+              ['stationsByName', `query($name:String!){stationsByName(name:$name,limit:10){id name groupId}}`, { name: v.a.name }],
+              ['stationGroupStations', `query($groupId:Int!){stationGroupStations(groupId:$groupId){id name groupId}}`, { groupId: v.a.groupId }],
+              ['lineGroupStations', `query($lineGroupId:Int!){lineGroupStations(lineGroupId:$lineGroupId){id name groupId}}`, { lineGroupId: v.lineGroupId }],
+              ['line', `query($lineId:Int!){line(lineId:$lineId){id nameShort nameFull}}`, { lineId: v.lineId }],
+              ['lines', `query($lineIds:[Int!]!){lines(lineIds:$lineIds){id nameShort nameFull}}`, { lineIds: [v.lineId] }],
+              ['linesByName', `query($name:String!){linesByName(name:$name,limit:10){id nameShort nameFull}}`, { name: v.lineName }],
+              ['lineStations', `query($lineId:Int!,$stationId:Int){lineStations(lineId:$lineId,stationId:$stationId){id name groupId}}`, { lineId: v.lineId, stationId: v.a.id }],
+              ['lineListStations', `query($lineIds:[Int!]!){lineListStations(lineIds:$lineIds){id name groupId}}`, { lineIds: [v.lineId] }],
+              ['lineGroupListStations', `query($lineGroupIds:[Int!]!){lineGroupListStations(lineGroupIds:$lineGroupIds){id name groupId}}`, { lineGroupIds: [v.lineGroupId] }],
+              ['stationTrainTypes', `query($stationId:Int!){stationTrainTypes(stationId:$stationId){id name groupId typeId}}`, { stationId: v.a.id }],
+              ['routes', `query($from:Int!,$to:Int!){routes(fromStationGroupId:$from,toStationGroupId:$to,pageSize:10){routes{id stops{id groupId name}} nextPageToken}}`, { from: v.a.groupId, to: v.b.groupId }],
+              ['routeTypes', `query($from:Int!,$to:Int!){routeTypes(fromStationGroupId:$from,toStationGroupId:$to,pageSize:10){trainTypes{id name groupId typeId} nextPageToken}}`, { from: v.a.groupId, to: v.b.groupId }],
+              ['connectedRoutes', `query($from:Int!,$to:Int!){connectedRoutes(fromStationGroupId:$from,toStationGroupId:$to){id stops{id groupId name}}}`, { from: v.a.groupId, to: v.b.groupId }],
+              ['estimateArrivalTimes', `query($from:Int!,$to:Int!,$via:[Int!]){estimateArrivalTimes(fromStationId:$from,toStationId:$to,viaLineIds:$via){routes{id stops{stationId stationGroupId cumulativeMinutes stopsHere}}}}`, { from: v.a.id, to: v.b.id, via: [v.lineId] }],
+              ['trainRoute', `query($from:Int!,$to:Int!,$lineGroupId:Int){trainRoute(fromStationId:$from,toStationId:$to,lineGroupId:$lineGroupId){segments{station{id name} stops distanceFromPrevious maxSpeed maxAcceleration maxDeceleration}}}`, { from: v.a.id, to: v.b.id, lineGroupId: v.lineGroupId }],
+            ];
+          }
+
+          const bootstrapData = {};
+          for (const [env, url] of Object.entries(endpoints)) {
+            bootstrapData[env] = await bootstrap(url);
+            console.log('BOOTSTRAP', env, JSON.stringify(bootstrapData[env]));
+          }
+
+          const prodCases = new Map(cases(bootstrapData.production).map(x => [x[0], x]));
+          const stgCases = new Map(cases(bootstrapData.staging).map(x => [x[0], x]));
+          const names = [...prodCases.keys()];
+          const results = [];
+          const RUNS = 5;
+
+          for (const name of names) {
+            for (const [env, url, map] of [
+              ['production', endpoints.production, prodCases],
+              ['staging', endpoints.staging, stgCases],
+            ]) {
+              const [, query, variables] = map.get(name);
+              const warm = await timed(url, query, variables);
+              const samples = [];
+              let allOk = warm.ok;
+              const statuses = [warm.status];
+              const errors = warm.error ? [warm.error] : [];
+              let bytes = warm.bytes;
+              for (let i = 0; i < RUNS; i++) {
+                const r = await timed(url, query, variables);
+                samples.push(r.ms);
+                allOk = allOk && r.ok;
+                statuses.push(r.status);
+                bytes = r.bytes;
+                if (r.error) errors.push(r.error);
+                if (r.json?.errors) errors.push(...r.json.errors.map(e => e.message));
+              }
+              const row = {
+                query: name,
+                env,
+                ok: allOk,
+                warmupMs: round(warm.ms),
+                medianMs: round(median(samples)),
+                meanMs: round(samples.reduce((a,b)=>a+b,0)/samples.length),
+                p95Ms: round(percentile(samples,95)),
+                minMs: round(Math.min(...samples)),
+                maxMs: round(Math.max(...samples)),
+                bytes,
+                statuses: [...new Set(statuses)],
+                errors: [...new Set(errors)].slice(0,5),
+                samplesMs: samples.map(round),
+              };
+              results.push(row);
+              console.log('RESULT', JSON.stringify(row));
+            }
+          }
+
+          const summary = names.map(name => {
+            const p = results.find(r => r.query === name && r.env === 'production');
+            const s = results.find(r => r.query === name && r.env === 'staging');
+            return {
+              query: name,
+              productionMedianMs: p?.medianMs,
+              stagingMedianMs: s?.medianMs,
+              stagingVsProd: p?.medianMs ? round(s.medianMs / p.medianMs) : null,
+              productionOk: p?.ok,
+              stagingOk: s?.ok,
+            };
+          });
+          console.log('FINAL_JSON', JSON.stringify({ bootstrapData, results, summary }));
+          NODE
+          node /tmp/bench.mjs
