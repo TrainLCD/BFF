@@ -13,11 +13,6 @@
             "id": "bf3aac35b78e42a8968a90d59a5abeb2"
         }
     ],
-    "route": {
-        "custom_domain": true,
-        "pattern": "gql-stg.trainlcd.app",
-        "zone_name": "trainlcd.app"
-    },
     "vars": {
         "DISABLE_KV_CACHE": "true"
     },
